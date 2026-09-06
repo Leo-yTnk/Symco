@@ -2,18 +2,29 @@ import { ChevronRight, MoreHorizontal, X } from 'lucide-react'
 import { navigation } from '../../config/navigation'
 import type { Navigate, View } from '../../types'
 
+const navigationGroups = [
+  { label: 'Visão do projeto', items: navigation.slice(0, 1) },
+  { label: 'Planejamento e execução', items: navigation.slice(1, 4) },
+  { label: 'Controles do projeto', items: navigation.slice(4) },
+]
+
 export function AppSidebar({ view, open, navigate, close }: { view: View; open: boolean; navigate: Navigate; close: () => void }) {
   return <>
     <aside className={`sidebar ${open ? 'is-open' : ''}`}>
-      <div className="brand"><span className="brand-mark">sy</span><span><strong>symco.</strong><small>FOOD TECH</small></span></div>
+      <div className="brand sidebar-island"><span className="brand-mark">sy</span><span><strong>symco.</strong><small>FOOD TECH</small></span></div>
       <button className="mobile-close" onClick={close} aria-label="Fechar menu"><X size={20} /></button>
-      <div className="project-switcher"><span>PROJETO ATIVO</span><strong>Aky Alimentos</strong><small>Plataforma de Maionese</small><i>PRJ-127</i></div>
+      <div className="project-switcher sidebar-island"><span>PROJETO ATIVO</span><strong>Aky Alimentos</strong><small>Plataforma de Maionese</small><i>PRJ-127</i></div>
       <nav aria-label="Navegação principal">
-        {navigation.map(([id, label, Icon]) => <button key={id} className={view === id ? 'active' : ''} onClick={() => navigate(id)}>
-          <Icon size={18} /><span>{label}</span>{view === id && <ChevronRight size={14} />}
-        </button>)}
+        {navigationGroups.map((group, groupIndex) => <div className="nav-island sidebar-island" role="group" aria-label={group.label} key={group.label} style={{ '--group-index': groupIndex } as React.CSSProperties}>
+          {group.items.map(([id, label, Icon]) => {
+            const index = navigation.findIndex(([navigationId]) => navigationId === id)
+            return <button key={id} className={view === id ? 'active' : ''} onClick={() => navigate(id)} aria-current={view === id ? 'page' : undefined} style={{ '--nav-index': index } as React.CSSProperties}>
+              <Icon size={18} /><span>{label}</span>{view === id && <ChevronRight size={14} />}
+            </button>
+          })}
+        </div>)}
       </nav>
-      <div className="sidebar-foot"><div className="avatar">PT</div><span><strong>Patrick Tanaka</strong><small>Project Lead · Symco</small></span><MoreHorizontal size={18} /></div>
+      <div className="sidebar-foot sidebar-island"><div className="avatar">PT</div><span><strong>Patrick Tanaka</strong><small>Project Lead · Symco</small></span><MoreHorizontal size={18} /></div>
     </aside>
     {open && <button className="nav-scrim" onClick={close} aria-label="Fechar navegação" />}
   </>

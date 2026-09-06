@@ -1,21 +1,24 @@
 .app-shell { height: calc(100vh / var(--site-scale)); padding: 8px; overflow: hidden; background: var(--navy-950); }
-.sidebar { position: fixed; z-index: 10; inset: 0 auto 0 0; width: 244px; display: flex; flex-direction: column; background: var(--navy-950); color: #fff; }
-.brand { height: 70px; padding: 0 20px; display: flex; align-items: center; gap: 11px; }
+.sidebar { position: fixed; z-index: 10; inset: 0 auto 0 0; width: 244px; padding: 8px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none; background: var(--navy-950); color: #fff; }
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar-island { flex: 0 0 auto; border-radius: 16px; background: #091f2d; box-shadow: 0 2px 7px rgba(0,8,14,.14); }
+.brand { height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 11px; }
 .brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 50% 50% 50% 12px; background: var(--cyan-500); color: var(--navy-950); font-weight: 850; }
 .brand strong { font: 750 21px "DM Sans", Arial, sans-serif; }
 .brand small { display: block; margin-top: -2px; color: #9eb6c0; font-size: 8px; letter-spacing: .18em; }
-.project-switcher { position: relative; margin: 18px 12px 14px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-radius: 10px; background: rgba(255,255,255,.055); }
+.project-switcher { position: relative; margin: 0; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
 .project-switcher span { color: #6ad5df; font-size: 9px; font-weight: 750; letter-spacing: .11em; }
 .project-switcher strong { font-size: 13px; }
 .project-switcher small { color: #a8bac2; font-size: 10px; }
 .project-switcher i { position: absolute; right: 10px; top: 12px; color: #8298a1; font: normal 9px "IBM Plex Mono", monospace; }
-.sidebar nav { padding: 6px 10px; display: grid; gap: 2px; }
-.sidebar nav button { height: 42px; padding: 0 11px; display: flex; align-items: center; gap: 11px; border: 0; border-radius: 8px; background: transparent; color: #9eb0b8; text-align: left; font-size: 12px; }
+.sidebar nav { padding: 0; display: grid; gap: 10px; }
+.nav-island { padding: 0; overflow: hidden; }
+.sidebar nav button { width: 100%; min-width: 100%; height: 42px; padding: 0 11px; display: flex; align-items: center; gap: 11px; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: #9eb0b8; text-align: left; font-size: 12px; }
+.nav-island button + button::before { content: ''; position: absolute; top: 0; right: 0; left: 40px; width: auto; min-width: 0; height: 1px; background: rgba(255,255,255,.075); pointer-events: none; }
 .sidebar nav button span { flex: 1; }
 .sidebar nav button:hover { background: rgba(255,255,255,.06); color: #fff; }
 .sidebar nav button.active { background: rgba(19,184,204,.14); color: #fff; }
-.sidebar nav button.active::before { content: ''; width: 3px; height: 18px; position: absolute; left: 0; border-radius: 0 4px 4px 0; background: var(--cyan-500); }
-.sidebar-foot { margin-top: auto; padding: 15px; display: flex; align-items: center; gap: 10px; }
+.sidebar-foot { margin-top: auto; min-height: 62px; padding: 12px; display: flex; align-items: center; gap: 10px; }
 .sidebar-foot > span { flex: 1; display: flex; flex-direction: column; }
 .sidebar-foot strong { font-size: 11px; }.sidebar-foot small { color: #8fa4ad; font-size: 9px; }
 .avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: #173d4e; color: #aee8ed; font-size: 10px; font-weight: 750; }

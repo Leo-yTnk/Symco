@@ -1,8 +1,9 @@
 import { Check } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AppSidebar } from '../components/layout/AppSidebar'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Topbar } from '../components/layout/Topbar'
+import { navigation } from '../config/navigation'
 import { tasks as initialTasks, weeks } from '../data'
 import { BoardPage, TaskDrawer } from '../pages/BoardPage'
 import { DashboardPage } from '../pages/DashboardPage'
@@ -16,6 +17,7 @@ import type { Task, View } from '../types'
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard')
+  const viewRef = useRef<View>('dashboard')
   const [mobileNav, setMobileNav] = useState(false)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -24,9 +26,25 @@ export default function App() {
   const [toast, setToast] = useState('')
 
   const navigate = (nextView: View) => {
-    setView(nextView)
-    setMobileNav(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (nextView === viewRef.current) {
+      setMobileNav(false)
+      return
+    }
+
+    const currentIndex = navigationOrder.indexOf(viewRef.current)
+    const nextIndex = navigationOrder.indexOf(nextView)
+    const root = document.documentElement
+    root.dataset.navDirection = nextIndex >= currentIndex ? 'forward' : 'backward'
+
+    const commitNavigation = () => {
+      viewRef.current = nextView
+      setView(nextView)
+      setMobileNav(false)
+      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
+    }
+
+    commitNavigation()
+    window.setTimeout(() => delete root.dataset.navDirection, 500)
   }
 
   const updateTask = (task: Task) => {
@@ -45,18 +63,22 @@ export default function App() {
     <AppSidebar view={view} open={mobileNav} navigate={navigate} close={() => setMobileNav(false)} />
     <div className="workspace">
       <Topbar openMenu={() => setMobileNav(true)} />
-      <main><PageHeader view={view} onAction={view === 'dashboard' || view === 'board' ? primaryAction : undefined} />
-        {view === 'dashboard' && <DashboardPage tasks={tasks} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} />}
-        {view === 'board' && <BoardPage tasks={tasks} select={setSelectedTask} />}
-        {view === 'gates' && <GatesPage tasks={tasks} doneDocuments={doneDocuments} />}
-        {view === 'schedule' && <SchedulePage tasks={tasks} />}
-        {view === 'risks' && <RisksPage />}
-        {view === 'documents' && <DocumentsPage done={doneDocuments} setDone={setDoneDocuments} />}
-        {view === 'hours' && <HoursPage actual={actualHours} setActual={setActualHours} />}
-        {view === 'governance' && <GovernancePage />}
+      <main><div className="page-transition" key={view}>
+          <PageHeader view={view} onAction={view === 'dashboard' || view === 'board' ? primaryAction : undefined} />
+          {view === 'dashboard' && <DashboardPage tasks={tasks} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} />}
+          {view === 'board' && <BoardPage tasks={tasks} select={setSelectedTask} />}
+          {view === 'gates' && <GatesPage tasks={tasks} doneDocuments={doneDocuments} />}
+          {view === 'schedule' && <SchedulePage tasks={tasks} />}
+          {view === 'risks' && <RisksPage />}
+          {view === 'documents' && <DocumentsPage done={doneDocuments} setDone={setDoneDocuments} />}
+          {view === 'hours' && <HoursPage actual={actualHours} setActual={setActualHours} />}
+          {view === 'governance' && <GovernancePage />}
+        </div>
       </main>
     </div>
     {selectedTask && <TaskDrawer task={selectedTask} close={() => setSelectedTask(null)} save={updateTask} />}
     {toast && <div className="toast"><Check size={18} /><span>{toast}</span></div>}
   </div>
 }
+
+const navigationOrder: readonly View[] = navigation.map(([id]) => id)

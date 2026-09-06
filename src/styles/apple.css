@@ -224,15 +224,18 @@ td { border-bottom-color: var(--line); }
 .inline-info { border-radius: 12px; background: rgba(216, 239, 241, .7); }
 .toast { border-radius: 14px; background: rgba(14, 45, 59, .86); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
 
-/* Sidebar remains calm and material-like instead of outlined. */
-.project-switcher {
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .07);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+/* Sidebar uses grouped islands inspired by iOS settings surfaces. */
+.sidebar-island {
+  background: #091f2d;
+  box-shadow: 0 2px 7px rgba(0, 8, 14, .14);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
-.sidebar nav button { border-radius: 11px; }
+.project-switcher {
+  background: #091f2d;
+}
+.sidebar nav button { border-radius: 0; }
 .sidebar nav button.active { background: rgba(19, 184, 204, .16); }
-.sidebar nav button.active::before { display: none; }
 .avatar { border-radius: 50%; }
 
 @media (max-width: 800px) {
