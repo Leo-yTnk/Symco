@@ -1,0 +1,251 @@
+/* Apple-inspired material pass: depth comes from tone, light and blur — not outlines. */
+:root {
+  --surface: #f2f5f4;
+  --surface-2: rgba(228, 235, 234, .74);
+  --line: rgba(20, 35, 41, .085);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 1px 2px rgba(3, 21, 34, .035), 0 8px 24px rgba(3, 21, 34, .055);
+  --shadow-md: 0 14px 38px rgba(3, 21, 34, .09), 0 2px 7px rgba(3, 21, 34, .045);
+  --shadow-lg: 0 30px 80px rgba(3, 21, 34, .22), 0 8px 24px rgba(3, 21, 34, .1);
+  --glass: rgba(255, 255, 255, .78);
+  --glass-strong: rgba(255, 255, 255, .94);
+  --glass-dark: rgba(13, 39, 52, .82);
+  --blur: blur(12px) saturate(125%);
+}
+
+html { background: var(--navy-950); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+  background: var(--navy-950);
+}
+
+.workspace {
+  background:
+    radial-gradient(circle at 12% 4%, rgba(19, 184, 204, .09), transparent 28%),
+    radial-gradient(circle at 92% 84%, rgba(103, 89, 183, .055), transparent 28%),
+    var(--surface);
+  box-shadow: -18px 0 54px rgba(0, 8, 14, .28);
+}
+
+.page-stack > * { min-width: 0; }
+
+/* Floating materials */
+.topbar-island,
+.global-search {
+  border: 0;
+  background: rgba(255, 255, 255, .74);
+  box-shadow: 0 10px 32px rgba(3, 21, 34, .1), inset 0 1px 0 rgba(255, 255, 255, .7);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+}
+
+.global-search:focus-within {
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 14px 38px rgba(3, 21, 34, .13), 0 0 0 4px rgba(19, 184, 204, .1);
+}
+
+.global-search kbd {
+  border: 0;
+  border-radius: 6px;
+  background: rgba(3, 21, 34, .06);
+}
+
+.project-context small { border-left-color: rgba(20, 35, 41, .1); }
+.context-dot { box-shadow: 0 0 0 4px rgba(255, 240, 217, .82); }
+
+/* Core surfaces */
+.card,
+.metric,
+.task-list,
+.gate-panel,
+.milestone-strip,
+.document-overview > div,
+.document-groups > section > div {
+  border: 0;
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px) saturate(115%);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+}
+
+.card,
+.metric,
+.task-list,
+.gate-panel,
+.document-overview > div,
+.document-groups > section > div { border-radius: var(--radius-md); }
+
+.button {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .8);
+  box-shadow: 0 4px 14px rgba(3, 21, 34, .07);
+}
+
+.button:hover { background: #fff; box-shadow: 0 7px 20px rgba(3, 21, 34, .1); }
+.button.primary { background: var(--teal-700); box-shadow: 0 8px 22px rgba(7, 93, 104, .22); }
+.button.subtle { background: rgba(228, 235, 234, .72); box-shadow: none; }
+
+.status,
+.project-code,
+.gate-pill { border-radius: 999px; }
+
+/* Structure and separators stay quiet, like grouped iOS lists. */
+.section-title,
+.registry-head,
+.hours-workspace > header,
+.raci-card > header,
+.gantt-legend { border-bottom-color: var(--line); }
+
+.task-row,
+.document-groups article,
+.risk-list > article,
+.exception-list > div,
+.detail-list > div,
+td { border-bottom-color: var(--line); }
+
+.task-row,
+.gantt-task { background: transparent; }
+.task-row:hover { background: rgba(255, 255, 255, .58); }
+.task-list { overflow: hidden; }
+
+.toolbar {
+  border-radius: 15px;
+  background: rgba(242, 245, 244, .88);
+  box-shadow: 0 8px 28px rgba(3, 21, 34, .06);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+
+.toolbar > label {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .84);
+  box-shadow: inset 0 0 0 1px rgba(20, 35, 41, .025);
+}
+
+.filter-chips button,
+.tabs button { border-radius: 999px; }
+
+/* Dashboard hero: dark glass with soft luminous depth. */
+.project-brief {
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 76% 3%, rgba(26, 207, 222, .23), transparent 34%),
+    linear-gradient(145deg, rgba(4, 28, 43, .97), rgba(10, 47, 61, .92));
+  box-shadow: 0 24px 58px rgba(3, 21, 34, .2);
+}
+
+.brief-tags span,
+.brief-decision {
+  border: 0;
+  background: rgba(255, 255, 255, .11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+  backdrop-filter: blur(8px) saturate(115%);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+}
+
+.brief-tags span { border-radius: 999px; }
+.brief-decision { border-radius: 16px; }
+.brief-grid { border-top-color: rgba(255, 255, 255, .09); }
+
+.attention-callout {
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 248, 236, .82);
+  box-shadow: 0 9px 24px rgba(95, 61, 16, .07);
+}
+
+.metric { box-shadow: var(--shadow-sm); }
+.metric::after { width: 42px; height: 4px; right: 16px; bottom: 0; border-radius: 4px 4px 0 0; }
+.metric-icon { border-radius: 11px; }
+
+/* Roadmaps, charts and registers */
+.gate-node > div,
+.gate-rail span { border: 0; box-shadow: 0 6px 16px rgba(3, 21, 34, .08); }
+.gate-node.current > div,
+.gate-current .gate-rail span { box-shadow: 0 8px 18px rgba(7, 93, 104, .22), 0 0 0 6px rgba(228, 241, 241, .88); }
+.gate-current .gate-panel { border: 0; box-shadow: var(--shadow-md); }
+.gate-panel blockquote { border-block-color: var(--line); background: rgba(255, 255, 255, .44); }
+.gate-panel footer { border-top-color: var(--line); }
+
+.milestone-strip { overflow: hidden; }
+.milestone-strip > div { border-right-color: var(--line); }
+.gantt-bar { border: 0; box-shadow: 0 3px 8px rgba(7, 93, 104, .13); }
+
+.risk-matrix,
+.risk-summary,
+.decision-flow {
+  border-radius: 20px;
+  box-shadow: 0 18px 44px rgba(3, 21, 34, .18);
+}
+
+.risk-summary {
+  background: radial-gradient(circle at 90% 0, rgba(19, 184, 204, .2), transparent 36%), linear-gradient(125deg, var(--navy-800), #103746);
+}
+
+.risk-summary > div span { border-radius: 999px; }
+.risk-list article > button { border-radius: 50%; background: rgba(228, 235, 234, .72); }
+.document-overview > div:last-child { background: rgba(215, 237, 239, .72); }
+
+.hours-chart {
+  background: repeating-linear-gradient(to top, transparent 0, transparent 47px, rgba(20, 35, 41, .055) 48px);
+}
+
+.hours-entry label {
+  border: 0;
+  border-radius: 12px;
+  background: rgba(242, 245, 244, .72);
+}
+
+.hours-entry input,
+.drawer-body select {
+  border: 0;
+  border-radius: 9px;
+  background: rgba(228, 235, 234, .78);
+  box-shadow: inset 0 1px 2px rgba(3, 21, 34, .055);
+}
+
+.ritual { box-shadow: var(--shadow-sm); }
+
+/* More translucent modal material, with a darker scrim preserving contrast. */
+.overlay { background: rgba(3, 15, 23, .48); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.drawer {
+  background: rgba(247, 249, 248, .94);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(14px) saturate(125%);
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+}
+.drawer-head,
+.drawer-foot { border-color: var(--line); }
+.detail-list { border: 0; border-radius: 14px; background: rgba(255, 255, 255, .62); box-shadow: var(--shadow-sm); }
+.inline-info { border-radius: 12px; background: rgba(216, 239, 241, .7); }
+.toast { border-radius: 14px; background: rgba(14, 45, 59, .86); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
+
+/* Sidebar remains calm and material-like instead of outlined. */
+.project-switcher {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+.sidebar nav button { border-radius: 11px; }
+.sidebar nav button.active { background: rgba(19, 184, 204, .16); }
+.sidebar nav button.active::before { display: none; }
+.avatar { border-radius: 50%; }
+
+@media (max-width: 800px) {
+  :root { --site-scale: 1; }
+  .workspace { border-radius: 18px; }
+  .project-brief { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .project-brief > *, .brief-main { min-width: 0; }
+  .brief-main h2 { overflow-wrap: anywhere; }
+  .topbar-island, .global-search { background: rgba(255, 255, 255, .8); }
+  .toolbar { border-radius: 14px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* The prototype is intentionally light-first; this keeps native controls predictable. */
+  :root { color-scheme: light; }
+}
