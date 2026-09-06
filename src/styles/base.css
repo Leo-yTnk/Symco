@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
 html { background: var(--surface); }
-body { margin: 0; min-width: 320px; color: var(--ink); background: var(--surface); font-family: "IBM Plex Sans", Inter, Arial, sans-serif; font-synthesis: none; }
+body { margin: 0; min-width: 320px; color: var(--ink); background: var(--surface); font-family: "IBM Plex Sans", Inter, Arial, sans-serif; font-synthesis: none; zoom: var(--site-scale); }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 h1, h2, h3, p { margin: 0; }
