@@ -4,7 +4,7 @@ import type { Task } from '../types'
 import { Progress, StatusBadge } from '../components/ui'
 
 export function GatesPage({ tasks, doneDocuments }: { tasks: Task[]; doneDocuments: string[] }) {
-  return <div className="gate-roadmap">{gates.map((gate, index) => {
+  return <div className="page-stack gate-roadmap">{gates.map((gate, index) => {
     const related = tasks.filter(task => task.gate.includes(gate[0]))
     const progress = related.length ? Math.round(related.reduce((sum, task) => sum + task.progress, 0) / related.length) : 0
     const evidenceReady = doneDocuments.some(document => gate[4].toLowerCase().includes(document.toLowerCase()) || document.toLowerCase().includes(gate[4].split(' + ')[0].toLowerCase()))

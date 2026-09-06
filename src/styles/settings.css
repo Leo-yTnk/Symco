@@ -1,0 +1,50 @@
+/* First-access welcome */
+.welcome-page { width: 100%; max-width: none; min-height: calc(100vh / var(--site-scale)); height: auto; margin: 0; padding: 32px; display: grid; place-items: center; overflow: auto; background: radial-gradient(circle at 70% 18%, rgba(19,184,204,.2), transparent 29%), radial-gradient(circle at 18% 84%, rgba(103,89,183,.18), transparent 25%), var(--navy-950); color: #fff; }
+.welcome-panel { width: min(700px, 100%); padding: 44px; border: 1px solid rgba(255,255,255,.1); border-radius: 30px; background: rgba(9,31,45,.82); box-shadow: 0 34px 90px rgba(0,8,14,.42); backdrop-filter: blur(18px); }
+.welcome-brand { display: flex; align-items: center; gap: 11px; font: 750 22px "DM Sans", sans-serif; }
+.welcome-copy { margin: 54px 0 34px; }
+.welcome-copy h1 { margin: 9px 0 12px; font: 760 clamp(36px, 6vw, 58px)/1.02 "DM Sans", sans-serif; letter-spacing: -.045em; }
+.welcome-copy p { max-width: 540px; color: #b8cdd3; font-size: 16px; line-height: 1.55; }
+.welcome-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.welcome-features > div { min-height: 126px; padding: 17px; display: flex; align-items: flex-start; flex-direction: column; gap: 14px; border-radius: 16px; background: rgba(255,255,255,.055); color: #69d6df; }
+.welcome-features span { display: flex; flex-direction: column; gap: 5px; }
+.welcome-features strong { color: #fff; font-size: 13px; }
+.welcome-features small { color: #9fb5bd; font-size: 11px; line-height: 1.4; }
+.welcome-action { min-height: 48px; margin-top: 30px; padding: 0 20px; display: inline-flex; align-items: center; gap: 9px; border: 0; border-radius: 999px; background: var(--cyan-500); color: var(--navy-950); font-weight: 750; }
+.welcome-note { margin-left: 13px; color: #779099; font-size: 10px; }
+
+/* Personalization settings */
+.settings-page { max-width: 940px; }
+.settings-category { overflow: hidden; }
+.settings-category > header { padding: 19px 20px; display: flex; align-items: center; gap: 13px; background: rgba(242,245,244,.58); }
+.settings-icon { width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 11px; background: var(--cyan-100); color: var(--teal-700); }
+.settings-category h2 { font: 720 15px "DM Sans", sans-serif; }
+.settings-category header p { margin-top: 3px; color: var(--muted); font-size: 11px; }
+.setting-row { min-height: 76px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-top: 1px solid var(--line); }
+.setting-row > div:first-child { display: flex; flex-direction: column; gap: 4px; }
+.setting-row strong { font-size: 12px; }
+.setting-row small { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.setting-row-stack { align-items: flex-start; flex-direction: column; }
+.accent-options, .segmented-control { display: flex; align-items: center; gap: 7px; }
+.accent-options button, .segmented-control button { min-height: 36px; padding: 0 11px; display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 9px; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 650; }
+.accent-options button { min-width: 104px; }
+.accent-options button.selected, .segmented-control button.selected { background: var(--cyan-100); color: var(--teal-700); }
+.accent-options i { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(255,255,255,.8); }
+.accent-options svg { margin-left: auto; }
+.range-control { min-width: 260px; display: flex; align-items: center; gap: 12px; }
+.range-control input { width: 190px; accent-color: var(--teal-600); }
+.range-control output { min-width: 52px; color: var(--teal-700); font: 700 10px "IBM Plex Mono", monospace; }
+
+@media (max-width: 800px) {
+  .welcome-page { padding: 16px; }
+  .welcome-panel { padding: 28px 22px; border-radius: 24px; }
+  .welcome-copy { margin: 38px 0 26px; }
+  .welcome-features { grid-template-columns: 1fr; }
+  .welcome-features > div { min-height: 0; flex-direction: row; }
+  .welcome-action { width: 100%; justify-content: center; }
+  .welcome-note { margin: 12px 0 0; display: block; text-align: center; }
+  .setting-row { align-items: flex-start; flex-direction: column; gap: 13px; }
+  .accent-options, .segmented-control { width: 100%; overflow-x: auto; }
+  .range-control { width: 100%; min-width: 0; }
+  .range-control input { min-width: 0; flex: 1; }
+}

@@ -12,7 +12,7 @@ export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks
 
   return <div className="page-stack dashboard-page">
     <section className="project-brief">
-      <div className="brief-main"><span className="eyebrow inverse">SYMÁGILE™ · DESENVOLVIMENTO INTEGRADO</span><h2>Plataforma de Maionese</h2><p>Da inteligência de mercado à validação industrial, com rastreabilidade de cada decisão.</p><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> 8 decision gates</span></div></div>
+      <div className="brief-main"><span className="eyebrow inverse">SYMOS · DESENVOLVIMENTO INTEGRADO</span><h2>Plataforma de Maionese</h2><p>Da inteligência de mercado à validação industrial, com rastreabilidade de cada decisão.</p><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> 8 decision gates</span></div></div>
       <div className="brief-decision"><span>PRÓXIMA DECISÃO</span><strong>G0 · Brief</strong><small>09 set 2026</small><button onClick={() => navigate('gates')}>Preparar Gate <ArrowUpRight size={15} /></button></div>
       <div className="brief-grid"><span>Project lead<strong>Patrick Tanaka</strong></span><span>Investimento<strong>R$ 69.900</strong></span><span>Janela do projeto<strong>07 set — 16 nov</strong></span></div>
       <span className="brief-watermark">sy</span>

@@ -1,5 +1,5 @@
 .app-shell { height: calc(100vh / var(--site-scale)); padding: 8px; overflow: hidden; background: var(--navy-950); }
-.sidebar { position: fixed; z-index: 10; inset: 0 auto 0 0; width: 244px; padding: 8px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none; background: var(--navy-950); color: #fff; }
+.sidebar { position: fixed; z-index: 10; inset: 0 auto 0 0; width: var(--sidebar-width, 244px); padding: 8px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; scrollbar-width: none; background: var(--navy-950); color: #fff; }
 .sidebar::-webkit-scrollbar { display: none; }
 .sidebar-island { flex: 0 0 auto; border-radius: 16px; background: #091f2d; box-shadow: 0 2px 7px rgba(0,8,14,.14); }
 .brand { height: 62px; padding: 0 14px; display: flex; align-items: center; gap: 11px; }
@@ -21,9 +21,24 @@
 .sidebar-foot { margin-top: auto; min-height: 62px; padding: 12px; display: flex; align-items: center; gap: 10px; }
 .sidebar-foot > span { flex: 1; display: flex; flex-direction: column; }
 .sidebar-foot strong { font-size: 11px; }.sidebar-foot small { color: #8fa4ad; font-size: 9px; }
+.sidebar-settings { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #91a7b0; transition: background-color .18s ease; }
+.sidebar-settings:hover, .sidebar-settings.active { background: rgba(255,255,255,.09); color: #fff; }
+.sidebar-resizer { position: fixed; z-index: 12; top: 20px; bottom: 20px; left: calc(var(--sidebar-width, 244px) - 5px); width: 10px; padding: 0; border: 0; background: transparent; cursor: col-resize; touch-action: none; }
+.sidebar-resizer::after { content: ''; position: absolute; top: 50%; left: 4px; width: 2px; height: 42px; border-radius: 2px; background: rgba(104,215,223,.18); opacity: 0; transform: translateY(-50%); transition: background-color .18s ease; }
+.sidebar-resizer:hover::after, .sidebar-resizer:active::after { opacity: 1; background: rgba(104,215,223,.68); }
 .avatar { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: #173d4e; color: #aee8ed; font-size: 10px; font-weight: 750; }
-.workspace { position: relative; z-index: 20; height: calc(100vh / var(--site-scale) - 16px); margin-left: 244px; overflow: hidden; border-radius: 20px; background: var(--surface); box-shadow: -12px 0 38px rgba(3,21,34,.2); }
-.topbar { position: fixed; z-index: 25; top: 8px; right: 8px; left: 252px; min-height: 62px; padding: 10px 30px 8px; display: grid; grid-template-columns: max-content minmax(220px, 330px) max-content; align-items: center; justify-content: space-between; gap: 18px; pointer-events: none; }
+.sidebar.is-compact { padding-inline: 7px; }
+.sidebar.is-compact .brand { padding: 0; justify-content: center; }
+.sidebar.is-compact .brand > span:last-child,
+.sidebar.is-compact .project-switcher,
+.sidebar.is-compact nav button span,
+.sidebar.is-compact nav button svg:last-child,
+.sidebar.is-compact .sidebar-foot > span { display: none; }
+.sidebar.is-compact nav button { padding: 0; justify-content: center; }
+.sidebar.is-compact .nav-island button + button::before { right: 10px; left: 10px; }
+.sidebar.is-compact .sidebar-foot { min-height: 84px; padding: 8px 0; flex-direction: column; justify-content: center; gap: 4px; }
+.workspace { position: relative; z-index: 20; height: calc(100vh / var(--site-scale) - 16px); margin-left: var(--sidebar-width, 244px); overflow: hidden; border-radius: 20px; background: var(--surface); box-shadow: -12px 0 38px rgba(3,21,34,.2); }
+.topbar { position: fixed; z-index: 25; top: 8px; right: 8px; left: calc(var(--sidebar-width, 244px) + 8px); min-height: 62px; padding: 10px 30px 8px; display: grid; grid-template-columns: max-content minmax(220px, 330px) max-content; align-items: center; justify-content: space-between; gap: 18px; pointer-events: none; }
 .topbar > * { pointer-events: auto; }
 .topbar-island, .global-search { border: 1px solid rgba(207,220,222,.82); background: rgba(255,255,255,.72); box-shadow: 0 8px 24px rgba(3,21,34,.07); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .topbar-context { min-width: 255px; height: 42px; padding: 0 11px; display: flex; align-items: center; border-radius: 21px; }

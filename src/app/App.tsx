@@ -1,9 +1,8 @@
 import { Check } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AppSidebar } from '../components/layout/AppSidebar'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Topbar } from '../components/layout/Topbar'
-import { navigation } from '../config/navigation'
 import { tasks as initialTasks, weeks } from '../data'
 import { BoardPage, TaskDrawer } from '../pages/BoardPage'
 import { DashboardPage } from '../pages/DashboardPage'
@@ -13,38 +12,57 @@ import { GovernancePage } from '../pages/GovernancePage'
 import { HoursPage } from '../pages/HoursPage'
 import { RisksPage } from '../pages/RisksPage'
 import { SchedulePage } from '../pages/SchedulePage'
-import type { Task, View } from '../types'
+import { SettingsPage } from '../pages/SettingsPage'
+import { WelcomePage } from '../pages/WelcomePage'
+import type { Task, UserPreferences, View } from '../types'
+
+const defaultPreferences: UserPreferences = { sidebarWidth: 244, accent: 'cyan', density: 'comfortable', motion: 'full' }
+
+function loadPreferences(): UserPreferences {
+  try { return { ...defaultPreferences, ...JSON.parse(localStorage.getItem('symos-preferences') || '{}') } }
+  catch { return defaultPreferences }
+}
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard')
-  const viewRef = useRef<View>('dashboard')
   const [mobileNav, setMobileNav] = useState(false)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [doneDocuments, setDoneDocuments] = useState<string[]>([])
   const [actualHours, setActualHours] = useState<number[]>(weeks.map(() => 0))
   const [toast, setToast] = useState('')
+  const [preferences, setPreferences] = useState<UserPreferences>(loadPreferences)
+  const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('symos-welcome-seen') !== 'true')
+
+  useEffect(() => {
+    localStorage.setItem('symos-preferences', JSON.stringify(preferences))
+    const root = document.documentElement
+    root.dataset.accent = preferences.accent
+    root.dataset.density = preferences.density
+    root.dataset.motion = preferences.motion
+    root.style.setProperty('--sidebar-width', `${preferences.sidebarWidth}px`)
+  }, [preferences])
+
+  const updatePreferences = (next: Partial<UserPreferences>) => setPreferences(current => ({ ...current, ...next }))
+
+  const continueToApp = () => {
+    localStorage.setItem('symos-welcome-seen', 'true')
+    setShowWelcome(false)
+  }
 
   const navigate = (nextView: View) => {
-    if (nextView === viewRef.current) {
+    if (nextView === view) {
       setMobileNav(false)
       return
     }
 
-    const currentIndex = navigationOrder.indexOf(viewRef.current)
-    const nextIndex = navigationOrder.indexOf(nextView)
-    const root = document.documentElement
-    root.dataset.navDirection = nextIndex >= currentIndex ? 'forward' : 'backward'
-
     const commitNavigation = () => {
-      viewRef.current = nextView
       setView(nextView)
       setMobileNav(false)
       document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
     }
 
     commitNavigation()
-    window.setTimeout(() => delete root.dataset.navDirection, 500)
   }
 
   const updateTask = (task: Task) => {
@@ -59,8 +77,10 @@ export default function App() {
     else if (view === 'board' && tasks[0]) setSelectedTask(tasks[0])
   }
 
+  if (showWelcome) return <WelcomePage continueToApp={continueToApp} />
+
   return <div className="app-shell">
-    <AppSidebar view={view} open={mobileNav} navigate={navigate} close={() => setMobileNav(false)} />
+    <AppSidebar view={view} open={mobileNav} navigate={navigate} close={() => setMobileNav(false)} width={preferences.sidebarWidth} setWidth={width => updatePreferences({ sidebarWidth: width })} />
     <div className="workspace">
       <Topbar openMenu={() => setMobileNav(true)} />
       <main><div className="page-transition" key={view}>
@@ -73,6 +93,7 @@ export default function App() {
           {view === 'documents' && <DocumentsPage done={doneDocuments} setDone={setDoneDocuments} />}
           {view === 'hours' && <HoursPage actual={actualHours} setActual={setActualHours} />}
           {view === 'governance' && <GovernancePage />}
+          {view === 'settings' && <SettingsPage preferences={preferences} updatePreferences={updatePreferences} />}
         </div>
       </main>
     </div>
@@ -80,5 +101,3 @@ export default function App() {
     {toast && <div className="toast"><Check size={18} /><span>{toast}</span></div>}
   </div>
 }
-
-const navigationOrder: readonly View[] = navigation.map(([id]) => id)

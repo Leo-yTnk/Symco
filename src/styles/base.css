@@ -18,4 +18,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .button.subtle { background: var(--surface); }
 .button.full { width: 100%; }
 .text-button { padding: 0; display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--teal-700); font-size: 11px; font-weight: 750; }
+html[data-density='compact'] .page-stack { gap: 12px; }
+html[data-density='compact'] main { padding-top: 82px; padding-bottom: 38px; }
+html[data-density='compact'] .page-head { min-height: 62px; margin-bottom: 17px; }
+html[data-density='compact'] .task-row,
+html[data-density='compact'] .risk-list > article,
+html[data-density='compact'] .document-groups article { min-height: 56px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

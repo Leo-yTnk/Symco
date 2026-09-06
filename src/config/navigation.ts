@@ -24,6 +24,7 @@ export const pageMeta: Record<View, { eyebrow: string; title: string; descriptio
   documents: { eyebrow: 'TRILHA DE EVIDÊNCIAS', title: 'Documentos', description: 'Artefatos necessários para aprovar cada Gate.' },
   hours: { eyebrow: 'CAPACIDADE PMO', title: 'Horas PMO', description: 'Consumo, saldo e tendência do esforço contratado.' },
   governance: { eyebrow: 'MODELO OPERACIONAL', title: 'Governança', description: 'Papéis, decisões e cadência de acompanhamento.' },
+  settings: { eyebrow: 'PREFERÊNCIAS', title: 'Configurações', description: 'Personalize o SymOS para trabalhar do seu jeito.' },
 }
 
 export const statuses = ['Não iniciado', 'Em andamento', 'Bloqueado', 'Concluído', 'Cancelado'] as const

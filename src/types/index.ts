@@ -1,4 +1,11 @@
-export type View = 'dashboard' | 'board' | 'gates' | 'schedule' | 'risks' | 'documents' | 'hours' | 'governance'
+export type View = 'dashboard' | 'board' | 'gates' | 'schedule' | 'risks' | 'documents' | 'hours' | 'governance' | 'settings'
+
+export type UserPreferences = {
+  sidebarWidth: number
+  accent: 'cyan' | 'violet' | 'emerald'
+  density: 'comfortable' | 'compact'
+  motion: 'full' | 'reduced'
+}
 
 export type TaskStatus = 'Não iniciado' | 'Em andamento' | 'Bloqueado' | 'Concluído' | 'Cancelado'
 
