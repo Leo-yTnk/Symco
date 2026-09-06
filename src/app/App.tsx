@@ -16,7 +16,7 @@ import { SettingsPage } from '../pages/SettingsPage'
 import { WelcomePage } from '../pages/WelcomePage'
 import type { Task, UserPreferences, View } from '../types'
 
-const defaultPreferences: UserPreferences = { sidebarWidth: 244, accent: 'cyan', density: 'comfortable', motion: 'full' }
+const defaultPreferences: UserPreferences = { sidebarWidth: 244, accent: 'cyan', theme: 'light', density: 'comfortable', motion: 'full' }
 
 function loadPreferences(): UserPreferences {
   try { return { ...defaultPreferences, ...JSON.parse(localStorage.getItem('symos-preferences') || '{}') } }
@@ -38,6 +38,7 @@ export default function App() {
     localStorage.setItem('symos-preferences', JSON.stringify(preferences))
     const root = document.documentElement
     root.dataset.accent = preferences.accent
+    root.dataset.theme = preferences.theme
     root.dataset.density = preferences.density
     root.dataset.motion = preferences.motion
     root.style.setProperty('--sidebar-width', `${preferences.sidebarWidth}px`)

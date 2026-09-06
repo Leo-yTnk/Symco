@@ -3,6 +3,7 @@ export type View = 'dashboard' | 'board' | 'gates' | 'schedule' | 'risks' | 'doc
 export type UserPreferences = {
   sidebarWidth: number
   accent: 'cyan' | 'violet' | 'emerald'
+  theme: 'light' | 'dark'
   density: 'comfortable' | 'compact'
   motion: 'full' | 'reduced'
 }

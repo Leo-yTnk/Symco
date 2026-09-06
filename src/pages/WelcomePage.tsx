@@ -5,7 +5,6 @@ export function WelcomePage({ continueToApp }: { continueToApp: () => void }) {
     <section className="welcome-panel">
       <div className="welcome-brand"><span className="brand-mark">sy</span><strong>SymOS</strong></div>
       <div className="welcome-copy">
-        <span className="eyebrow inverse">SEU AMBIENTE DE PROJETOS</span>
         <h1>Bem-vindo ao SymOS.</h1>
         <p>Planejamento, decisões e execução em um só lugar — com o contexto certo para cada etapa.</p>
       </div>

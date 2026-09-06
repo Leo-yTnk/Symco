@@ -39,7 +39,7 @@ export function AppSidebar({ view, open, navigate, close, width, setWidth }: { v
           })}
         </div>)}
       </nav>
-      <div className="sidebar-foot sidebar-island"><div className="avatar">PT</div><span><strong>Patrick Tanaka</strong><small>Project Lead · Symco</small></span><button className={`sidebar-settings ${view === 'settings' ? 'active' : ''}`} onClick={() => navigate('settings')} aria-label="Abrir configurações" title="Configurações"><Settings size={17} /></button></div>
+      <div className="sidebar-foot sidebar-island"><div className="avatar"><span>PT</span></div><span><strong>Patrick Tanaka</strong><small>Project Lead · Symco</small></span><button className={`sidebar-settings ${view === 'settings' ? 'active' : ''}`} onClick={() => navigate('settings')} aria-label="Abrir configurações" title="Configurações"><Settings size={17} /></button></div>
       <button className="sidebar-resizer" onPointerDown={startResize} onKeyDown={event => {
         if (event.key === 'ArrowLeft') setWidth(Math.max(74, width - 4))
         if (event.key === 'ArrowRight') setWidth(Math.min(340, width + 4))

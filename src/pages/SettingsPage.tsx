@@ -1,4 +1,4 @@
-import { Check, Gauge, MonitorCog, MoveHorizontal, Palette, Sparkles } from 'lucide-react'
+import { Check, Gauge, MonitorCog, Moon, MoveHorizontal, Palette, Sparkles, Sun } from 'lucide-react'
 import type { UserPreferences } from '../types'
 
 type Props = {
@@ -20,6 +20,13 @@ export function SettingsPage({ preferences, updatePreferences }: Props) {
         <div><strong>Cor de destaque</strong><small>Aplicada a seleções, indicadores e ações principais.</small></div>
         <div className="accent-options" role="radiogroup" aria-label="Cor de destaque">
           {accents.map(([value, label, color]) => <button key={value} role="radio" aria-checked={preferences.accent === value} className={preferences.accent === value ? 'selected' : ''} onClick={() => updatePreferences({ accent: value })}><i style={{ background: color }} />{label}{preferences.accent === value && <Check size={14} />}</button>)}
+        </div>
+      </div>
+      <div className="setting-row">
+        <div><strong>Tema da interface</strong><small>Alterne entre a aparência clara e escura.</small></div>
+        <div className="segmented-control" role="radiogroup" aria-label="Tema da interface">
+          <button role="radio" aria-checked={preferences.theme === 'light'} className={preferences.theme === 'light' ? 'selected' : ''} onClick={() => updatePreferences({ theme: 'light' })}><Sun size={14} />Claro</button>
+          <button role="radio" aria-checked={preferences.theme === 'dark'} className={preferences.theme === 'dark' ? 'selected' : ''} onClick={() => updatePreferences({ theme: 'dark' })}><Moon size={14} />Escuro</button>
         </div>
       </div>
     </section>

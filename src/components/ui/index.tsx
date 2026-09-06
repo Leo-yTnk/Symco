@@ -17,6 +17,6 @@ export function Metric({ icon: Icon, label, value, note, tone = 'info' }: { icon
   </article>
 }
 
-export function SectionTitle({ eyebrow, title, action }: { eyebrow: string; title: string; action?: React.ReactNode }) {
-  return <div className="section-title"><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div>{action}</div>
+export function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
+  return <div className="section-title"><div><h2>{title}</h2></div>{action}</div>
 }

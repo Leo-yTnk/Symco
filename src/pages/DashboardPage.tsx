@@ -11,14 +11,16 @@ export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks
   const critical = risks.filter(risk => risk[4] === 'Crítica').length
 
   return <div className="page-stack dashboard-page">
-    <section className="project-brief">
-      <div className="brief-main"><span className="eyebrow inverse">SYMOS · DESENVOLVIMENTO INTEGRADO</span><h2>Plataforma de Maionese</h2><p>Da inteligência de mercado à validação industrial, com rastreabilidade de cada decisão.</p><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> 8 decision gates</span></div></div>
-      <div className="brief-decision"><span>PRÓXIMA DECISÃO</span><strong>G0 · Brief</strong><small>09 set 2026</small><button onClick={() => navigate('gates')}>Preparar Gate <ArrowUpRight size={15} /></button></div>
-      <div className="brief-grid"><span>Project lead<strong>Patrick Tanaka</strong></span><span>Investimento<strong>R$ 69.900</strong></span><span>Janela do projeto<strong>07 set — 16 nov</strong></span></div>
-      <span className="brief-watermark">sy</span>
-    </section>
+    <div className="hero-composition">
+      <section className="project-brief">
+        <div className="brief-main"><h2>Plataforma de Maionese</h2><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> 8 decision gates</span></div></div>
+        <div className="brief-decision"><span>Próxima decisão</span><strong>G0 · Brief</strong><small>09 set 2026</small><button onClick={() => navigate('gates')}>Preparar Gate <ArrowUpRight size={15} /></button></div>
+        <span className="brief-watermark">sy</span>
+      </section>
+      <aside className="brief-grid" aria-label="Dados do projeto"><span>Project lead<strong>Patrick Tanaka</strong></span><span>Investimento<strong>R$ 69.900</strong></span><span>Janela do projeto<strong>07 set — 16 nov</strong></span></aside>
+    </div>
 
-    <section className="attention-callout"><span className="attention-number">01</span><div><small>ATENÇÃO PRIORITÁRIA</small><strong>Validar escopo, targets e governança antes da abertura do G0.</strong></div><button onClick={() => navigate('board')}>Ver atividade <ArrowUpRight size={15} /></button></section>
+    <section className="attention-callout"><span className="attention-number">01</span><div><strong>Validar escopo, targets e governança antes da abertura do G0.</strong></div><button onClick={() => navigate('board')}>Ver atividade <ArrowUpRight size={15} /></button></section>
 
     <section className="metric-grid">
       <Metric icon={CircleGauge} label="Avanço ponderado" value={`${progress}%`} note="Meta de aderência ≥ 90%" />
@@ -28,7 +30,7 @@ export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks
     </section>
 
     <section className="card journey-card">
-      <SectionTitle eyebrow="MAPA DE DECISÕES" title="Jornada de Stage-Gates" action={<button className="text-button" onClick={() => navigate('gates')}>Detalhar jornada <ArrowUpRight size={14} /></button>} />
+      <SectionTitle title="Jornada de Stage-Gates" action={<button className="text-button" onClick={() => navigate('gates')}>Detalhar jornada <ArrowUpRight size={14} /></button>} />
       <div className="gate-track">{gates.map((gate, index) => {
         const related = tasks.filter(task => task.gate.includes(gate[0]))
         const value = related.length ? Math.round(related.reduce((sum, task) => sum + task.progress, 0) / related.length) : 0
@@ -38,8 +40,8 @@ export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks
     </section>
 
     <section className="dashboard-lower">
-      <article className="card exception-card"><SectionTitle eyebrow="EXCEÇÕES" title="O que exige decisão" action={<button className="text-button" onClick={() => navigate('risks')}>Ver registro</button>} /><div className="exception-list">{risks.slice(0, 3).map((risk, index) => <div key={risk[0]}><span className="exception-rank">0{index + 1}</span><div><strong>{risk[3]}</strong><small>{risk[0]} · {risk[2]} · Dono: {risk[5]}</small></div><StatusBadge status={risk[4]} /></div>)}</div></article>
-      <article className="card evidence-card"><SectionTitle eyebrow="EVIDÊNCIAS" title="Prontidão documental" action={<FileText size={18} />} /><div className="evidence-score"><div><strong>{Math.round(documentsDone / documents.length * 100)}%</strong><span>cobertura</span></div><div><Progress value={documentsDone / documents.length * 100} tone="violet" /><strong>{documents.length - documentsDone} pendências</strong><small>Sem evidência, o Gate não avança.</small></div></div><button className="button subtle full" onClick={() => navigate('documents')}>Revisar evidências</button></article>
+      <article className="card exception-card"><SectionTitle title="O que exige decisão" action={<button className="text-button" onClick={() => navigate('risks')}>Ver registro</button>} /><div className="exception-list">{risks.slice(0, 3).map((risk, index) => <div key={risk[0]}><span className="exception-rank">0{index + 1}</span><div><strong>{risk[3]}</strong><small>{risk[0]} · {risk[2]} · Dono: {risk[5]}</small></div><StatusBadge status={risk[4]} /></div>)}</div></article>
+      <article className="card evidence-card"><SectionTitle title="Prontidão documental" action={<FileText size={18} />} /><div className="evidence-score"><div><strong>{Math.round(documentsDone / documents.length * 100)}%</strong><span>cobertura</span></div><div><Progress value={documentsDone / documents.length * 100} tone="violet" /><strong>{documents.length - documentsDone} pendências</strong><small>Sem evidência, o Gate não avança.</small></div></div><button className="button subtle full" onClick={() => navigate('documents')}>Revisar evidências</button></article>
     </section>
   </div>
 }
