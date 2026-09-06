@@ -1,0 +1,10 @@
+import { Activity, CircleGauge, Clock3 } from 'lucide-react'
+import { weeks } from '../data'
+import { Metric } from '../components/ui'
+
+export function HoursPage({ actual, setActual }: { actual: number[]; setActual: (hours: number[]) => void }) {
+  const planned = weeks.reduce((sum, week) => sum + week[2], 0)
+  const used = actual.reduce((sum, value) => sum + value, 0)
+  const balance = planned - used
+  return <div className="page-stack hours-page"><section className="metric-grid metric-grid-three"><Metric icon={Clock3} label="Horas contratadas" value={`${planned}h`} note="Limite da proposta" /><Metric icon={Activity} label="Horas realizadas" value={`${used}h`} note={`${Math.round(used / planned * 100)}% consumido`} tone="success" /><Metric icon={CircleGauge} label="Saldo projetado" value={`${balance}h`} note={balance >= 0 ? 'Operação dentro do plano' : 'Consumo acima do plano'} tone={balance >= 0 ? 'violet' : 'danger'} /></section><section className="card hours-workspace"><header><div><span className="eyebrow">CURVA DE CONSUMO</span><h2>Planejado × realizado</h2></div><div className="chart-legend"><span><i />Planejado</span><span><i />Realizado</span></div></header><div className="hours-chart" aria-label="Gráfico de horas planejadas e realizadas">{weeks.map((week, index) => <div className="week-bar" key={week[0]}><div className="bar-values"><small>{actual[index] || ''}</small><div><i style={{ height: `${week[2] * 21}px` }} /><b style={{ height: `${actual[index] * 21}px` }} /></div></div><span>{week[0]}<small>{week[1]}</small></span></div>)}</div><div className="hours-entry"><h3>Lançamento semanal</h3><div>{weeks.map((week, index) => <label key={week[0]}><span>{week[0]}<small>{week[1]}</small></span><input aria-label={`Horas realizadas ${week[0]}`} type="number" min="0" max="12" step="0.5" value={actual[index]} onChange={event => setActual(actual.map((value, itemIndex) => itemIndex === index ? Number(event.target.value) : value))} /><small>/{week[2]}h</small></label>)}</div></div></section></div>
+}

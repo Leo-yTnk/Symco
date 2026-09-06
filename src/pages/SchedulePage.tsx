@@ -1,0 +1,10 @@
+import { CalendarCheck, CircleDot, GitBranch } from 'lucide-react'
+import type { Task } from '../types'
+
+const weekDates = ['07/09', '14/09', '21/09', '28/09', '05/10', '12/10', '19/10', '26/10', '02/11', '09/11', '16/11', '23/11', '30/11', '07/12']
+const toDate = (value: string) => { const [day, month, year] = value.split('/').map(Number); return new Date(year, month - 1, day) }
+
+export function SchedulePage({ tasks }: { tasks: Task[] }) {
+  const start = new Date(2026, 8, 7)
+  return <div className="page-stack schedule-page"><section className="milestone-strip"><div><CalendarCheck size={18} /><span>Janela do projeto<strong>07 set — 07 dez 2026</strong></span></div><div><CircleDot size={18} /><span>Próximo marco<strong>G0 · Brief, 09 set</strong></span></div><div><GitBranch size={18} /><span>Caminho crítico<strong>G0 → G2 → G3/4 → G5 → G6</strong></span></div></section><div className="card gantt-card"><div className="gantt-legend"><strong>Plano de execução</strong><span><i className="planned-dot" /> Planejado</span><span><i className="done-dot" /> Realizado</span></div><div className="gantt-scroll"><div className="gantt" style={{ gridTemplateColumns: `300px repeat(${weekDates.length}, 74px)` }}><div className="gantt-head sticky">Atividade / responsável</div>{weekDates.map(week => <div className="gantt-head" key={week}>{week}</div>)}{tasks.map(task => { const offset = Math.max(0, Math.floor((toDate(task.start).getTime() - start.getTime()) / 604800000)); const span = Math.max(1, Math.ceil((toDate(task.due).getTime() - toDate(task.start).getTime()) / 604800000) + 1); return <div className="gantt-row" key={task.id}><div className="gantt-task sticky"><span>{task.gate}</span><div><strong>{task.title}</strong><small>{task.id} · {task.owner}</small></div></div><div className="gantt-cells" style={{ gridTemplateColumns: `repeat(${weekDates.length}, 74px)` }}>{weekDates.map(week => <i key={week} />)}</div><div className={`gantt-bar ${task.status === 'Concluído' ? 'complete' : ''}`} style={{ gridColumn: `${offset + 2} / span ${span}` }}><span style={{ width: `${task.progress}%` }} /></div></div> })}</div></div></div></div>
+}

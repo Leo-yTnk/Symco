@@ -1,10 +1,5 @@
-export type TaskStatus = 'Não iniciado' | 'Em andamento' | 'Bloqueado' | 'Concluído' | 'Cancelado'
-export type Task = {
-  id: string; module: string; gate: string; title: string; owner: string; support: string;
-  start: string; due: string; status: TaskStatus; priority: 'Crítica' | 'Alta' | 'Média';
-  progress: number; plannedHours: number; actualHours: number; dependency?: string;
-  evidence: string; nextAction: string
-}
+import type { Task } from './types'
+export type { Task, TaskStatus } from './types'
 
 export const tasks: Task[] = [
   { id:'T001', module:'SymÁgile', gate:'G0', title:'Kick-off e Project Charter', owner:'Patrick Tanaka', support:'Aky + P&D + Reg. + Qualidade', start:'07/09/2026', due:'09/09/2026', status:'Não iniciado', priority:'Crítica', progress:0, plannedHours:4, actualHours:0, evidence:'Project Charter', nextAction:'Validar escopo, targets e governança' },
