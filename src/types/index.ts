@@ -10,6 +10,12 @@ export type UserPreferences = {
 
 export type TaskStatus = 'Não iniciado' | 'Em andamento' | 'Bloqueado' | 'Concluído' | 'Cancelado'
 
+export const taskClassifications = [
+  'SymInsights™', 'SymProduct™', 'SymQuality™ (RA)', 'SymQuality™ (FSQ)',
+  'SymAcademy™', 'SymSupply™', 'SymGoMarket™', 'SymPlant™',
+] as const
+export type TaskClassification = typeof taskClassifications[number]
+
 export type Task = {
   id: string
   module: string
@@ -27,6 +33,27 @@ export type Task = {
   dependency?: string
   evidence: string
   nextAction: string
+  sprintId?: string
+  classification?: TaskClassification
+}
+
+export type Sprint = {
+  id: string
+  name: string
+  goal: string
+  start: string
+  end: string
+  status: 'Planejada' | 'Ativa' | 'Concluída'
+}
+
+export type BoardGate = {
+  id: string
+  name: string
+  description: string
+  color: string
+  decisionOwner: string
+  evidence: string
+  plannedDate: string
 }
 
 export type Navigate = (view: View) => void

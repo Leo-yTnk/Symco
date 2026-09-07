@@ -338,6 +338,44 @@ html[data-theme='dark'] .status-critica { background: #442329; color: #f28b91; }
 html[data-theme='dark'] .status-alta,
 html[data-theme='dark'] .status-aguardando-informacao { background: #47351f; color: #efbd78; }
 
+/* Dark coverage for the project board and creation flows. */
+html[data-theme='dark'] .sprint-tabs,
+html[data-theme='dark'] .task-columns,
+html[data-theme='dark'] .add-inline-task { background: #19191c; }
+html[data-theme='dark'] .sprint-tabs button.active { color: var(--ink); }
+html[data-theme='dark'] .board-toolbar,
+html[data-theme='dark'] .filter-panel,
+html[data-theme='dark'] .create-modal { background: var(--white); border-color: var(--line); }
+html[data-theme='dark'] .board-search,
+html[data-theme='dark'] .filter-trigger,
+html[data-theme='dark'] .filter-panel select,
+html[data-theme='dark'] .create-form input,
+html[data-theme='dark'] .create-form select,
+html[data-theme='dark'] .create-form textarea { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+html[data-theme='dark'] .board-search:focus-within,
+html[data-theme='dark'] .create-form input:focus,
+html[data-theme='dark'] .create-form select:focus,
+html[data-theme='dark'] .create-form textarea:focus { border-color: #39777d; box-shadow: 0 0 0 3px rgba(19, 184, 204, .11); }
+html[data-theme='dark'] .board-search button { background: #343438; color: var(--muted); }
+html[data-theme='dark'] .filter-trigger:hover,
+html[data-theme='dark'] .filter-trigger.active { border-color: #39777d; background: #203437; color: #7dd6dd; }
+html[data-theme='dark'] .task-row:hover,
+html[data-theme='dark'] .add-inline-task:hover { background: rgba(255, 255, 255, .045); }
+html[data-theme='dark'] .task-owner > span { background: #263c3f; color: #7dd6dd; }
+html[data-theme='dark'] .classification-pill { background: #302d45; color: #c1b8f4; }
+html[data-theme='dark'] .gate-empty-message { background: linear-gradient(90deg, #20282a, var(--white)); color: #7dd6dd; }
+html[data-theme='dark'] .sprint-boundary { background: #203437; color: #7dd6dd; }
+html[data-theme='dark'] .sync-notice { border-color: #285b47; background: #1b3028; color: #74d3a3; }
+html[data-theme='dark'] .form-error { border-color: #663139; background: #342126; color: #f28b91; }
+html[data-theme='dark'] .modal-icon { background: #263c3f; color: #7dd6dd; }
+html[data-theme='dark'] .create-modal { box-shadow: 0 28px 78px rgba(0, 0, 0, .58); }
+html[data-theme='dark'] .create-modal input[type='date'] { color-scheme: dark; }
+html[data-theme='dark'] .gate-node > div { background: var(--white); }
+html[data-theme='dark'] .gate-node.current > div,
+html[data-theme='dark'] .gate-current .gate-rail span { box-shadow: 0 8px 18px rgba(7, 93, 104, .28), 0 0 0 6px rgba(19, 184, 204, .09); }
+html[data-theme='dark'] .evidence-score > div:first-child { border-color: #302d45; border-top-color: var(--violet); }
+html[data-theme='dark'] .context-dot { box-shadow: 0 0 0 4px rgba(224, 163, 79, .14); }
+
 @media (max-width: 1120px) {
   .hero-composition { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .project-brief { grid-template-columns: minmax(0, 1fr) minmax(220px, 270px); }

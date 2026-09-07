@@ -1,20 +1,24 @@
 import { AlertTriangle, ArrowUpRight, Check, CheckCircle2, CircleGauge, Clock3, FileText, FlaskConical, ShieldCheck } from 'lucide-react'
-import { documents, gates, risks } from '../data'
-import type { Navigate, Task } from '../types'
+import { documents, risks } from '../data'
+import type { BoardGate, Navigate, Task } from '../types'
 import { Metric, Progress, SectionTitle, StatusBadge } from '../components/ui'
 
-export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks: Task[]; documentsDone: number; hours: number[]; navigate: Navigate }) {
+export function DashboardPage({ tasks, gates, documentsDone, hours, navigate }: { tasks: Task[]; gates: BoardGate[]; documentsDone: number; hours: number[]; navigate: Navigate }) {
   const completed = tasks.filter(task => task.status === 'Concluído').length
   const blocked = tasks.filter(task => task.status === 'Bloqueado').length
   const progress = Math.round(tasks.reduce((sum, task) => sum + task.progress, 0) / tasks.length)
   const used = hours.reduce((sum, value) => sum + value, 0)
   const critical = risks.filter(risk => risk[4] === 'Crítica').length
+  const nextGate = gates.find(gate => {
+    const related = tasks.filter(task => task.gate.includes(gate.id))
+    return !related.length || related.some(task => task.progress < 100)
+  }) || gates.at(-1)
 
   return <div className="page-stack dashboard-page">
     <div className="hero-composition">
       <section className="project-brief">
-        <div className="brief-main"><h2>Plataforma de Maionese</h2><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> 8 decision gates</span></div></div>
-        <div className="brief-decision"><span>Próxima decisão</span><strong>G0 · Brief</strong><small>09 set 2026</small><button onClick={() => navigate('gates')}>Preparar Gate <ArrowUpRight size={15} /></button></div>
+        <div className="brief-main"><h2>Plataforma de Maionese</h2><div className="brief-tags"><span><FlaskConical size={14} /> Food tech</span><span><ShieldCheck size={14} /> {gates.length} decision gates</span></div></div>
+        <div className="brief-decision"><span>Próxima decisão</span><strong>{nextGate?.id} · {nextGate?.name}</strong><small>{nextGate?.plannedDate}</small><button onClick={() => navigate('gates')}>Preparar Gate <ArrowUpRight size={15} /></button></div>
         <span className="brief-watermark">sy</span>
       </section>
       <aside className="brief-grid" aria-label="Dados do projeto"><span>Project lead<strong>Patrick Tanaka</strong></span><span>Investimento<strong>R$ 69.900</strong></span><span>Janela do projeto<strong>07 set — 16 nov</strong></span></aside>
@@ -32,10 +36,10 @@ export function DashboardPage({ tasks, documentsDone, hours, navigate }: { tasks
     <section className="card journey-card">
       <SectionTitle title="Jornada de Stage-Gates" action={<button className="text-button" onClick={() => navigate('gates')}>Detalhar jornada <ArrowUpRight size={14} /></button>} />
       <div className="gate-track">{gates.map((gate, index) => {
-        const related = tasks.filter(task => task.gate.includes(gate[0]))
+        const related = tasks.filter(task => task.gate.includes(gate.id))
         const value = related.length ? Math.round(related.reduce((sum, task) => sum + task.progress, 0) / related.length) : 0
         const current = index === 0
-        return <div className={`gate-node ${current ? 'current' : ''}`} key={gate[0]}><div>{value === 100 ? <Check size={16} /> : gate[0]}</div><span>{gate[1]}</span><small>{current ? 'Próximo' : `${value}%`}</small>{index < gates.length - 1 && <i />}</div>
+        return <div className={`gate-node ${current ? 'current' : ''}`} key={gate.id}><div>{value === 100 ? <Check size={16} /> : gate.id}</div><span>{gate.name}</span><small>{current ? 'Próximo' : `${value}%`}</small>{index < gates.length - 1 && <i />}</div>
       })}</div>
     </section>
 
