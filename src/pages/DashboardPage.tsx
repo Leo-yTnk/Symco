@@ -1,9 +1,9 @@
 import { AlertTriangle, ArrowUpRight, Check, CheckCircle2, CircleGauge, Clock3, FileText, FlaskConical, ShieldCheck } from 'lucide-react'
 import { documents, risks } from '../data'
-import type { BoardGate, Navigate, Task } from '../types'
+import { taskClassifications, type BoardGate, type Navigate, type Task, type TaskClassification } from '../types'
 import { Metric, Progress, SectionTitle, StatusBadge } from '../components/ui'
 
-export function DashboardPage({ tasks, gates, documentsDone, hours, navigate }: { tasks: Task[]; gates: BoardGate[]; documentsDone: number; hours: number[]; navigate: Navigate }) {
+export function DashboardPage({ tasks, gates, documentsDone, hours, navigate, openBoardWithClassification }: { tasks: Task[]; gates: BoardGate[]; documentsDone: number; hours: number[]; navigate: Navigate; openBoardWithClassification: (classification: TaskClassification) => void }) {
   const completed = tasks.filter(task => task.status === 'Concluído').length
   const blocked = tasks.filter(task => task.status === 'Bloqueado').length
   const progress = Math.round(tasks.reduce((sum, task) => sum + task.progress, 0) / tasks.length)
@@ -25,6 +25,8 @@ export function DashboardPage({ tasks, gates, documentsDone, hours, navigate }: 
     </div>
 
     <section className="attention-callout"><span className="attention-number">01</span><div><strong>Validar escopo, targets e governança antes da abertura do G0.</strong></div><button onClick={() => navigate('board')}>Ver atividade <ArrowUpRight size={15} /></button></section>
+
+    <section className="sym-filter-links" aria-label="Filtrar Project Board por frente Sym"><div><span>PROJECT BOARD</span><strong>Explorar por frente Sym*</strong></div><nav>{taskClassifications.map(classification => { const count = tasks.filter(task => task.classification === classification).length; return <button key={classification} onClick={() => openBoardWithClassification(classification)}><span>{classification.replace('™', '')}</span><b>{count}</b><ArrowUpRight size={13} /></button> })}</nav></section>
 
     <section className="metric-grid">
       <Metric icon={CircleGauge} label="Avanço ponderado" value={`${progress}%`} note="Meta de aderência ≥ 90%" />

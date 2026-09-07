@@ -1,4 +1,6 @@
 * { box-sizing: border-box; }
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; width: 0; height: 0; }
 html { background: var(--surface); }
 body { margin: 0; min-width: 320px; color: var(--ink); background: var(--surface); font-family: "IBM Plex Sans", Inter, Arial, sans-serif; font-synthesis: none; zoom: var(--site-scale); }
 button, input, select { font: inherit; }

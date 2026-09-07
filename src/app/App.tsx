@@ -14,7 +14,7 @@ import { RisksPage } from '../pages/RisksPage'
 import { SchedulePage } from '../pages/SchedulePage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { WelcomePage } from '../pages/WelcomePage'
-import type { BoardGate, Sprint, Task, UserPreferences, View } from '../types'
+import type { BoardGate, Sprint, Task, TaskClassification, UserPreferences, View } from '../types'
 import { defaultSprints, hydrateTasks, loadBoard, saveBoard } from '../services/boardStorage'
 
 const defaultPreferences: UserPreferences = { sidebarWidth: 244, accent: 'cyan', theme: 'light', density: 'comfortable', motion: 'full' }
@@ -41,6 +41,7 @@ export default function App() {
   const [toast, setToast] = useState('')
   const [preferences, setPreferences] = useState<UserPreferences>(loadPreferences)
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('symos-welcome-seen') !== 'true')
+  const [boardClassification, setBoardClassification] = useState<TaskClassification | 'Todas'>('Todas')
 
   useEffect(() => {
     localStorage.setItem('symos-preferences', JSON.stringify(preferences))
@@ -80,9 +81,16 @@ export default function App() {
 
   const updateTask = (task: Task) => {
     setTasks(current => current.map(item => item.id === task.id ? task : item))
-    setSelectedTask(null)
+    closeSelectedTask()
     setToast(`${task.id} atualizado. Indicadores recalculados.`)
     window.setTimeout(() => setToast(''), 2800)
+  }
+
+  const closeSelectedTask = () => {
+    const overlay = document.querySelector('.overlay:has(> .drawer)')
+    if (!overlay) return setSelectedTask(null)
+    overlay.classList.add('popup-closing')
+    window.setTimeout(() => setSelectedTask(null), 150)
   }
 
   const notify = (message: string) => {
@@ -95,6 +103,11 @@ export default function App() {
     else if (view === 'board') document.querySelector<HTMLButtonElement>('[data-create-task]')?.click()
   }
 
+  const openBoardWithClassification = (classification: TaskClassification) => {
+    setBoardClassification(classification)
+    navigate('board')
+  }
+
   if (showWelcome) return <WelcomePage continueToApp={continueToApp} />
 
   return <div className="app-shell">
@@ -103,8 +116,8 @@ export default function App() {
       <Topbar openMenu={() => setMobileNav(true)} />
       <main><div className="page-transition" key={view}>
           <PageHeader view={view} onAction={view === 'dashboard' || view === 'board' ? primaryAction : undefined} />
-          {view === 'dashboard' && <DashboardPage tasks={tasks} gates={boardGates} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} />}
-          {view === 'board' && <BoardPage tasks={tasks} sprints={sprints} gates={boardGates} select={setSelectedTask} setTasks={setTasks} setSprints={setSprints} setGates={setBoardGates} notify={notify} />}
+          {view === 'dashboard' && <DashboardPage tasks={tasks} gates={boardGates} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} openBoardWithClassification={openBoardWithClassification} />}
+          {view === 'board' && <BoardPage tasks={tasks} sprints={sprints} gates={boardGates} initialClassification={boardClassification} select={setSelectedTask} setTasks={setTasks} setSprints={setSprints} setGates={setBoardGates} notify={notify} />}
           {view === 'gates' && <GatesPage tasks={tasks} gates={boardGates} doneDocuments={doneDocuments} />}
           {view === 'schedule' && <SchedulePage tasks={tasks} gates={boardGates} sprints={sprints} />}
           {view === 'risks' && <RisksPage />}
@@ -115,7 +128,7 @@ export default function App() {
         </div>
       </main>
     </div>
-    {selectedTask && <TaskDrawer task={selectedTask} close={() => setSelectedTask(null)} save={updateTask} />}
+    {selectedTask && <TaskDrawer task={selectedTask} gates={boardGates} sprints={sprints} close={closeSelectedTask} save={updateTask} />}
     {toast && <div className="toast"><Check size={18} /><span>{toast}</span></div>}
   </div>
 }
