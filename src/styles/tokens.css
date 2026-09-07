@@ -1,40 +1,139 @@
+/* SymOS tokens: components consume roles; themes only redefine their values. */
 :root {
+  color-scheme: light;
   --site-scale: 1.1;
-  --navy-950: #031522;
-  --navy-900: #071d2c;
-  --navy-800: #0e2d3e;
-  --teal-700: #075d68;
-  --teal-600: #087681;
-  --cyan-500: #13b8cc;
-  --cyan-100: #dcf5f7;
-  --ink: #142329;
-  --muted: #64757b;
-  --faint: #8b9a9f;
-  --line: #dfe7e8;
-  --surface: #f5f7f6;
-  --surface-2: #edf2f1;
-  --white: #fff;
-  --success: #1d8157;
-  --warning: #a96816;
-  --danger: #b83f45;
-  --violet: #6759b7;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --shadow-sm: 0 1px 2px rgba(3, 21, 34, .05);
-  --shadow-lg: 0 18px 50px rgba(3, 21, 34, .18);
+
+  --accent-strong: #075d68;
+  --accent: #087681;
+  --accent-bright: #13b8cc;
+  --accent-contrast: #ffffff;
+
+  --color-canvas: #f2f5f4;
+  --color-surface: #f7f9f8;
+  --color-surface-raised: #ffffff;
+  --color-surface-muted: #e9efee;
+  --color-surface-hover: #f0f7f7;
+  --color-surface-active: #e1f0f1;
+  --color-surface-glass: rgba(255, 255, 255, .78);
+  --color-surface-glass-strong: rgba(255, 255, 255, .94);
+  --color-surface-overlay: rgba(247, 249, 248, .96);
+
+  --color-text: #142329;
+  --color-text-muted: #64757b;
+  --color-text-subtle: #8b9a9f;
+  --color-text-inverse: #ffffff;
+  --color-border: rgba(20, 35, 41, .1);
+  --color-border-strong: rgba(20, 35, 41, .18);
+  --color-divider-inverse: rgba(255, 255, 255, .1);
+
+  --color-action: var(--accent);
+  --color-action-strong: var(--accent-strong);
+  --color-action-text: var(--accent-contrast);
+  --color-action-soft: color-mix(in srgb, var(--accent-bright) 14%, var(--color-surface-raised));
+  --color-action-hover: color-mix(in srgb, var(--accent-bright) 8%, var(--color-surface-raised));
+  --color-focus: color-mix(in srgb, var(--accent-bright) 68%, var(--color-border));
+  --color-focus-ring: color-mix(in srgb, var(--accent-bright) 14%, transparent);
+
+  --color-success: #1d8157;
+  --color-success-text: #176b47;
+  --color-success-soft: #e4f3eb;
+  --color-warning: #a96816;
+  --color-warning-text: #976015;
+  --color-warning-soft: #fff0dc;
+  --color-danger: #b83f45;
+  --color-danger-text: #a9343b;
+  --color-danger-soft: #f9e7e8;
+  --color-info-text: #076775;
+  --color-info-soft: #e3f3f5;
+  --color-violet: #6759b7;
+  --color-violet-soft: #efedfa;
+
+  --color-chrome: #031522;
+  --color-chrome-raised: #091f2d;
+  --color-chrome-soft: #0e2d3e;
+  --color-chrome-text: #ffffff;
+  --color-chrome-muted: #a8bac2;
+  --color-chrome-accent: #6ad5df;
+  --color-scrim: rgba(3, 15, 23, .52);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 1px 2px rgba(3, 21, 34, .035), 0 8px 24px rgba(3, 21, 34, .055);
+  --shadow-md: 0 14px 38px rgba(3, 21, 34, .09), 0 2px 7px rgba(3, 21, 34, .045);
+  --shadow-lg: 0 30px 80px rgba(3, 21, 34, .22), 0 8px 24px rgba(3, 21, 34, .1);
+  --blur: blur(12px) saturate(125%);
+
+  /* Compatibility aliases while component CSS adopts the semantic vocabulary. */
+  --navy-950: var(--color-chrome);
+  --navy-900: var(--color-chrome-raised);
+  --navy-800: var(--color-chrome-soft);
+  --teal-700: var(--color-action-strong);
+  --teal-600: var(--color-action);
+  --cyan-500: var(--accent-bright);
+  --cyan-100: var(--color-action-soft);
+  --ink: var(--color-text);
+  --muted: var(--color-text-muted);
+  --faint: var(--color-text-subtle);
+  --line: var(--color-border);
+  --surface: var(--color-canvas);
+  --surface-2: var(--color-surface-muted);
+  --white: var(--color-surface-raised);
+  --success: var(--color-success);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
+  --violet: var(--color-violet);
+  --glass: var(--color-surface-glass);
+  --glass-strong: var(--color-surface-glass-strong);
+  --glass-dark: rgba(13, 39, 52, .82);
 }
 
 html[data-accent='violet'] {
-  --teal-700: #5546a6;
-  --teal-600: #6759b7;
-  --cyan-500: #7668ca;
-  --cyan-100: #ece9fb;
+  --accent-strong: #5546a6;
+  --accent: #6759b7;
+  --accent-bright: #7668ca;
 }
 
 html[data-accent='emerald'] {
-  --teal-700: #176247;
-  --teal-600: #227d5c;
-  --cyan-500: #2b9a70;
-  --cyan-100: #dff3e9;
+  --accent-strong: #176247;
+  --accent: #227d5c;
+  --accent-bright: #2b9a70;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --color-canvas: #141416;
+  --color-surface: #19191c;
+  --color-surface-raised: #1d1d20;
+  --color-surface-muted: #2a2a2d;
+  --color-surface-hover: #29292d;
+  --color-surface-active: #263c3f;
+  --color-surface-glass: rgba(29, 29, 32, .82);
+  --color-surface-glass-strong: rgba(29, 29, 32, .96);
+  --color-surface-overlay: rgba(29, 29, 32, .97);
+  --color-text: #f0f0f1;
+  --color-text-muted: #b0b0b4;
+  --color-text-subtle: #85858b;
+  --color-border: rgba(255, 255, 255, .1);
+  --color-border-strong: rgba(255, 255, 255, .18);
+  --color-success: #55c58e;
+  --color-success-text: #74d3a3;
+  --color-success-soft: #153c2c;
+  --color-warning: #e0a34f;
+  --color-warning-text: #efbd78;
+  --color-warning-soft: #47351f;
+  --color-danger: #ee777d;
+  --color-danger-text: #f28b91;
+  --color-danger-soft: #442329;
+  --color-info-text: #79d3dc;
+  --color-info-soft: #123843;
+  --color-violet: #a99ee9;
+  --color-violet-soft: #302d45;
+  --color-chrome: #09090a;
+  --color-chrome-raised: #1b1b1e;
+  --color-chrome-soft: #2b2b2f;
+  --color-scrim: rgba(0, 0, 0, .62);
+  --shadow-sm: 0 6px 18px rgba(0, 7, 11, .2);
+  --shadow-md: 0 12px 32px rgba(0, 7, 11, .28);
+  --shadow-lg: 0 24px 64px rgba(0, 7, 11, .42);
 }

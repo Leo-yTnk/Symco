@@ -12,6 +12,21 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400..1000&amp;family=IBM+Plex+Mono:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap"
     />
     <title>SymOS · Aky Alimentos</title>
+    <script>
+      (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('symos-preferences') || '{}')
+          const root = document.documentElement
+          root.dataset.theme = saved.theme === 'dark' ? 'dark' : 'light'
+          root.dataset.accent = ['violet', 'emerald'].includes(saved.accent) ? saved.accent : 'cyan'
+          root.dataset.density = saved.density === 'compact' ? 'compact' : 'comfortable'
+          root.dataset.motion = saved.motion === 'reduced' ? 'reduced' : 'full'
+          document.querySelector('meta[name="theme-color"]').content = root.dataset.theme === 'dark' ? '#141416' : '#f2f5f4'
+        } catch {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

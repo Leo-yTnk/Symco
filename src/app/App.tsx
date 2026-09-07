@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { AppSidebar } from '../components/layout/AppSidebar'
 import { PageHeader } from '../components/layout/PageHeader'
 import { Topbar } from '../components/layout/Topbar'
@@ -43,7 +43,7 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('symos-welcome-seen') !== 'true')
   const [boardClassification, setBoardClassification] = useState<TaskClassification | 'Todas'>('Todas')
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     localStorage.setItem('symos-preferences', JSON.stringify(preferences))
     const root = document.documentElement
     root.dataset.accent = preferences.accent
@@ -51,6 +51,10 @@ export default function App() {
     root.dataset.density = preferences.density
     root.dataset.motion = preferences.motion
     root.style.setProperty('--sidebar-width', `${preferences.sidebarWidth}px`)
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      preferences.theme === 'dark' ? '#141416' : '#f2f5f4',
+    )
   }, [preferences])
 
   useEffect(() => { saveBoard({ tasks, sprints, gates: boardGates }) }, [tasks, sprints, boardGates])

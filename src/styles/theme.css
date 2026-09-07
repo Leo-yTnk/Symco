@@ -1,0 +1,215 @@
+/*
+ * Theme application layer. Every selector below consumes semantic tokens;
+ * light/dark differences belong exclusively in tokens.css.
+ */
+html[data-theme] { background: var(--color-chrome); }
+html[data-theme] body { background: var(--color-chrome); color: var(--color-text); }
+html[data-theme] .workspace {
+  background:
+    radial-gradient(circle at 12% 4%, color-mix(in srgb, var(--accent-bright) 9%, transparent), transparent 28%),
+    radial-gradient(circle at 92% 84%, color-mix(in srgb, var(--color-violet) 6%, transparent), transparent 28%),
+    var(--color-canvas);
+}
+
+/* Navigation keeps its own high-contrast material in both themes. */
+html[data-theme] .app-shell,
+html[data-theme] .sidebar { background: var(--color-chrome); }
+html[data-theme] .sidebar-island { background: var(--color-chrome-raised); }
+html[data-theme] :is(.brand, .project-switcher) {
+  background: transparent;
+  box-shadow: none;
+}
+html[data-theme] .sidebar { color: var(--color-chrome-text); }
+html[data-theme] .sidebar small,
+html[data-theme] .sidebar nav button { color: var(--color-chrome-muted); }
+html[data-theme] .sidebar nav button.active { color: var(--color-chrome-text); }
+html[data-theme] .sidebar nav button > svg:first-child {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  flex: 0 0 16px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent-bright);
+}
+html[data-theme] .sidebar nav button:hover {
+  background: color-mix(in srgb, var(--accent-bright) 8%, transparent);
+}
+html[data-theme] .sidebar nav button.active {
+  background: var(--color-action);
+  color: var(--color-action-text);
+}
+html[data-theme] .sidebar nav button.active > svg,
+html[data-theme] .sidebar nav button.active span { color: var(--color-action-text); }
+
+/* The project hero is accent-led and follows every accent selection. */
+html[data-theme] .project-brief {
+  background:
+    radial-gradient(circle at 74% 0%, color-mix(in srgb, var(--accent-bright) 38%, transparent), transparent 42%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--accent-strong) 82%, var(--color-chrome)),
+      color-mix(in srgb, var(--accent) 70%, var(--color-chrome)));
+  color: var(--color-text-inverse);
+}
+html[data-theme] .project-brief :is(h2, strong) { color: var(--color-text-inverse); }
+html[data-theme] .brief-decision > span,
+html[data-theme] .brief-decision button { color: color-mix(in srgb, var(--accent-bright) 48%, white); }
+
+/* Raised content. */
+html[data-theme] :is(
+  .card, .metric, .task-list, .gate-panel, .milestone-strip,
+  .document-overview > div, .document-groups > section > div,
+  .gantt-task, .hours-chart, .drawer, .detail-list,
+  .board-toolbar, .filter-panel, .create-modal, .confirm-dialog,
+  .custom-select-menu, .board-table-view, .sym-filter-links
+) { background: var(--color-surface-raised); color: var(--color-text); }
+
+html[data-theme] :is(.topbar-island, .global-search) {
+  background: var(--color-surface-glass);
+  color: var(--color-text);
+}
+
+html[data-theme] :is(
+  .toolbar, .settings-category > header, .hours-entry label,
+  .sprint-tabs, .task-columns, .board-table-head, .add-inline-task,
+  .table-add-row
+) { background: var(--color-surface); }
+
+html[data-theme] :is(
+  input:not([type='range']):not([type='color']), textarea, select,
+  .custom-select-trigger, .board-search, .filter-trigger,
+  .toolbar > label, .button, .accent-options button,
+  .segmented-control button, .board-view-switch
+) {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+html[data-theme] :is(input, textarea)::placeholder { color: var(--color-text-subtle); }
+html[data-theme] :is(input, textarea, select) { color-scheme: inherit; }
+html[data-theme] input[type='color'] { color-scheme: light; }
+
+html[data-theme] :is(
+  input:not([type='range']):focus, textarea:focus, select:focus,
+  .custom-select-trigger:focus-visible, .board-search:focus-within,
+  .filter-trigger:focus-visible, .global-search:focus-within
+) {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+html[data-theme] :is(.button:hover, .custom-select-menu button:hover, .task-row:hover,
+  .board-table-row:hover, .add-inline-task:hover, .table-add-row:hover) {
+  background: var(--color-surface-hover);
+}
+
+html[data-theme] :is(.button.primary, .danger-button) { color: var(--color-action-text); }
+html[data-theme] .button.primary { background: var(--color-action-strong); }
+html[data-theme] .danger-button { background: var(--color-danger); }
+html[data-theme] :is(.filter-chips button.active, .tabs button.active) {
+  background: var(--color-chrome-soft);
+  color: var(--color-text-inverse);
+}
+
+html[data-theme] :is(
+  .metric-icon, .settings-icon, .modal-icon, .task-owner > span,
+  .table-owner-cell i, .sprint-boundary, .inline-info
+) {
+  background: var(--color-action-soft);
+  color: var(--color-action-strong);
+}
+
+html[data-theme] :is(.accent-options button.selected, .segmented-control button.selected,
+  .board-view-switch button.active, .filter-trigger:hover, .filter-trigger.active) {
+  background: var(--color-surface-active);
+  color: var(--accent-bright);
+}
+
+html[data-theme] :is(.gate-pill, .classification-pill, .table-classification,
+  .gantt-task > span, .ritual > span) {
+  background: var(--color-violet-soft);
+  color: var(--color-violet);
+}
+
+html[data-theme] :is(.status-aprovado, .status-concluido) {
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+html[data-theme] :is(.status-em-andamento, .status-em-desenvolvimento) {
+  background: var(--color-info-soft);
+  color: var(--color-info-text);
+}
+html[data-theme] :is(.status-bloqueado, .status-critica) {
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}
+html[data-theme] :is(.status-alta, .status-aguardando-informacao, .file-icon) {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+html[data-theme] .document-ready .file-icon {
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+
+html[data-theme] .attention-callout {
+  background: var(--color-warning-soft);
+  color: var(--color-warning-text);
+}
+html[data-theme] .attention-callout strong { color: var(--color-text); }
+html[data-theme] .attention-callout button { color: var(--color-warning-text); }
+html[data-theme] .attention-number {
+  background: color-mix(in srgb, var(--color-warning) 18%, var(--color-warning-soft));
+  color: var(--color-warning-text);
+}
+html[data-theme] .sym-filter-links button {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+html[data-theme] .sym-filter-links button:hover {
+  border-color: var(--color-focus);
+  background: var(--color-action-hover);
+  color: var(--color-action-strong);
+}
+html[data-theme] .sym-filter-links button b {
+  background: var(--color-action-soft);
+  color: var(--color-action-strong);
+}
+html[data-theme] .document-overview > div:last-child {
+  background: var(--color-action-soft);
+  color: var(--color-action-strong);
+}
+html[data-theme] .document-overview > div:last-child span { color: var(--color-text-muted); }
+html[data-theme] .progress { background: var(--color-surface-muted); }
+html[data-theme] .gate-panel blockquote { background: var(--color-surface); }
+html[data-theme] .gate-empty-message {
+  background: linear-gradient(90deg, var(--color-action-soft), var(--color-surface-raised));
+}
+html[data-theme] .sync-notice {
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  background: var(--color-success-soft);
+  color: var(--color-success-text);
+}
+html[data-theme] .form-error {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  background: var(--color-danger-soft);
+  color: var(--color-danger-text);
+}
+
+html[data-theme] .overlay { background: var(--color-scrim); }
+html[data-theme] .drawer { background: var(--color-surface-overlay); }
+html[data-theme] .context-menu {
+  border-color: var(--color-border);
+  background: var(--color-surface-overlay);
+}
+html[data-theme] .custom-select-menu button { color: var(--color-text-muted); }
+html[data-theme] .custom-select-menu button:is(:hover, .is-active) {
+  background: var(--color-action-hover);
+  color: var(--color-action-strong);
+}
+
+/* Native widgets and browser UI follow the persisted preference. */
+html[data-theme='light'] { color-scheme: light; }
+html[data-theme='dark'] { color-scheme: dark; }

@@ -1,20 +1,4 @@
 /* Apple-inspired material pass: depth comes from tone, light and blur — not outlines. */
-:root {
-  --surface: #f2f5f4;
-  --surface-2: rgba(228, 235, 234, .74);
-  --line: rgba(20, 35, 41, .085);
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --shadow-sm: 0 1px 2px rgba(3, 21, 34, .035), 0 8px 24px rgba(3, 21, 34, .055);
-  --shadow-md: 0 14px 38px rgba(3, 21, 34, .09), 0 2px 7px rgba(3, 21, 34, .045);
-  --shadow-lg: 0 30px 80px rgba(3, 21, 34, .22), 0 8px 24px rgba(3, 21, 34, .1);
-  --glass: rgba(255, 255, 255, .78);
-  --glass-strong: rgba(255, 255, 255, .94);
-  --glass-dark: rgba(13, 39, 52, .82);
-  --blur: blur(12px) saturate(125%);
-}
-
 html { background: var(--navy-950); }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
@@ -246,9 +230,4 @@ td { border-bottom-color: var(--line); }
   .brief-main h2 { overflow-wrap: anywhere; }
   .topbar-island, .global-search { background: rgba(255, 255, 255, .8); }
   .toolbar { border-radius: 14px; }
-}
-
-@media (prefers-color-scheme: dark) {
-  /* The prototype is intentionally light-first; this keeps native controls predictable. */
-  :root { color-scheme: light; }
 }
