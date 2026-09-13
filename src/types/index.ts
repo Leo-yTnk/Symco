@@ -1,7 +1,7 @@
 export type View = 'dashboard' | 'board' | 'gates' | 'schedule' | 'risks' | 'documents' | 'hours' | 'governance' | 'settings'
 
 export type UserPreferences = {
-  sidebarWidth: number
+  sidebarExpanded: boolean
   accent: 'cyan' | 'violet' | 'emerald'
   theme: 'light' | 'dark'
   density: 'comfortable' | 'compact'

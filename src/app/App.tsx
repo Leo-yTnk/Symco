@@ -17,16 +17,21 @@ import { WelcomePage } from '../pages/WelcomePage'
 import type { BoardGate, Sprint, Task, TaskClassification, UserPreferences, View } from '../types'
 import { defaultSprints, hydrateTasks, loadBoard, saveBoard } from '../services/boardStorage'
 
-const defaultPreferences: UserPreferences = { sidebarWidth: 244, accent: 'cyan', theme: 'light', density: 'comfortable', motion: 'full' }
+const defaultPreferences: UserPreferences = { sidebarExpanded: true, accent: 'cyan', theme: 'light', density: 'comfortable', motion: 'full' }
 
 function loadPreferences(): UserPreferences {
-  try { return { ...defaultPreferences, ...JSON.parse(localStorage.getItem('symos-preferences') || '{}') } }
+  try {
+    const saved = JSON.parse(localStorage.getItem('symos-preferences') || '{}')
+    const { sidebarWidth, ...rest } = saved
+    return { ...defaultPreferences, ...rest, sidebarExpanded: typeof saved.sidebarExpanded === 'boolean' ? saved.sidebarExpanded : typeof sidebarWidth === 'number' ? sidebarWidth >= 180 : true }
+  }
   catch { return defaultPreferences }
 }
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard')
   const [mobileNav, setMobileNav] = useState(false)
+  const [overlayViewport, setOverlayViewport] = useState(() => window.matchMedia('(max-width: 1120px)').matches)
   const initialBoard = loadBoard({
     tasks: hydrateTasks(initialTasks),
     sprints: defaultSprints,
@@ -50,12 +55,18 @@ export default function App() {
     root.dataset.theme = preferences.theme
     root.dataset.density = preferences.density
     root.dataset.motion = preferences.motion
-    root.style.setProperty('--sidebar-width', `${preferences.sidebarWidth}px`)
     document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
       'content',
       preferences.theme === 'dark' ? '#141416' : '#f2f5f4',
     )
   }, [preferences])
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 1120px)')
+    const update = () => { setOverlayViewport(query.matches); setMobileNav(false) }
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => { saveBoard({ tasks, sprints, gates: boardGates }) }, [tasks, sprints, boardGates])
   useEffect(() => { localStorage.setItem('symos-documents-done', JSON.stringify(doneDocuments)) }, [doneDocuments])
@@ -114,10 +125,13 @@ export default function App() {
 
   if (showWelcome) return <WelcomePage continueToApp={continueToApp} />
 
-  return <div className="app-shell">
-    <AppSidebar view={view} open={mobileNav} navigate={navigate} close={() => setMobileNav(false)} width={preferences.sidebarWidth} setWidth={width => updatePreferences({ sidebarWidth: width })} />
+  const sidebarOpen = overlayViewport ? mobileNav : preferences.sidebarExpanded
+  const toggleSidebar = () => overlayViewport ? setMobileNav(open => !open) : updatePreferences({ sidebarExpanded: !preferences.sidebarExpanded })
+
+  return <div className={`app-shell ${sidebarOpen && !overlayViewport ? 'sidebar-expanded' : ''}`}>
+    <AppSidebar view={view} open={sidebarOpen} overlay={overlayViewport} navigate={navigate} close={() => setMobileNav(false)} />
     <div className="workspace">
-      <Topbar openMenu={() => setMobileNav(true)} />
+      <Topbar openMenu={toggleSidebar} menuOpen={sidebarOpen} />
       <main><div className="page-transition" key={view}>
           <PageHeader view={view} onAction={view === 'dashboard' || view === 'board' ? primaryAction : undefined} />
           {view === 'dashboard' && <DashboardPage tasks={tasks} gates={boardGates} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} openBoardWithClassification={openBoardWithClassification} />}

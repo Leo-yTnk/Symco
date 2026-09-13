@@ -1,4 +1,4 @@
-import { Check, Gauge, MonitorCog, Moon, MoveHorizontal, Palette, Sparkles, Sun } from 'lucide-react'
+import { Check, Gauge, MonitorCog, Moon, PanelLeftClose, PanelLeftOpen, Palette, Sparkles, Sun } from 'lucide-react'
 import type { UserPreferences } from '../types'
 
 type Props = {
@@ -32,11 +32,14 @@ export function SettingsPage({ preferences, updatePreferences }: Props) {
     </section>
 
     <section className="settings-category card">
-      <header><span className="settings-icon"><MoveHorizontal size={19} /></span><div><h2>Navegação</h2><p>Ajuste o espaço ocupado pela barra lateral.</p></div></header>
-      <label className="setting-row width-setting">
-        <div><strong>Largura da sidebar</strong><small>Abaixo de 180 px, a navegação assume o modo compacto.</small></div>
-        <div className="range-control"><input type="range" min="74" max="340" step="4" value={preferences.sidebarWidth} onChange={event => updatePreferences({ sidebarWidth: Number(event.target.value) })} /><output>{preferences.sidebarWidth}px</output></div>
-      </label>
+      <header><span className="settings-icon"><PanelLeftOpen size={19} /></span><div><h2>Navegação</h2><p>Escolha como a barra lateral aparece em telas amplas.</p></div></header>
+      <div className="setting-row">
+        <div><strong>Barra lateral</strong><small>Em telas menores, o menu aberto se sobrepõe ao conteúdo.</small></div>
+        <div className="segmented-control" role="radiogroup" aria-label="Barra lateral">
+          <button role="radio" aria-checked={!preferences.sidebarExpanded} className={!preferences.sidebarExpanded ? 'selected' : ''} onClick={() => updatePreferences({ sidebarExpanded: false })}><PanelLeftClose size={14} />Fechada</button>
+          <button role="radio" aria-checked={preferences.sidebarExpanded} className={preferences.sidebarExpanded ? 'selected' : ''} onClick={() => updatePreferences({ sidebarExpanded: true })}><PanelLeftOpen size={14} />Aberta</button>
+        </div>
+      </div>
     </section>
 
     <section className="settings-category card">

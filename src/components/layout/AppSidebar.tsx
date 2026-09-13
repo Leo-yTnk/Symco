@@ -8,26 +8,11 @@ const navigationGroups = [
   { label: 'Controles do projeto', items: navigation.slice(4) },
 ]
 
-export function AppSidebar({ view, open, navigate, close, width, setWidth }: { view: View; open: boolean; navigate: Navigate; close: () => void; width: number; setWidth: (width: number) => void }) {
-  const compact = width < 180
-  const startResize = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    const originX = event.clientX
-    const originWidth = width
-    event.currentTarget.setPointerCapture(event.pointerId)
-    const move = (moveEvent: PointerEvent) => setWidth(Math.min(340, Math.max(74, originWidth + moveEvent.clientX - originX)))
-    const stop = () => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', stop)
-    }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', stop)
-  }
-
+export function AppSidebar({ view, open, overlay, navigate, close }: { view: View; open: boolean; overlay: boolean; navigate: Navigate; close: () => void }) {
   return <>
-    <aside className={`sidebar ${open ? 'is-open' : ''} ${compact ? 'is-compact' : ''}`} style={{ '--sidebar-width': `${width}px` } as React.CSSProperties}>
+    <aside id="app-sidebar" className={`sidebar ${open ? 'is-open' : 'is-compact'}`}>
       <div className="brand"><span className="brand-mark">sy</span><span><strong>SymOS</strong><small>BY SYMCO</small></span></div>
-      <button className="mobile-close" onClick={close} aria-label="Fechar menu"><X size={20} /></button>
+      {overlay && open && <button className="mobile-close" onClick={close} aria-label="Fechar menu"><X size={20} /></button>}
       <div className="project-switcher"><span>PROJETO ATIVO</span><strong>Aky Alimentos</strong><small>Plataforma de Maionese</small><i>PRJ-127</i></div>
       <nav aria-label="Navegação principal">
         {navigationGroups.map((group, groupIndex) => <div className="nav-island sidebar-island" role="group" aria-label={group.label} key={group.label} style={{ '--group-index': groupIndex } as React.CSSProperties}>
@@ -40,11 +25,7 @@ export function AppSidebar({ view, open, navigate, close, width, setWidth }: { v
         </div>)}
       </nav>
       <div className="sidebar-foot sidebar-island"><div className="avatar"><span>PT</span></div><span><strong>Patrick Tanaka</strong><small>Project Lead · Symco</small></span><button className={`sidebar-settings ${view === 'settings' ? 'active' : ''}`} onClick={() => navigate('settings')} aria-label="Abrir configurações" title="Configurações"><Settings size={16} /></button></div>
-      <button className="sidebar-resizer" onPointerDown={startResize} onKeyDown={event => {
-        if (event.key === 'ArrowLeft') setWidth(Math.max(74, width - 4))
-        if (event.key === 'ArrowRight') setWidth(Math.min(340, width + 4))
-      }} aria-label="Ajustar largura da barra lateral" title="Arraste para ajustar a largura" />
     </aside>
-    {open && <button className="nav-scrim" onClick={close} aria-label="Fechar navegação" />}
+    {overlay && open && <button className="nav-scrim" onClick={close} aria-label="Fechar navegação" />}
   </>
 }
