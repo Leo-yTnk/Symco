@@ -1,152 +1,441 @@
-import { Check } from 'lucide-react'
-import { useEffect, useLayoutEffect, useState } from 'react'
-import { AppSidebar } from '../components/layout/AppSidebar'
-import { PageHeader } from '../components/layout/PageHeader'
-import { Topbar } from '../components/layout/Topbar'
-import { gates as initialGateData, tasks as initialTasks, weeks } from '../data'
-import { BoardPage, TaskDrawer } from '../pages/BoardPage'
-import { DashboardPage } from '../pages/DashboardPage'
-import { DocumentsPage } from '../pages/DocumentsPage'
-import { GatesPage } from '../pages/GatesPage'
-import { GovernancePage } from '../pages/GovernancePage'
-import { HoursPage } from '../pages/HoursPage'
-import { RisksPage } from '../pages/RisksPage'
-import { SchedulePage } from '../pages/SchedulePage'
-import { SettingsPage } from '../pages/SettingsPage'
-import { WelcomePage } from '../pages/WelcomePage'
-import type { BoardGate, Sprint, Task, TaskClassification, UserPreferences, View } from '../types'
-import { defaultSprints, hydrateTasks, loadBoard, saveBoard } from '../services/boardStorage'
+import { useEffect, useState } from "react";
+import {
+  Activity,
+  Bell,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  FileText,
+  FolderKanban,
+  LayoutDashboard,
+  Menu,
+  Plus,
+  Search,
+  Settings,
+  ShieldCheck,
+  X,
+} from "lucide-react";
+import { useWorkspace } from "../application/useWorkspace";
+import { modules } from "../domain/catalog";
+import { Dashboard } from "../features/Dashboard";
+import { Portfolio } from "../features/Portfolio";
+import { ProjectDetail } from "../features/ProjectDetail";
+import { NewProject } from "../features/NewProject";
+import { Governance } from "../features/Governance";
 
-const defaultPreferences: UserPreferences = { sidebarExpanded: true, accent: 'cyan', theme: 'light', density: 'comfortable', motion: 'full' }
-
-function loadPreferences(): UserPreferences {
-  try {
-    const saved = JSON.parse(localStorage.getItem('symos-preferences') || '{}')
-    const { sidebarWidth, ...rest } = saved
-    return { ...defaultPreferences, ...rest, sidebarExpanded: typeof saved.sidebarExpanded === 'boolean' ? saved.sidebarExpanded : typeof sidebarWidth === 'number' ? sidebarWidth >= 180 : true }
-  }
-  catch { return defaultPreferences }
-}
+const navigation = [
+  {
+    heading: "VISÃO GERAL",
+    links: [{ label: "Dashboard", path: "/app", icon: LayoutDashboard }],
+  },
+  {
+    heading: "GESTÃO",
+    links: [
+      { label: "Portfólio", path: "/app/portfolio", icon: FolderKanban },
+      { label: "Projetos", path: "/app/projects", icon: FolderKanban },
+      { label: "Cronograma", path: "/app/calendar", icon: CalendarDays },
+      { label: "Documentos", path: "/app/documents", icon: FileText },
+    ],
+  },
+  {
+    heading: "GOVERNANÇA",
+    links: [
+      { label: "Aprovações", path: "/app/approvals", icon: ShieldCheck },
+      { label: "Riscos", path: "/app/risks", icon: Activity },
+      { label: "Decisões", path: "/app/decisions", icon: CheckCircle2 },
+    ],
+  },
+  {
+    heading: "SISTEMA",
+    links: [{ label: "Configurações", path: "/app/settings", icon: Settings }],
+  },
+];
 
 export default function App() {
-  const [view, setView] = useState<View>('dashboard')
-  const [mobileNav, setMobileNav] = useState(false)
-  const [overlayViewport, setOverlayViewport] = useState(() => window.matchMedia('(max-width: 1120px)').matches)
-  const initialBoard = loadBoard({
-    tasks: hydrateTasks(initialTasks),
-    sprints: defaultSprints,
-    gates: initialGateData.map((gate, index) => ({ id: gate[0], name: gate[1], description: gate[3], decisionOwner: gate[2], evidence: gate[4], plannedDate: gate[5], color: ['#2475d0', '#7b5cc7', '#d9822b', '#28947b'][index % 4] })),
-  })
-  const [tasks, setTasks] = useState<Task[]>(initialBoard.tasks)
-  const [sprints, setSprints] = useState<Sprint[]>(initialBoard.sprints)
-  const [boardGates, setBoardGates] = useState<BoardGate[]>(initialBoard.gates)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [doneDocuments, setDoneDocuments] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem('symos-documents-done') || '[]') } catch { return [] } })
-  const [actualHours, setActualHours] = useState<number[]>(() => { try { return JSON.parse(localStorage.getItem('symos-actual-hours') || 'null') || weeks.map(() => 0) } catch { return weeks.map(() => 0) } })
-  const [toast, setToast] = useState('')
-  const [preferences, setPreferences] = useState<UserPreferences>(loadPreferences)
-  const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem('symos-welcome-seen') !== 'true')
-  const [boardClassification, setBoardClassification] = useState<TaskClassification | 'Todas'>('Todas')
-
-  useLayoutEffect(() => {
-    localStorage.setItem('symos-preferences', JSON.stringify(preferences))
-    const root = document.documentElement
-    root.dataset.accent = preferences.accent
-    root.dataset.theme = preferences.theme
-    root.dataset.density = preferences.density
-    root.dataset.motion = preferences.motion
-    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute(
-      'content',
-      preferences.theme === 'dark' ? '#141416' : '#f2f5f4',
-    )
-  }, [preferences])
+  const actions = useWorkspace();
+  const { database } = actions;
+  const [path, setPath] = useState(
+    location.pathname === "/" ? "/app" : location.pathname,
+  );
+  const [workspaceId, setWorkspaceId] = useState(
+    () => localStorage.getItem("symos-workspace") || "symco",
+  );
+  const [sidebar, setSidebar] = useState(true);
+  const [mobileNav, setMobileNav] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const workspace =
+    database.workspaces.find((item) => item.id === workspaceId) ||
+    database.workspaces[0];
+  const projects = database.projects.filter(
+    (project) => project.workspaceId === workspace.id,
+  );
+  const navigate = (next: string) => {
+    history.pushState({}, "", next);
+    setPath(next);
+    setMobileNav(false);
+    setSearchOpen(false);
+    window.scrollTo(0, 0);
+  };
 
   useEffect(() => {
-    const query = window.matchMedia('(max-width: 1120px)')
-    const update = () => { setOverlayViewport(query.matches); setMobileNav(false) }
-    query.addEventListener('change', update)
-    return () => query.removeEventListener('change', update)
-  }, [])
+    const onPop = () => setPath(location.pathname);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen((open) => !open);
+        window.setTimeout(
+          () =>
+            document.querySelector<HTMLInputElement>("#global-search")?.focus(),
+          0,
+        );
+      }
+      if (event.key === "Escape") {
+        setSearchOpen(false);
+        setMobileNav(false);
+        setNotificationsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, []);
+  const selectWorkspace = (value: string) => {
+    setWorkspaceId(value);
+    localStorage.setItem("symos-workspace", value);
+    navigate("/app");
+  };
+  const projectId =
+    path === "/app/projects/new"
+      ? undefined
+      : path.match(/^\/app\/projects\/([^/]+)/)?.[1];
+  const project = database.projects.find(
+    (item) => item.id === projectId && item.workspaceId === workspace.id,
+  );
+  const matches = search.trim()
+    ? [
+        ...projects
+          .filter((item) =>
+            `${item.name} ${item.description}`
+              .toLowerCase()
+              .includes(search.toLowerCase()),
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            type: "Projeto",
+            path: `/app/projects/${item.id}`,
+          })),
+        ...database.tasks
+          .filter(
+            (item) =>
+              projects.some((project) => project.id === item.projectId) &&
+              item.title.toLowerCase().includes(search.toLowerCase()),
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.title,
+            type: "Tarefa",
+            path: `/app/projects/${item.projectId}`,
+          })),
+        ...database.clients
+          .filter(
+            (item) =>
+              item.workspaceId === workspace.id &&
+              item.name.toLowerCase().includes(search.toLowerCase()),
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            type: "Cliente",
+            path: "/app/portfolio",
+          })),
+        ...database.attachments
+          .filter(
+            (item) =>
+              projects.some((project) => project.id === item.projectId) &&
+              item.title.toLowerCase().includes(search.toLowerCase()),
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.title,
+            type: "Documento",
+            path: `/app/projects/${item.projectId}`,
+          })),
+        ...database.users
+          .filter(
+            (item) =>
+              workspace.memberIds.includes(item.id) &&
+              item.name.toLowerCase().includes(search.toLowerCase()),
+          )
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            type: "Pessoa",
+            path: "/app/settings",
+          })),
+      ].slice(0, 8)
+    : [];
+  const title =
+    path === "/app"
+      ? "Visão Geral"
+      : path === "/app/portfolio"
+        ? "Portfólio de Projetos"
+        : path === "/app/projects/new"
+          ? "Criar novo projeto"
+          : path === "/app/projects"
+            ? "Projetos"
+            : project
+              ? project.name
+              : navigation
+                  .flatMap((group) => group.links)
+                  .find((link) => link.path === path)?.label ||
+                "Página não encontrada";
 
-  useEffect(() => { saveBoard({ tasks, sprints, gates: boardGates }) }, [tasks, sprints, boardGates])
-  useEffect(() => { localStorage.setItem('symos-documents-done', JSON.stringify(doneDocuments)) }, [doneDocuments])
-  useEffect(() => { localStorage.setItem('symos-actual-hours', JSON.stringify(actualHours)) }, [actualHours])
-
-  const updatePreferences = (next: Partial<UserPreferences>) => setPreferences(current => ({ ...current, ...next }))
-
-  const continueToApp = () => {
-    localStorage.setItem('symos-welcome-seen', 'true')
-    setShowWelcome(false)
-  }
-
-  const navigate = (nextView: View) => {
-    if (nextView === view) {
-      setMobileNav(false)
-      return
-    }
-
-    const commitNavigation = () => {
-      setView(nextView)
-      setMobileNav(false)
-      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'instant' })
-    }
-
-    commitNavigation()
-  }
-
-  const updateTask = (task: Task) => {
-    setTasks(current => current.map(item => item.id === task.id ? task : item))
-    closeSelectedTask()
-    setToast(`${task.id} atualizado. Indicadores recalculados.`)
-    window.setTimeout(() => setToast(''), 2800)
-  }
-
-  const closeSelectedTask = () => {
-    const overlay = document.querySelector('.overlay:has(> .drawer)')
-    if (!overlay) return setSelectedTask(null)
-    overlay.classList.add('popup-closing')
-    window.setTimeout(() => setSelectedTask(null), 150)
-  }
-
-  const notify = (message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(''), 2800)
-  }
-
-  const primaryAction = () => {
-    if (view === 'dashboard') navigate('board')
-    else if (view === 'board') document.querySelector<HTMLButtonElement>('[data-create-task]')?.click()
-  }
-
-  const openBoardWithClassification = (classification: TaskClassification) => {
-    setBoardClassification(classification)
-    navigate('board')
-  }
-
-  if (showWelcome) return <WelcomePage continueToApp={continueToApp} />
-
-  const sidebarOpen = overlayViewport ? mobileNav : preferences.sidebarExpanded
-  const toggleSidebar = () => overlayViewport ? setMobileNav(open => !open) : updatePreferences({ sidebarExpanded: !preferences.sidebarExpanded })
-
-  return <div className={`app-shell ${sidebarOpen && !overlayViewport ? 'sidebar-expanded' : ''}`}>
-    <AppSidebar view={view} open={sidebarOpen} overlay={overlayViewport} navigate={navigate} close={() => setMobileNav(false)} />
-    <div className="workspace">
-      <Topbar openMenu={toggleSidebar} menuOpen={sidebarOpen} />
-      <main><div className="page-transition" key={view}>
-          <PageHeader view={view} onAction={view === 'dashboard' || view === 'board' ? primaryAction : undefined} />
-          {view === 'dashboard' && <DashboardPage tasks={tasks} gates={boardGates} documentsDone={doneDocuments.length} hours={actualHours} navigate={navigate} openBoardWithClassification={openBoardWithClassification} />}
-          {view === 'board' && <BoardPage tasks={tasks} sprints={sprints} gates={boardGates} initialClassification={boardClassification} select={setSelectedTask} setTasks={setTasks} setSprints={setSprints} setGates={setBoardGates} notify={notify} />}
-          {view === 'gates' && <GatesPage tasks={tasks} gates={boardGates} doneDocuments={doneDocuments} />}
-          {view === 'schedule' && <SchedulePage tasks={tasks} gates={boardGates} sprints={sprints} />}
-          {view === 'risks' && <RisksPage />}
-          {view === 'documents' && <DocumentsPage gates={boardGates} done={doneDocuments} setDone={setDoneDocuments} />}
-          {view === 'hours' && <HoursPage actual={actualHours} setActual={setActualHours} />}
-          {view === 'governance' && <GovernancePage />}
-          {view === 'settings' && <SettingsPage preferences={preferences} updatePreferences={updatePreferences} />}
+  return (
+    <div className={`os-shell ${sidebar ? "" : "os-collapsed"}`}>
+      <aside className={`os-sidebar ${mobileNav ? "mobile-open" : ""}`}>
+        <div className="os-brand">
+          <span>
+            sym<span>OS</span>
+          </span>
+          <small>por symco</small>
         </div>
-      </main>
+        <nav aria-label="Navegação principal">
+          {navigation.map((group) => (
+            <div className="os-nav-group" key={group.heading}>
+              <small>{group.heading}</small>
+              {group.links.map(({ label, path: target, icon: Icon }) => (
+                <button
+                  key={target}
+                  title={label}
+                  className={
+                    path === target || (target === "/app/projects" && !!project)
+                      ? "selected"
+                      : ""
+                  }
+                  onClick={() => navigate(target)}
+                >
+                  <Icon size={17} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="os-modules">
+          <small>MÓDULOS SYMCO</small>
+          {modules
+            .filter((module) => workspace.moduleIds.includes(module.id))
+            .map((module) => (
+              <div title={module.description} key={module.id}>
+                <span className="module-mark">✦</span>
+                <span>{module.name}</span>
+              </div>
+            ))}
+        </div>
+        <div className="os-sidebar-bottom">
+          <button
+            onClick={() => setSidebar((value) => !value)}
+            aria-label="Recolher ou expandir navegação"
+          >
+            <ChevronLeft size={17} />
+            <span>Recolher menu</span>
+          </button>
+        </div>
+      </aside>
+      {mobileNav && (
+        <button
+          className="os-scrim"
+          aria-label="Fechar menu"
+          onClick={() => setMobileNav(false)}
+        />
+      )}
+      <div className="os-workspace">
+        <header className="os-topbar">
+          <button
+            className="os-mobile-menu"
+            aria-label="Abrir menu"
+            onClick={() => setMobileNav(true)}
+          >
+            <Menu size={21} />
+          </button>
+          <label className="os-workspace-select">
+            <span className="workspace-icon">S</span>
+            <select
+              aria-label="Workspace"
+              value={workspace.id}
+              onChange={(event) => selectWorkspace(event.target.value)}
+            >
+              {database.workspaces.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="os-search-wrap">
+            <label className="os-search">
+              <Search size={16} />
+              <input
+                id="global-search"
+                value={search}
+                onFocus={() => setSearchOpen(true)}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar projetos, tarefas, pessoas..."
+                aria-label="Busca global"
+              />
+              <kbd>⌘ K</kbd>
+            </label>
+            {searchOpen && (
+              <div className="os-search-popover">
+                {matches.length ? (
+                  matches.map((item) => (
+                    <button
+                      key={`${item.type}-${item.id}`}
+                      onClick={() => {
+                        navigate(item.path);
+                        setSearch("");
+                      }}
+                    >
+                      <span>{item.name}</span>
+                      <small>{item.type}</small>
+                    </button>
+                  ))
+                ) : (
+                  <p>
+                    {search
+                      ? "Nenhum resultado encontrado."
+                      : "Busque em projetos, tarefas, clientes, documentos e pessoas."}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            className="os-icon-button"
+            aria-label="Notificações"
+            onClick={() => setNotificationsOpen((value) => !value)}
+          >
+            <Bell size={18} />
+          </button>
+          <div className="os-user">
+            <span className="os-avatar">MC</span>
+            <span>
+              Mariana Costa<small>Gestora de projetos</small>
+            </span>
+          </div>
+        </header>
+        {notificationsOpen && (
+          <div className="os-notifications">
+            <strong>Atividades recentes</strong>
+            {database.activities
+              .filter((item) => item.workspaceId === workspace.id)
+              .slice(0, 5)
+              .map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    navigate(`/app/projects/${item.projectId}`);
+                    setNotificationsOpen(false);
+                  }}
+                >
+                  {item.summary}
+                </button>
+              ))}
+          </div>
+        )}
+        <main className="os-main">
+          <div className="os-page-header">
+            <div>
+              <small>SYMOS / {workspace.name.toUpperCase()}</small>
+              <h1>{title}</h1>
+              {!project && (
+                <p>Inteligência, governança e execução em um só lugar.</p>
+              )}
+            </div>
+            {path !== "/app/projects/new" && (
+              <button
+                className="os-button primary"
+                onClick={() => navigate("/app/projects/new")}
+              >
+                <Plus size={16} /> Novo projeto
+              </button>
+            )}
+          </div>
+          {path === "/app" && (
+            <Dashboard
+              database={database}
+              projects={projects}
+              navigate={navigate}
+            />
+          )}
+          {(path === "/app/portfolio" || path === "/app/projects") && (
+            <Portfolio
+              database={database}
+              projects={projects}
+              navigate={navigate}
+            />
+          )}
+          {path === "/app/projects/new" && (
+            <NewProject
+              database={database}
+              workspace={workspace}
+              create={actions.createProject}
+              navigate={navigate}
+            />
+          )}
+          {project && (
+            <ProjectDetail
+              key={project.id}
+              database={database}
+              project={project}
+              actions={actions}
+              navigate={navigate}
+            />
+          )}
+          {[
+            "/app/calendar",
+            "/app/documents",
+            "/app/approvals",
+            "/app/risks",
+            "/app/decisions",
+            "/app/settings",
+          ].includes(path) && (
+            <Governance
+              path={path}
+              database={database}
+              projects={projects}
+              actions={actions}
+              navigate={navigate}
+            />
+          )}
+          {!project && projectId && (
+            <div className="os-empty">
+              <h2>Projeto não encontrado</h2>
+              <p>Verifique o workspace selecionado.</p>
+              <button
+                className="os-button primary"
+                onClick={() => navigate("/app/projects")}
+              >
+                Ver projetos
+              </button>
+            </div>
+          )}
+        </main>
+        {actions.error && (
+          <div className="os-error" role="alert">
+            {actions.error}
+            <button onClick={actions.dismissError} aria-label="Fechar">
+              <X size={15} />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
-    {selectedTask && <TaskDrawer task={selectedTask} gates={boardGates} sprints={sprints} close={closeSelectedTask} save={updateTask} />}
-    {toast && <div className="toast"><Check size={18} /><span>{toast}</span></div>}
-  </div>
+  );
 }
