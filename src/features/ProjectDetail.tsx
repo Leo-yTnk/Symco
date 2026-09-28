@@ -230,6 +230,7 @@ export function ProjectDetail({
         <div className="os-detail-main">
           <div
             className="os-tabs"
+            data-tour="project-tabs"
             role="tablist"
             aria-label="Seções do projeto"
           >
