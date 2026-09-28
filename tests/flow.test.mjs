@@ -179,3 +179,50 @@ test("exploration can skip personal details and still keep the introduction avai
   assert.match(document.body.textContent, /Visão Geral/);
   await act(async () => root.unmount());
 });
+
+test("task details keep actions separate, guard unsaved edits, and persist a saved change", async () => {
+  localStorage.clear();
+  localStorage.setItem(
+    "symos-onboarding-v1",
+    JSON.stringify({ completed: true, tutorialSeen: true, profile: {} }),
+  );
+  history.replaceState({}, "", "/app/projects/aky-mayo");
+  let root = createRoot(container);
+  await act(async () => root.render(createElement(App)));
+  const row = [...document.querySelectorAll(".os-table tbody tr")].find(
+    (item) => item.textContent.includes("Formulação piloto"),
+  );
+  assert.equal(row.tabIndex, 0);
+  await act(async () => {
+    row.focus();
+    row.dispatchEvent(
+      new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+  });
+  const panel = document.querySelector(".os-task-panel");
+  assert.ok(panel?.querySelector(".os-task-panel-scroll"));
+  assert.ok(panel?.querySelector(".os-task-panel-footer"));
+  assert.equal(
+    panel
+      .querySelector(".os-task-panel-scroll")
+      .contains(panel.querySelector(".os-task-panel-footer")),
+    false,
+  );
+  await input(
+    panel.querySelector(".os-task-fields input"),
+    "Formulação revisada",
+  );
+  await click(button("Cancelar"));
+  assert.match(panel.textContent, /Descartar alterações/);
+  await click(button("Continuar editando"));
+  assert.equal(panel.querySelector(".os-discard-confirm"), null);
+  await click(button("Salvar"));
+  await act(async () => new Promise((resolve) => setTimeout(resolve, 210)));
+  assert.equal(document.querySelector(".os-task-panel"), null);
+  assert.match(document.body.textContent, /Formulação revisada/);
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await act(async () => root.render(createElement(App)));
+  assert.match(document.body.textContent, /Formulação revisada/);
+  await act(async () => root.unmount());
+});
