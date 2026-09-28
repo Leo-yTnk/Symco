@@ -126,7 +126,18 @@ export function ProjectDetail({
         </thead>
         <tbody>
           {tasks.map((task) => (
-            <tr key={task.id} onClick={() => setSelected(task)}>
+            <tr
+              key={task.id}
+              tabIndex={0}
+              aria-label={`Abrir detalhes da tarefa ${task.title}`}
+              onClick={() => setSelected(task)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelected(task);
+                }
+              }}
+            >
               <td>
                 <strong>{task.title}</strong>
               </td>
