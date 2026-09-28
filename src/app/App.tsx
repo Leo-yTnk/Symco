@@ -5,11 +5,13 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
+  Compass,
   FileText,
   FolderKanban,
   LayoutDashboard,
   Menu,
   Plus,
+  CircleHelp,
   Search,
   Settings,
   ShieldCheck,
@@ -22,6 +24,13 @@ import { Portfolio } from "../features/Portfolio";
 import { ProjectDetail } from "../features/ProjectDetail";
 import { NewProject } from "../features/NewProject";
 import { Governance } from "../features/Governance";
+import { Onboarding } from "../features/Onboarding";
+import { Tutorial } from "../features/Tutorial";
+import {
+  loadOnboarding,
+  saveOnboarding,
+  type OnboardingProfile,
+} from "../repositories/localOnboarding";
 
 const navigation = [
   {
@@ -54,9 +63,7 @@ const navigation = [
 export default function App() {
   const actions = useWorkspace();
   const { database } = actions;
-  const [path, setPath] = useState(
-    location.pathname === "/" ? "/app" : location.pathname,
-  );
+  const [path, setPath] = useState(location.pathname);
   const [workspaceId, setWorkspaceId] = useState(
     () => localStorage.getItem("symos-workspace") || "symco",
   );
@@ -65,12 +72,16 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [onboarding, setOnboarding] = useState(loadOnboarding);
+  const [tourOpen, setTourOpen] = useState(false);
   const workspace =
     database.workspaces.find((item) => item.id === workspaceId) ||
     database.workspaces[0];
   const projects = database.projects.filter(
     (project) => project.workspaceId === workspace.id,
   );
+  const currentUser =
+    database.users.find((user) => user.id === "mariana") || database.users[0];
   const navigate = (next: string) => {
     history.pushState({}, "", next);
     setPath(next);
@@ -108,6 +119,41 @@ export default function App() {
     setWorkspaceId(value);
     localStorage.setItem("symos-workspace", value);
     navigate("/app");
+  };
+  const completeOnboarding = (profile: OnboardingProfile) => {
+    const targetWorkspace =
+      profile.workspaceType === "independent" ? "personal" : "symco";
+    const next = { completed: true, tutorialSeen: false, profile };
+    saveOnboarding(next);
+    setOnboarding(next);
+    actions.configureIdentity(
+      currentUser.id,
+      targetWorkspace,
+      profile.name.trim(),
+      profile.email.trim(),
+      profile.organization.trim(),
+    );
+    setWorkspaceId(targetWorkspace);
+    localStorage.setItem("symos-workspace", targetWorkspace);
+    navigate("/app");
+    setTourOpen(true);
+  };
+  const exploreDemo = () => {
+    const next = { ...onboarding, completed: true };
+    saveOnboarding(next);
+    setOnboarding(next);
+    navigate("/app");
+    setTourOpen(true);
+  };
+  const closeTutorial = () => {
+    setTourOpen(false);
+    const next = { ...onboarding, tutorialSeen: true };
+    setOnboarding(next);
+    saveOnboarding(next);
+  };
+  const startTutorial = () => {
+    navigate("/app");
+    setTourOpen(true);
   };
   const projectId =
     path === "/app/projects/new"
@@ -196,6 +242,16 @@ export default function App() {
                   .find((link) => link.path === path)?.label ||
                 "Página não encontrada";
 
+  if (path === "/" || path === "/welcome" || !onboarding.completed) {
+    return (
+      <Onboarding
+        initial={onboarding.profile}
+        finish={completeOnboarding}
+        explore={exploreDemo}
+      />
+    );
+  }
+
   return (
     <div className={`os-shell ${sidebar ? "" : "os-collapsed"}`}>
       <aside className={`os-sidebar ${mobileNav ? "mobile-open" : ""}`}>
@@ -211,6 +267,9 @@ export default function App() {
               <small>{group.heading}</small>
               {group.links.map(({ label, path: target, icon: Icon }) => (
                 <button
+                  data-tour={
+                    target === "/app/portfolio" ? "portfolio" : undefined
+                  }
                   key={target}
                   title={label}
                   className={
@@ -240,6 +299,16 @@ export default function App() {
         </div>
         <div className="os-sidebar-bottom">
           <button
+            onClick={() => {
+              setTourOpen(false);
+              navigate("/");
+            }}
+            aria-label="Abrir página inicial"
+          >
+            <Compass size={17} />
+            <span>Página inicial</span>
+          </button>
+          <button
             onClick={() => setSidebar((value) => !value)}
             aria-label="Recolher ou expandir navegação"
           >
@@ -259,12 +328,13 @@ export default function App() {
         <header className="os-topbar">
           <button
             className="os-mobile-menu"
+            data-tour="mobile-menu"
             aria-label="Abrir menu"
             onClick={() => setMobileNav(true)}
           >
             <Menu size={21} />
           </button>
-          <label className="os-workspace-select">
+          <label className="os-workspace-select" data-tour="workspace">
             <span className="workspace-icon">S</span>
             <select
               aria-label="Workspace"
@@ -278,7 +348,7 @@ export default function App() {
               ))}
             </select>
           </label>
-          <div className="os-search-wrap">
+          <div className="os-search-wrap" data-tour="search">
             <label className="os-search">
               <Search size={16} />
               <input
@@ -317,6 +387,20 @@ export default function App() {
             )}
           </div>
           <button
+            className="os-icon-button os-start-button"
+            title="Página inicial"
+            aria-label="Abrir página inicial"
+            onClick={() => {
+              setTourOpen(false);
+              navigate("/");
+            }}
+          >
+            <Compass size={18} />
+          </button>
+          <button className="os-help-button" onClick={startTutorial}>
+            <CircleHelp size={17} /> <span>Tutorial</span>
+          </button>
+          <button
             className="os-icon-button"
             aria-label="Notificações"
             onClick={() => setNotificationsOpen((value) => !value)}
@@ -324,9 +408,17 @@ export default function App() {
             <Bell size={18} />
           </button>
           <div className="os-user">
-            <span className="os-avatar">MC</span>
+            <span className="os-avatar">
+              {currentUser.name
+                .split(" ")
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase()}
+            </span>
             <span>
-              Mariana Costa<small>Gestora de projetos</small>
+              {currentUser.name}
+              <small>{onboarding.profile.role || "Gestora de projetos"}</small>
             </span>
           </div>
         </header>
@@ -350,82 +442,85 @@ export default function App() {
           </div>
         )}
         <main className="os-main">
-          <div className="os-page-header">
-            <div>
-              <small>SYMOS / {workspace.name.toUpperCase()}</small>
-              <h1>{title}</h1>
-              {!project && (
-                <p>Inteligência, governança e execução em um só lugar.</p>
+          <div className="os-page-content" key={path}>
+            <div className="os-page-header">
+              <div>
+                <small>SYMOS / {workspace.name.toUpperCase()}</small>
+                <h1>{title}</h1>
+                {!project && (
+                  <p>Inteligência, governança e execução em um só lugar.</p>
+                )}
+              </div>
+              {path !== "/app/projects/new" && (
+                <button
+                  data-tour="new-project"
+                  className="os-button primary"
+                  onClick={() => navigate("/app/projects/new")}
+                >
+                  <Plus size={16} /> Novo projeto
+                </button>
               )}
             </div>
-            {path !== "/app/projects/new" && (
-              <button
-                className="os-button primary"
-                onClick={() => navigate("/app/projects/new")}
-              >
-                <Plus size={16} /> Novo projeto
-              </button>
+            {path === "/app" && (
+              <Dashboard
+                database={database}
+                projects={projects}
+                navigate={navigate}
+              />
+            )}
+            {(path === "/app/portfolio" || path === "/app/projects") && (
+              <Portfolio
+                database={database}
+                projects={projects}
+                navigate={navigate}
+              />
+            )}
+            {path === "/app/projects/new" && (
+              <NewProject
+                database={database}
+                workspace={workspace}
+                create={actions.createProject}
+                navigate={navigate}
+              />
+            )}
+            {project && (
+              <ProjectDetail
+                key={project.id}
+                database={database}
+                project={project}
+                actions={actions}
+                navigate={navigate}
+              />
+            )}
+            {[
+              "/app/calendar",
+              "/app/documents",
+              "/app/approvals",
+              "/app/risks",
+              "/app/decisions",
+              "/app/settings",
+            ].includes(path) && (
+              <Governance
+                path={path}
+                database={database}
+                projects={projects}
+                actions={actions}
+                navigate={navigate}
+              />
+            )}
+            {!project && projectId && (
+              <div className="os-empty">
+                <h2>Projeto não encontrado</h2>
+                <p>Verifique o workspace selecionado.</p>
+                <button
+                  className="os-button primary"
+                  onClick={() => navigate("/app/projects")}
+                >
+                  Ver projetos
+                </button>
+              </div>
             )}
           </div>
-          {path === "/app" && (
-            <Dashboard
-              database={database}
-              projects={projects}
-              navigate={navigate}
-            />
-          )}
-          {(path === "/app/portfolio" || path === "/app/projects") && (
-            <Portfolio
-              database={database}
-              projects={projects}
-              navigate={navigate}
-            />
-          )}
-          {path === "/app/projects/new" && (
-            <NewProject
-              database={database}
-              workspace={workspace}
-              create={actions.createProject}
-              navigate={navigate}
-            />
-          )}
-          {project && (
-            <ProjectDetail
-              key={project.id}
-              database={database}
-              project={project}
-              actions={actions}
-              navigate={navigate}
-            />
-          )}
-          {[
-            "/app/calendar",
-            "/app/documents",
-            "/app/approvals",
-            "/app/risks",
-            "/app/decisions",
-            "/app/settings",
-          ].includes(path) && (
-            <Governance
-              path={path}
-              database={database}
-              projects={projects}
-              actions={actions}
-              navigate={navigate}
-            />
-          )}
-          {!project && projectId && (
-            <div className="os-empty">
-              <h2>Projeto não encontrado</h2>
-              <p>Verifique o workspace selecionado.</p>
-              <button
-                className="os-button primary"
-                onClick={() => navigate("/app/projects")}
-              >
-                Ver projetos
-              </button>
-            </div>
-          )}
         </main>
         {actions.error && (
           <div className="os-error" role="alert">
@@ -436,6 +531,13 @@ export default function App() {
           </div>
         )}
       </div>
+      {tourOpen && (
+        <Tutorial
+          projectId={projects[0]?.id}
+          navigate={navigate}
+          close={closeTutorial}
+        />
+      )}
     </div>
   );
 }

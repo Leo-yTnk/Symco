@@ -35,6 +35,8 @@ for (const key of [
     value: dom.window[key],
   });
 window.scrollTo = () => {};
+globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0);
+globalThis.cancelAnimationFrame = clearTimeout;
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { act, createElement } = await import("react");
 const { createRoot } = await import("react-dom/client");
@@ -67,6 +69,29 @@ const input = async (node, value) => {
 test("create a project and a task, then restore both after a new mount", async () => {
   let root = createRoot(container);
   await act(async () => root.render(createElement(App)));
+  assert.match(document.body.textContent, /Uma ideia merece mais/);
+  await click(button("Configurar meu espaço"));
+  await input(
+    document.querySelector(
+      'input[placeholder="Como você gostaria de ser chamado?"]',
+    ),
+    "Operador Teste",
+  );
+  await input(
+    document.querySelector('input[placeholder="Ex.: Gerente de projetos"]'),
+    "Coordenador",
+  );
+  await click(button("Continuar"));
+  await input(
+    document.querySelector(
+      'input[placeholder="Empresa, equipe ou projeto pessoal"]',
+    ),
+    "Workspace Teste",
+  );
+  await click(button("Entrar no SymOS"));
+  assert.match(document.body.textContent, /Comece pela visão geral/);
+  await click(button("Pular tutorial"));
+  assert.match(document.body.textContent, /Workspace Teste/);
   await click(button("Novo projeto"));
   assert.match(document.body.textContent, /Criar novo projeto/);
   await input(
@@ -122,5 +147,35 @@ test("create a project and a task, then restore both after a new mount", async (
     document.querySelector(".os-project-summary")?.textContent,
     /25%/,
   );
+  await click(button("Tutorial"));
+  assert.match(document.body.textContent, /Comece pela visão geral/);
+  for (let step = 0; step < 4; step++) await click(button("Próximo"));
+  assert.match(document.body.textContent, /Execute e preserve decisões/);
+  assert.ok(document.querySelector('[data-tour="project-tabs"]'));
+  await click(button("Concluir"));
+  assert.equal(document.querySelector(".os-tour-card"), null);
+  await act(async () => root.unmount());
+});
+
+test("exploration can skip personal details and still keep the introduction available", async () => {
+  localStorage.clear();
+  history.replaceState({}, "", "/app");
+  let root = createRoot(container);
+  await act(async () => root.render(createElement(App)));
+  await click(button("Explorar a demonstração"));
+  assert.match(document.body.textContent, /Comece pela visão geral/);
+  await click(button("Pular tutorial"));
+  assert.match(document.body.textContent, /Maionese Popular/);
+  await click(
+    document.querySelector('button[aria-label="Abrir página inicial"]'),
+  );
+  assert.match(document.body.textContent, /Uma ideia merece mais/);
+  await act(async () => root.unmount());
+  root = createRoot(container);
+  await act(async () => root.render(createElement(App)));
+  assert.match(document.body.textContent, /Uma ideia merece mais/);
+  await click(button("Explorar a demonstração"));
+  await click(button("Pular tutorial"));
+  assert.match(document.body.textContent, /Visão Geral/);
   await act(async () => root.unmount());
 });

@@ -11,7 +11,7 @@ npm test
 npm run build
 ```
 
-Abra o endereço exibido pelo Vite. `/` apresenta o aplicativo, e as rotas de trabalho ficam sob `/app`.
+Abra o endereço exibido pelo Vite. `/` apresenta a página inicial de contexto (KYC leve), com opção de configuração ou exploração da demonstração. As rotas de trabalho ficam sob `/app`; o primeiro acesso direto a elas também apresenta a configuração inicial.
 
 ## Organização
 
@@ -27,6 +27,8 @@ O banco local é semeado apenas na primeira visita (`symos-database-v1`). Cada p
 ## Fluxo disponível
 
 Troque de workspace, crie um projeto com template ou etapas próprias, escolha membros, abra o projeto, crie e edite tarefas, mova tarefas entre colunas do Kanban, comente, registre documentos como metadados ou links, riscos e decisões. Dashboard, portfólio, busca e atividade refletem as alterações. A recarga conserva os dados no mesmo navegador.
+
+A página inicial coleta apenas nome, função e nome do workspace como campos obrigatórios. As respostas ficam no próprio navegador; não constituem verificação formal de identidade. O tutorial guiado abre após a configuração e pode ser reaberto pelo botão **Tutorial** no topo. O ícone de bússola retorna à página inicial.
 
 ## Limites desta fase
 
