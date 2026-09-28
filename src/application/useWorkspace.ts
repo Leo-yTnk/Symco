@@ -324,6 +324,27 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
         ],
       }));
     },
+    configureIdentity(
+      userId: string,
+      workspaceId: string,
+      name: string,
+      email: string,
+      organization: string,
+    ) {
+      commit((current) => ({
+        ...current,
+        users: current.users.map((user) =>
+          user.id === userId
+            ? { ...user, name, email: email || user.email }
+            : user,
+        ),
+        workspaces: current.workspaces.map((workspace) =>
+          workspace.id === workspaceId
+            ? { ...workspace, name: organization }
+            : workspace,
+        ),
+      }));
+    },
   };
 }
 export type WorkspaceActions = ReturnType<typeof useWorkspace>;

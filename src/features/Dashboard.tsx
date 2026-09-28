@@ -95,7 +95,7 @@ export function Dashboard({
   return (
     <div className="os-dashboard">
       <div className="os-primary">
-        <div className="os-kpis">
+        <div className="os-kpis" data-tour="dashboard">
           {metrics.map(({ label, value, icon: Icon, tone }) => (
             <div className={`os-kpi tone-${tone}`} key={label}>
               <Icon size={21} />
