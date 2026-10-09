@@ -31,6 +31,7 @@ for (const key of [
 ])
   Object.defineProperty(globalThis, key, {
     configurable: true,
+    writable: true,
     value: dom.window[key],
   });
 window.scrollTo = () => {};
@@ -210,7 +211,12 @@ test("uploads store actual bytes and invalid external URLs are rejected", async 
         .dispatchEvent(
           new Event("submit", { bubbles: true, cancelable: true }),
         );
-      await new Promise((resolve) => setTimeout(resolve, 20));
+      const deadline = Date.now() + 1000;
+      while (
+        !db().attachments.some((d) => d.title === "local-test.txt") &&
+        Date.now() < deadline
+      )
+        await new Promise((resolve) => setTimeout(resolve, 10));
     });
   } finally {
     globalThis.FormData = NativeFormData;
