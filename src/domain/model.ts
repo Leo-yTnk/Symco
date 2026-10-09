@@ -119,6 +119,16 @@ export type Attachment = {
   type: string;
   createdAt: string;
   createdBy: ID;
+  approvalStatus?: ApprovalStatus;
+  updatedAt?: string;
+  category?: string;
+  moduleId?: ID;
+  version?: string;
+  status?: "draft" | "review" | "approved";
+  fileData?: string;
+  mimeType?: string;
+  fileName?: string;
+  size?: number;
 };
 export type Approval = {
   id: ID;
@@ -186,7 +196,30 @@ export type Notification = {
 };
 export type Tag = { id: ID; workspaceId: ID; name: string; color: string };
 
+export type QualityRecord = {
+  id: ID;
+  projectId: ID;
+  title: string;
+  kind: "audit" | "nonconformity" | "capa";
+  status: "open" | "in_progress" | "done";
+  ownerId: ID;
+  dueDate: string;
+  description: string;
+};
+export type Automation = {
+  id: ID;
+  workspaceId: ID;
+  projectId?: ID;
+  name: string;
+  trigger: "task_done" | "document_added";
+  action: "request_approval" | "add_review_task";
+  enabled: boolean;
+  runs: number;
+  lastRun?: string;
+};
 export type Database = {
+  qualityRecords?: QualityRecord[];
+  automations?: Automation[];
   version: 1;
   users: User[];
   workspaces: Workspace[];

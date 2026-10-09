@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   Activity,
+  Zap,
+  BarChart3,
   Bell,
   CalendarDays,
   CheckCircle2,
@@ -23,6 +25,13 @@ import { Dashboard } from "../features/Dashboard";
 import { Portfolio } from "../features/Portfolio";
 import { ProjectDetail } from "../features/ProjectDetail";
 import { NewProject } from "../features/NewProject";
+import { Documents } from "../features/Documents";
+import { Schedule } from "../features/Schedule";
+import { Quality } from "../features/Quality";
+import { Automations } from "../features/Automations";
+import { Reports } from "../features/Reports";
+import { SettingsPage } from "../features/SettingsPage";
+import { Approvals } from "../features/Approvals";
 import { Governance } from "../features/Governance";
 import { Onboarding } from "../features/Onboarding";
 import { Tutorial } from "../features/Tutorial";
@@ -35,7 +44,7 @@ import {
 const navigation = [
   {
     heading: "VISÃO GERAL",
-    links: [{ label: "Dashboard", path: "/app", icon: LayoutDashboard }],
+    links: [{ label: "Visão Geral", path: "/app", icon: LayoutDashboard }],
   },
   {
     heading: "GESTÃO",
@@ -49,6 +58,7 @@ const navigation = [
   {
     heading: "GOVERNANÇA",
     links: [
+      { label: "Qualidade", path: "/app/quality", icon: ShieldCheck },
       { label: "Aprovações", path: "/app/approvals", icon: ShieldCheck },
       { label: "Riscos", path: "/app/risks", icon: Activity },
       { label: "Decisões", path: "/app/decisions", icon: CheckCircle2 },
@@ -56,14 +66,24 @@ const navigation = [
   },
   {
     heading: "SISTEMA",
-    links: [{ label: "Configurações", path: "/app/settings", icon: Settings }],
+    links: [
+      { label: "Automações", path: "/app/automations", icon: Zap },
+      { label: "Relatórios", path: "/app/reports", icon: BarChart3 },
+      { label: "Configurações", path: "/app/settings", icon: Settings },
+    ],
   },
 ];
 
 export default function App() {
   const actions = useWorkspace();
   const { database } = actions;
-  const [path, setPath] = useState(location.pathname);
+  const readPath = () =>
+    location.hash.startsWith("#/")
+      ? location.hash.slice(1)
+      : location.pathname.startsWith("/app")
+        ? location.pathname
+        : "/";
+  const [path, setPath] = useState(readPath);
   const [workspaceId, setWorkspaceId] = useState(
     () => localStorage.getItem("symos-workspace") || "symco",
   );
@@ -83,7 +103,7 @@ export default function App() {
   const currentUser =
     database.users.find((user) => user.id === "mariana") || database.users[0];
   const navigate = (next: string) => {
-    history.pushState({}, "", next);
+    history.pushState({}, "", `#${next}`);
     setPath(next);
     setMobileNav(false);
     setSearchOpen(false);
@@ -91,9 +111,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    const onPop = () => setPath(location.pathname);
+    const onPop = () => setPath(readPath());
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    window.addEventListener("hashchange", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("hashchange", onPop);
+    };
   }, []);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -226,6 +250,32 @@ export default function App() {
           })),
       ].slice(0, 8)
     : [];
+  const pageProps = {
+    database,
+    projects,
+    workspaceId: workspace.id,
+    actions,
+    navigate,
+  };
+  const descriptions: Record<string, string> = {
+    "/app":
+      "Acompanhe o desempenho dos projetos, prioridades e próximos marcos.",
+    "/app/portfolio":
+      "Uma visão integrada dos projetos, etapas, responsáveis e resultados.",
+    "/app/projects":
+      "Organize seus projetos e transforme planejamento em execução.",
+    "/app/documents":
+      "Centralize, organize e compartilhe os documentos dos seus projetos.",
+    "/app/calendar": "Acompanhe prazos, marcos e gates em uma linha do tempo.",
+    "/app/quality": "Gerencie auditorias, não conformidades e planos de ação.",
+    "/app/approvals":
+      "Revise solicitações e acompanhe as decisões dos seus projetos.",
+    "/app/automations":
+      "Conecte eventos e ações para simplificar o trabalho da equipe.",
+    "/app/reports": "Transforme dados dos projetos em informação para decidir.",
+    "/app/settings":
+      "Configure o workspace, os módulos e as preferências da equipe.",
+  };
   const title =
     path === "/app"
       ? "Visão Geral"
@@ -240,6 +290,7 @@ export default function App() {
               : navigation
                   .flatMap((group) => group.links)
                   .find((link) => link.path === path)?.label ||
+                modules.find((m) => path === `/app/modules/${m.id}`)?.name ||
                 "Página não encontrada";
 
   if (path === "/" || path === "/welcome" || !onboarding.completed) {
@@ -291,10 +342,14 @@ export default function App() {
           {modules
             .filter((module) => workspace.moduleIds.includes(module.id))
             .map((module) => (
-              <div title={module.description} key={module.id}>
+              <button
+                title={module.description}
+                key={module.id}
+                onClick={() => navigate(`/app/modules/${module.id}`)}
+              >
                 <span className="module-mark">✦</span>
                 <span>{module.name}</span>
-              </div>
+              </button>
             ))}
         </div>
         <div className="os-sidebar-bottom">
@@ -448,10 +503,13 @@ export default function App() {
                 <small>SYMOS / {workspace.name.toUpperCase()}</small>
                 <h1>{title}</h1>
                 {!project && (
-                  <p>Inteligência, governança e execução em um só lugar.</p>
+                  <p>
+                    {descriptions[path] ||
+                      "Inteligência, governança e execução em um só lugar."}
+                  </p>
                 )}
               </div>
-              {path !== "/app/projects/new" && (
+              {["/app", "/app/projects", "/app/portfolio"].includes(path) && (
                 <button
                   data-tour="new-project"
                   className="os-button primary"
@@ -473,6 +531,8 @@ export default function App() {
                 database={database}
                 projects={projects}
                 navigate={navigate}
+                initialView={path === "/app/portfolio" ? "table" : "cards"}
+                key={path}
               />
             )}
             {path === "/app/projects/new" && (
@@ -492,16 +552,27 @@ export default function App() {
                 navigate={navigate}
               />
             )}
-            {[
-              "/app/calendar",
-              "/app/documents",
-              "/app/approvals",
-              "/app/risks",
-              "/app/decisions",
-              "/app/settings",
-            ].includes(path) && (
+            {path === "/app/documents" && <Documents {...pageProps} />}
+            {path === "/app/calendar" && <Schedule {...pageProps} />}
+            {path === "/app/quality" && <Quality {...pageProps} />}
+            {path === "/app/automations" && <Automations {...pageProps} />}
+            {path === "/app/reports" && <Reports {...pageProps} />}
+            {path === "/app/settings" && <SettingsPage {...pageProps} />}
+            {path === "/app/approvals" && <Approvals {...pageProps} />}
+            {path.startsWith("/app/modules/") &&
+              modules.some((m) => path === `/app/modules/${m.id}`) && (
+                <Portfolio
+                  database={database}
+                  projects={projects.filter((p) =>
+                    p.moduleIds.includes(path.split("/").at(-1)!),
+                  )}
+                  navigate={navigate}
+                />
+              )}
+            {["/app/risks", "/app/decisions"].includes(path) && (
               <Governance
                 path={path}
+                workspaceId={workspace.id}
                 database={database}
                 projects={projects}
                 actions={actions}
