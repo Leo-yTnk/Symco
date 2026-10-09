@@ -30,6 +30,12 @@ Troque de workspace, crie um projeto com template ou etapas próprias, escolha m
 
 A página inicial coleta apenas nome, função e nome do workspace como campos obrigatórios. As respostas ficam no próprio navegador; não constituem verificação formal de identidade. O tutorial guiado abre após a configuração e pode ser reaberto pelo botão **Tutorial** no topo. O ícone de bússola retorna à página inicial.
 
+## Páginas e documentos
+
+As páginas Qualidade, Automações e Relatórios têm fluxos próprios. Documentos oferece pastas, tabela agrupada, filtros, paginação, edição, links externos e arquivos locais de até 2 MB por arquivo. Cronograma exibe Gantt e lista de prazos. Configurações permite renomear o workspace, cadastrar clientes e ativar módulos. O portfólio abre em tabela, e Projetos abre em cards.
+
+As rotas usam hash (`#/app/documents`, por exemplo) para suportar recarga no GitHub Pages. Os dados antigos são preservados. Consulte [o mapa de implementação e limites](docs/PROTOTYPE-ALIGNMENT.md).
+
 ## Limites desta fase
 
-Não há autenticação, sincronização entre dispositivos, controle de permissões no servidor nem upload de arquivos. Os usuários da demonstração representam perfis de exemplo; os tipos de papéis são a base para RBAC posterior. A aprovação existente pode mudar de estado; um fluxo completo de solicitação, revisão de gates e automações ainda precisa de backend e regras de negócio. O protótipo antigo de board único foi substituído; dados salvos na chave antiga não são migrados automaticamente.
+Não há autenticação, sincronização entre dispositivos, controle de permissões no servidor nem armazenamento compartilhado de arquivos. Os usuários da demonstração representam perfis de exemplo; os tipos de papéis são a base para RBAC posterior. Solicitações de aprovação e regras locais estão disponíveis. Revisão formal de gates, permissões de aprovadores e execução de automações no servidor ainda dependem de backend. O protótipo antigo de board único foi substituído; dados salvos na chave antiga não são migrados automaticamente.

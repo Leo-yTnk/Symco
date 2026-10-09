@@ -33,7 +33,9 @@ export function NewProject({
     dueDate: "",
     methodologyId: workspace.id === "personal" ? "simple" : "symco-food",
     moduleIds: workspace.moduleIds.includes("product")
-      ? ["product", "quality"]
+      ? ["product", "quality"].filter((moduleId) =>
+          workspace.moduleIds.includes(moduleId),
+        )
       : ([] as string[]),
     memberIds: ["mariana"] as string[],
   });

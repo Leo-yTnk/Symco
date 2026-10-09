@@ -7,12 +7,14 @@ import { formatDate, userName } from "../domain/selectors";
 
 export function Governance({
   path,
+  workspaceId,
   database,
   projects,
   actions,
   navigate,
 }: {
   path: string;
+  workspaceId: string;
   database: Database;
   projects: Project[];
   actions: WorkspaceActions;
@@ -21,7 +23,6 @@ export function Governance({
   const ids = new Set(projects.map((item) => item.id));
   const [clientName, setClientName] = useState("");
   const [contact, setContact] = useState("");
-  const workspaceId = projects[0]?.workspaceId || database.workspaces[0].id;
   const addClient = (event: FormEvent) => {
     event.preventDefault();
     if (!clientName.trim()) return;

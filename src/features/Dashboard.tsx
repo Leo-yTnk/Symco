@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { Database, Project } from "../domain/model";
 import { formatDate, progress, userName } from "../domain/selectors";
+import { modules } from "../domain/catalog";
 import { ProjectCard } from "../components/os/ProjectCard";
 
 export function Dashboard({
@@ -120,7 +121,7 @@ export function Dashboard({
           </div>
           {projects.length ? (
             <div className="os-card-grid">
-              {projects.slice(0, 3).map((project) => (
+              {projects.slice(0, 4).map((project) => (
                 <ProjectCard
                   key={project.id}
                   database={database}
@@ -163,6 +164,31 @@ export function Dashboard({
                   </small>
                 </div>
               )) || <p>Crie um projeto para começar.</p>}
+          </div>
+        </section>
+        <section className="os-section">
+          <div className="os-section-head">
+            <h2>Módulos do ecossistema Symco</h2>
+          </div>
+          <div className="os-module-grid">
+            {modules
+              .filter((module) =>
+                projects.some((project) =>
+                  project.moduleIds.includes(module.id),
+                ),
+              )
+              .map((module) => (
+                <div key={module.id}>
+                  <strong>{module.name}</strong>
+                  <p>{module.description}</p>
+                  <button
+                    className="os-link"
+                    onClick={() => navigate(`/app/modules/${module.id}`)}
+                  >
+                    Explorar projetos <ArrowRight size={13} />
+                  </button>
+                </div>
+              ))}
           </div>
         </section>
         <section className="os-section">

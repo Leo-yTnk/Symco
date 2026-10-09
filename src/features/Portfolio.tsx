@@ -8,6 +8,8 @@ import {
   stageName,
   userName,
 } from "../domain/selectors";
+import { modules } from "../domain/catalog";
+import { Metrics } from "./workspaceUi";
 import { ProjectCard } from "../components/os/ProjectCard";
 
 type View = "cards" | "table" | "kanban" | "timeline";
@@ -15,12 +17,14 @@ export function Portfolio({
   database,
   projects,
   navigate,
+  initialView = "cards",
 }: {
   database: Database;
   projects: Project[];
   navigate: (path: string) => void;
+  initialView?: View;
 }) {
-  const [view, setView] = useState<View>("cards");
+  const [view, setView] = useState<View>(initialView);
   const [filters, setFilters] = useState({
     query: "",
     client: "",
@@ -54,6 +58,23 @@ export function Portfolio({
     setFilters((current) => ({ ...current, [key]: value }));
   return (
     <div className="os-section">
+      <Metrics
+        items={[
+          { label: "Projetos", value: projects.length },
+          {
+            label: "Em andamento",
+            value: projects.filter((p) => p.status === "active").length,
+          },
+          {
+            label: "Concluídos",
+            value: projects.filter((p) => p.status === "completed").length,
+          },
+          {
+            label: "Em risco",
+            value: projects.filter((p) => p.health === "at_risk").length,
+          },
+        ]}
+      />
       <div className="os-portfolio-toolbar">
         <div className="os-view-tabs" role="group" aria-label="Visualização">
           {(["cards", "table", "kanban", "timeline"] as const).map((item) => (
@@ -165,7 +186,7 @@ export function Portfolio({
               .filter((item, index, all) => all.indexOf(item) === index)
               .map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {modules.find((module) => module.id === item)?.name || item}
                 </option>
               ))}
           </select>

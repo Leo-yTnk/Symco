@@ -1,11 +1,16 @@
 import { useCallback, useRef, useState } from "react";
 import type {
   Activity,
+  Attachment,
+  QualityRecord,
+  Automation,
+  Workspace,
   ApprovalStatus,
   Database,
   Project,
   Task,
 } from "../domain/model";
+import { applyAutomations } from "../domain/automations";
 import {
   localDatabase,
   type DatabaseRepository,
@@ -24,16 +29,19 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
     (update: (current: Database) => Database) => {
       // Persist before publishing. Keeping this outside a React state updater avoids
       // duplicate writes when StrictMode replays updater functions in development.
-      const next = update(currentDatabase.current);
+      const previous = currentDatabase.current;
+      const next = applyAutomations(previous, update(previous));
       try {
         repository.save(next);
         currentDatabase.current = next;
         setDatabase(next);
         setError("");
+        return true;
       } catch {
         setError(
           "Não foi possível salvar. Verifique o armazenamento do navegador.",
         );
+        return false;
       }
     },
     [repository],
@@ -208,10 +216,16 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
         };
       });
     },
-    addDocument(projectId: string, title: string, url?: string) {
-      commit((current) => {
+    addDocument(
+      projectId: string,
+      title: string,
+      url?: string,
+      details: Partial<Attachment> = {},
+    ) {
+      return commit((current) => {
         const project = current.projects.find((item) => item.id === projectId)!;
         const document = {
+          ...details,
           id: id(),
           projectId,
           title,
@@ -234,6 +248,73 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
           ],
         };
       });
+    },
+    updateDocument(documentId: string, changes: Partial<Attachment>) {
+      return commit((current) => ({
+        ...current,
+        attachments: current.attachments.map((item) =>
+          item.id === documentId
+            ? {
+                ...item,
+                ...changes,
+                updatedAt: now(),
+                id: item.id,
+                projectId: item.projectId,
+              }
+            : item,
+        ),
+      }));
+    },
+    saveQuality(input: Omit<QualityRecord, "id">, recordId?: string) {
+      return commit((current) => ({
+        ...current,
+        qualityRecords: recordId
+          ? (current.qualityRecords || []).map((r) =>
+              r.id === recordId ? { ...input, id: recordId } : r,
+            )
+          : [...(current.qualityRecords || []), { ...input, id: id() }],
+      }));
+    },
+    saveAutomation(input: Omit<Automation, "id" | "runs">, ruleId?: string) {
+      return commit((current) => ({
+        ...current,
+        automations: ruleId
+          ? (current.automations || []).map((r) =>
+              r.id === ruleId ? { ...r, ...input } : r,
+            )
+          : [...(current.automations || []), { ...input, id: id(), runs: 0 }],
+      }));
+    },
+    updateWorkspace(workspaceId: string, changes: Partial<Workspace>) {
+      return commit((current) => ({
+        ...current,
+        workspaces: current.workspaces.map((w) =>
+          w.id === workspaceId ? { ...w, ...changes, id: w.id } : w,
+        ),
+      }));
+    },
+    requestApproval(
+      projectId: string,
+      title: string,
+      approverIds: string[],
+      dueDate?: string,
+    ) {
+      return commit((current) => ({
+        ...current,
+        approvals: [
+          ...current.approvals,
+          {
+            id: id(),
+            projectId,
+            title,
+            approverIds,
+            requestedBy: "mariana",
+            status: "pending",
+            dueDate,
+            createdAt: now(),
+          },
+        ],
+      }));
     },
     updateApproval(approvalId: string, status: ApprovalStatus) {
       commit((current) => {
