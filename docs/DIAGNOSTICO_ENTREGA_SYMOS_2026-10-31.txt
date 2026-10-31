@@ -1,0 +1,897 @@
+DIAGNÓSTICO TÉCNICO E PLANO DE ENTREGA DO SYMOS
+Data: 31/10/2026 — referência de calendário: America/Sao_Paulo
+Repositório: https://github.com/Leo-yTnk/Symco
+Base analisada: main, commit 98437a93c00d60f96017dfc411cc5c603a644b74
+Versão declarada no package.json: 0.1.0
+Objetivo: identificar o estado real do produto e o trabalho necessário para
+entregar uma versão completa e funcional ao cliente Symco.
+
+1. PARECER EXECUTIVO
+
+O SymOS é um protótipo funcional local avançado. Existe uma interface extensa
+conectada a dados e a operações reais no navegador. Há criação de projetos,
+tarefas, comentários, documentos, registros de qualidade, aprovações e regras
+locais. Essa base é útil para demonstração e validação do processo.
+
+A base atual não está pronta para operar como plataforma compartilhada de uma
+empresa. Autenticação, autorização no servidor, persistência compartilhada,
+arquivos centralizados, concorrência e recuperação operacional ainda não estão
+implementados. A documentação do próprio projeto reconhece esses limites.
+
+Além dessa infraestrutura, há fluxos incompletos e defeitos concretos na camada
+existente. Esta auditoria reproduziu oito comportamentos, incluindo perda de
+alterações por gravação de estado antigo, substituição de dados corrompidos por
+exemplos, retorno de ID de projeto não persistido, inconsistência de membros,
+sobrescrita de campos de documentos e referências órfãs após excluir tarefas.
+
+Parecer:
+- Adequado para demonstração com dados de exemplo e validação de requisitos.
+- Ainda insuficiente para ser o registro operacional compartilhado do cliente.
+- A entrega exige completar regras de negócio e confiabilidade, além do backend.
+- Quantidade de telas, build aprovado e deploy publicado não equivalem a aceite.
+
+Não é apresentada porcentagem de conclusão ou prazo fechado. Não há escopo
+contratual, volumetria e critérios de aceite aprovados suficientes para sustentar
+esses números. As prioridades abaixo pressupõem uso por uma equipe, com dados
+persistentes e acessos distintos; um produto estritamente individual e local
+teria critérios diferentes, mas continuaria exigindo correções de integridade.
+
+2. MÉTODO, EVIDÊNCIAS E LIMITES
+
+2.1 O que foi examinado
+- Os 47 arquivos versionados de texto da árvore analisada: código, estilos,
+  configuração, lockfile, testes, workflows e documentação.
+- Implementação de domínio, repositórios, hook de aplicação e telas.
+- Histórico recente de PRs e estado do PR #3.
+- Resultados da CI e do deploy associados ao commit de referência.
+- Compilação local e oito sondagens executáveis adicionais.
+
+2.2 Classificação de evidência usada neste documento
+EXECUTADO: comportamento observado em sondagem local controlada.
+CÓDIGO: conclusão demonstrável pela implementação estática.
+DOCUMENTADO: limite declarado pelo próprio projeto.
+CI: resultado registrado pelo GitHub Actions.
+RECOMENDAÇÃO: solução ou critério proposto, ainda não implementado.
+PENDENTE: aspecto sem validação suficiente nesta auditoria.
+
+Os oito experimentos foram executados em Node 22.17.0, React e JSDOM, usando
+TypeScript.transpileModule em um carregador temporário para importar os módulos
+originais. Exercitaram a camada de aplicação e o repositório sem alterar o código
+de produção. Não representam ensaios em navegador, rede ou servidor real.
+
+2.3 Verificações realizadas
+a) npm ci: concluído com cache dentro da área de trabalho.
+b) npm run build: aprovado localmente.
+c) Build com GITHUB_ACTIONS=true e GITHUB_REPOSITORY=Leo-yTnk/Symco: aprovado,
+   verificando geração com prefixo /Symco/.
+d) Artefatos locais do build:
+   JavaScript principal: 282,27 kB; gzip: 79,97 kB.
+   CSS principal: 38,51 kB; gzip: 8,96 kB.
+   Esses tamanhos são do build local; não são métricas de tempo de carregamento.
+e) npm test: não foi possível concluir a suíte original nesta máquina.
+   O processo nativo do esbuild encontrou acesso negado ao ler diretórios
+   ancestrais e não resolveu os entrypoints. Uma tentativa temporária com
+   tsconfig explícito apresentou a mesma limitação.
+   Isso é um bloqueio de execução local, não comprovação de defeito funcional
+   dos testes ou do produto.
+f) A CI do commit analisado registra npm ci, npm test e npm run build aprovados.
+g) As oito sondagens adicionais concluíram e observaram os comportamentos
+   descritos no item 8.
+h) A tentativa de abrir a versão publicada pelo navegador da sessão falhou com
+   erro de associação da aba à sessão. Não houve inspeção visual concluída.
+
+2.4 Não validado
+- Layout real, contraste, sobreposição, teclado virtual e toque em dispositivos.
+- Performance com volume real, memória, rede lenta e múltiplos usuários.
+- Regras legais/regulatórias específicas da operação do cliente.
+- Segurança de um backend: nenhum backend compartilhado foi encontrado na base.
+- Conteúdo de contrato, orçamento, SLA ou aceite formal do cliente.
+- Backups ou integrações eventualmente existentes fora deste repositório.
+- Vulnerabilidades atuais de dependências: não foi feita varredura conclusiva.
+
+Não se deve usar esta auditoria como certificação de segurança, conformidade
+regulatória, desempenho ou homologação visual.
+
+3. ARQUITETURA REAL E PONTOS POSITIVOS
+
+Stack: React 18, TypeScript e Vite. O build local utilizou Vite 6.4.3.
+Os dados de negócio ficam em localStorage, na chave symos-database-v1.
+O onboarding usa outra chave, symos-onboarding-v1.
+A seleção de workspace usa symos-workspace.
+
+Fluxo atual:
+- Componentes recebem database e actions.
+- useWorkspace carrega um objeto Database completo.
+- Uma ação calcula o próximo objeto e aplica as automações.
+- repository.save serializa o banco inteiro.
+- O estado React só é publicado depois de a gravação local ter sucesso.
+
+Pontos positivos a preservar:
+- Modelos tipados de entidades e separação entre domínio, aplicação e telas.
+- Repositório isolado da maior parte da interface.
+- Indicadores derivados de dados, em vez de apenas números estáticos.
+- Falha de gravação não publica o novo estado no commit central.
+- Documentos, qualidade e criação de aprovações já conferem retorno de gravação
+  em parte de seus formulários.
+- Arquivos locais contêm bytes efetivos; os exemplos são tratados como metadados.
+- Validação de protocolo HTTP(S) nos formulários de links examinados.
+- CSV escapa aspas e prefixa caracteres iniciais de fórmulas mais comuns.
+- Rotas hash e build de Pages preparado para prefixo do repositório.
+- Modal compartilhado possui manejo inicial de foco, Tab, Escape e restauração
+  de foco; isso não está aplicado ao TaskPanel próprio.
+- Há suporte CSS a preferência de movimento reduzido.
+- CI executa testes e compilação.
+
+Limite arquitetural importante:
+DatabaseRepository.load/save são síncronos e operam sobre o banco completo.
+O hook não aguarda Promises, não busca por entidade e não trata concorrência.
+Portanto, a migração não consiste em apenas trocar localStorage por uma API.
+É necessário redesenhar o contrato assíncrono e as transações da aplicação,
+mantendo a separação entre UI e persistência.
+
+4. INVENTÁRIO FUNCIONAL E DISTÂNCIA DA ENTREGA
+
+4.1 Entrada, identidade e workspaces
+Existe: apresentação, personalização de contexto, demonstração e tutorial.
+Falta: conta real, sessão, convites, recuperação e revogação de acesso; criação
+e administração de workspaces reais e autorização em todos os caminhos.
+A configuração inicial altera a identidade demonstrativa, não verifica usuário.
+
+4.2 Dashboard, portfólio e busca
+Existe: indicadores, cards, tabela, Kanban de portfólio, timeline e filtros.
+O Kanban de portfólio é uma visualização por status, sem movimentação de projeto.
+Busca local retorna até oito resultados e leva a páginas gerais ou ao projeto.
+Falta: semântica consistente dos indicadores, navegação até o item encontrado,
+escala validada e consulta que respeite permissões efetivas.
+
+4.3 Projetos e metodologias
+Existe: criação com templates, cliente, responsáveis, membros e etapas próprias.
+É possível alterar favorito, saúde e etapa atual.
+Falta: fluxo completo de editar dados básicos, iniciar, pausar, concluir,
+arquivar e recuperar projetos; regras de transição e consistência de membros.
+Metodologias podem ser escolhidas e criadas indiretamente no novo projeto,
+mas não há editor completo de metodologia em Configurações.
+
+4.4 Tarefas e colaboração
+Existe: CRUD de tarefas, status, prioridade, responsável, prazo e comentários.
+Falta: persistência compartilhada, autoria real, subtarefas operacionais,
+dependências editáveis, integridade na exclusão, tratamento uniforme de erro,
+controle de descarte de rascunho e acessibilidade do painel.
+
+4.5 Cronograma
+Existe: lista de prazos, escalas de 3/6/12 semanas, navegação e Gantt.
+Limite: a barra de tarefa começa no início do projeto, não no início da tarefa.
+Marcos e gates são lidos e exibidos; falta gestão completa dessas entidades.
+Não há planejamento por esforço, calendário de trabalho ou caminho crítico.
+Esses últimos recursos só devem entrar na 1.0 se forem requisitos do cliente.
+
+4.6 Documentos
+Existe: categorias fixas apresentadas como pastas, agrupamento, filtros,
+paginação, seleção, edição, links, upload local até 2 MB e download.
+Falta: armazenamento compartilhado, autorização, histórico de revisões,
+integridade dos campos e fluxo consistente dentro da página do projeto.
+Pastas não são entidades hierárquicas administráveis no modelo atual.
+
+4.7 Aprovações, etapas e gates
+Existe: solicitações com aprovadores e alteração de status.
+Falta: decisão autenticada, motivo/parecer, momento da decisão, política de
+múltiplos aprovadores, vínculo explícito a documento/revisão/gate e bloqueio
+efetivo da transição quando os requisitos não estão satisfeitos.
+
+4.8 Qualidade
+Existe: registro e edição de auditoria, não conformidade e CAPA.
+Limite: as três categorias usam um registro genérico com texto, dono e prazo.
+Faltam relações entre auditoria, achado, causa, ação, evidência e verificação
+de eficácia quando essas etapas fizerem parte do processo contratado.
+Não há fundamento para declarar conformidade regulatória com a tela atual.
+
+4.9 Riscos e decisões
+Existe: adição de riscos e decisões e consulta de registros.
+Risco novo recebe probabilidade e impacto medium, status open e não possui
+um fluxo completo de revisão/mitigação na interface.
+Decisões precisam de autoria autenticada, evidências e política de revisão.
+
+4.10 Automações e notificações
+Existe: duas origens de evento e duas ações locais, pausa/ativação e contadores.
+Não há agendamento, fila, worker, mensagens externas ou execução com app fechado.
+O sino apresenta atividades recentes, não notificações individuais.
+É possível entregar automações mais simples na 1.0, desde que o comportamento
+contratado e a interface sejam explícitos.
+
+4.11 Módulos Symco
+SymInsights, SymProduct, SymAcademy, SymSupply e SymGoMarket aparecem no catálogo.
+As rotas dos módulos levam ao portfólio filtrado pelo moduleId.
+Isso organiza projetos por módulo, mas não implementa ferramentas específicas
+de inteligência, formulação, formação, supply ou estratégia comercial.
+SymQuality conta com a página de registros de qualidade, ainda simplificada.
+Os nomes comerciais não devem ser usados como evidência de módulos completos.
+
+5. REGISTRO DE ACHADOS
+
+Prioridades:
+P0 — bloqueia uso operacional compartilhado.
+P1 — deve ser resolvido antes de uma entrega com dados reais.
+P2 — necessário conforme o escopo da 1.0 ou antes de ampliar uso.
+A prioridade é de entrega; não é uma classificação CVSS ou uma estimativa.
+
+F01 — P0 — AUSÊNCIA DE PERSISTÊNCIA COMPARTILHADA
+Tipo: infraestrutura ausente. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: src/repositories/localDatabase.ts:4-31; README.md.
+Fato: o estado completo é armazenado no navegador, sem API compartilhada.
+Impacto: outro computador não recebe os dados; limpar o navegador pode removê-los.
+Ação: definir backend, modelo persistente, migrações e operações por entidade.
+Aceite: duas contas, em navegadores distintos, consultam o mesmo projeto e
+observam uma alteração confirmada pelo servidor.
+
+F02 — P0 — IDENTIDADE E CICLO DE ACESSO NÃO IMPLEMENTADOS
+Tipo: infraestrutura ausente. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: src/app/App.tsx:103-104,147-169;
+src/repositories/localOnboarding.ts; src/features/SettingsPage.tsx:87-132.
+Fato: onboarding personaliza uma identidade demonstrativa; não autentica.
+Ação: implementar sessão, convites, recuperação e revogação.
+Aceite: acesso requer sessão válida; convite é limitado ao destinatário e
+workspace; remoção de membro revoga o acesso em todos os dispositivos.
+
+F03 — P0 — ISOLAMENTO DE DADOS NÃO É AUTORIZAÇÃO
+Tipo: infraestrutura ausente. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: src/app/App.tsx:97-104; src/domain/model.ts:1-25;
+src/application/useWorkspace.ts.
+Fato: filtros de workspace existem na interface, mas ações não verificam
+identidade, papel e escopo por uma autoridade de servidor.
+Impacto: o modelo atual não atende acesso restrito por equipe e cliente.
+Ação: matriz de autorização para leitura, escrita, exportação, aprovação e
+download; validação no servidor para cada operação.
+Aceite: alterar IDs de requisições não permite acessar outro workspace/projeto;
+viewer e cliente não executam mutações proibidas. Testar também exportações.
+
+F04 — P0 — ARQUIVOS E RECUPERAÇÃO OPERACIONAL INSUFICIENTES
+Tipo: infraestrutura ausente. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: src/features/Documents.tsx:615-674; localDatabase.ts.
+Fato: arquivo é Data URL/base64 dentro do JSON local; limite de 2 MB por arquivo.
+Não há implementação de backup/restauração operacional no repositório.
+Impacto: disputa pela cota local, cópias não compartilhadas e perda de acesso.
+Ação: objetos de arquivo fora do JSON, metadados no banco, acesso protegido,
+política de limites e backup coordenado de banco e objetos.
+Aceite: participante autorizado baixa o mesmo arquivo em outro computador;
+usuário sem acesso é bloqueado; restauração recupera banco e arquivos.
+RPO e RTO devem ser definidos com o cliente, sem assumir valores contratuais.
+
+F05 — P1 — GRAVAÇÃO DE ESTADO ANTIGO PERDE ALTERAÇÕES
+Tipo: defeito de concorrência. Evidência: EXECUTADO, sondagem E08.
+Referência: localDatabase.ts:29-31; useWorkspace.ts:28-45.
+Reprodução: carregar snapshots A e B; adicionar cliente em A e salvar; alterar
+projeto em B e salvar. O cliente adicionado em A desaparece.
+Isso também é possível com duas abas, mesmo antes de existir backend.
+Ação: controle de versão e mutações granulares; detecção explícita de conflito.
+Eventos storage/BroadcastChannel ajudam a atualizar abas, mas não substituem
+um mecanismo de concorrência que impeça sobrescrita.
+Aceite: a segunda gravação preserva mudanças independentes ou informa conflito.
+
+F06 — P1 — DADOS CORROMPIDOS SÃO SUBSTITUÍDOS POR DEMONSTRAÇÃO
+Tipo: defeito de recuperação. Evidência: EXECUTADO, E06.
+Referência: localDatabase.ts:10-27.
+Reprodução: salvar JSON inválido na chave do banco e chamar load().
+Resultado: foram gerados quatro projetos de exemplo e os bytes antigos não
+foram preservados na chave.
+Ação: preservar a cópia original, bloquear gravações destrutivas e oferecer
+recuperação/exportação do conteúdo bruto antes de reinicializar.
+Aceite: corrupção não é sobrescrita silenciosamente e o usuário entende o erro.
+
+F07 — P1 — VALIDAÇÃO DE ESQUEMA É INSUFICIENTE
+Tipo: defeito de robustez. Evidência: EXECUTADO, E07.
+Referência: localDatabase.ts:13-16; src/app/App.tsx:97-104.
+Reprodução: persistir apenas {version:1,projects:[]} e carregar.
+Resultado: objeto aceito mesmo sem workspaces e outras coleções obrigatórias.
+Impacto: telas podem quebrar ao acessar propriedades ausentes.
+Ação: validar estrutura, tipos, referências e versão; criar migrações explícitas.
+Aceite: esquemas incompletos não chegam aos componentes como Database válido.
+Novos campos opcionais não substituem uma estratégia de migração.
+
+F08 — P1 — RETORNO DE SUCESSO NÃO REPRESENTA GRAVAÇÃO CONFIRMADA
+Tipo: defeito de fluxo. Evidência: EXECUTADO E01 + CÓDIGO.
+Referência: useWorkspace.ts:68-120,130-174;
+NewProject.tsx:62-101; TaskPanel.tsx:28-32;
+ProjectDetail.tsx:67-112,533-542.
+Fato: createProject retorna ID mesmo se commit retorna false. NewProject navega
+para esse ID. updateTask não retorna confirmação ao painel, que fecha.
+Comentários e alguns formulários limpam texto sem confirmar persistência.
+Ação: todas as ações retornam resultado discriminado; UI só fecha/limpa após
+sucesso; erro conserva rascunho e permite nova tentativa.
+Aceite: simular quota/rede indisponível e preservar integralmente os dados
+digitados, sem navegar para entidade inexistente.
+
+F09 — P1 — AUTORIA DEMONSTRATIVA E RESPONSABILIDADE SE CONFUNDEM
+Tipo: limitação de identidade e auditoria. Evidência: CÓDIGO.
+Referência: useWorkspace.ts:58,200,235,308,380;
+NewProject.tsx:31,40; src/app/App.tsx:103-104.
+Fato: autoria e solicitante usam mariana; o onboarding apenas renomeia o exemplo.
+Responsável escolhido e autor da operação são conceitos distintos.
+Ação: obter ator da sessão no servidor; preservar creatorId/createdAt; usar
+ownerId/assigneeId separado e registrar transferências.
+Aceite: usuários distintos deixam autoria distinta; trocar responsável não
+reescreve quem criou ou aprovou o registro.
+
+F10 — P1 — MEMBROS DO PROJETO POSSUEM DUAS FONTES INCONSISTENTES
+Tipo: defeito de integridade. Evidência: EXECUTADO, E02.
+Referência: model.ts:25; useWorkspace.ts:68-120;
+seed.ts:166-177; SettingsPage.tsx:106-123.
+Fato: seed popula Database.members a partir de project.memberIds, mas a criação
+de projeto não cria as relações ProjectMember.
+Resultado reproduzido: três memberIds e zero registros de relação no projeto.
+Ação: definir fonte de verdade para membership/papel e atualizá-la na transação.
+Aceite: contagem de projetos, papéis e autorização coincidem para projetos novos
+e existentes; alteração de responsável sincroniza os vínculos necessários.
+
+F11 — P1 — DOCUMENTO NOVO PERDE TIPO E RESPONSÁVEL ESCOLHIDOS
+Tipo: defeito confirmado. Evidência: EXECUTADO, E03.
+Referência: useWorkspace.ts:219-248; Documents.tsx:651-674.
+Fato: addDocument espalha details e depois sobrescreve type e createdBy.
+Reprodução: details.type=PDF e details.createdBy=rafael.
+Resultado: type=Registro e createdBy=mariana.
+Impacto: filtros e metadados divergem do formulário; criação e edição diferem.
+Ação: separar modo de armazenamento (arquivo/link/registro), formato do arquivo,
+autoria e responsável; definir precedência e validar os campos.
+Aceite: PDF continua classificado como PDF após criação, recarga e exportação;
+responsável corresponde à escolha e autor corresponde à sessão.
+
+F12 — P1 — EXCLUSÃO DE TAREFA DEIXA REFERÊNCIAS ÓRFÃS
+Tipo: defeito de integridade. Evidência: EXECUTADO, E04.
+Referência: useWorkspace.ts:175-190; model.ts:38-48,90-113.
+Resultado reproduzido: tarefa removida, mas subtarefa, dependência de outra
+tarefa e requiredTaskIds de gate continuaram apontando para ela.
+Ação: definir cascade/restrict/soft-delete por relação e registrar a exclusão.
+Aceite: excluir tarefa referenciada é bloqueado com explicação ou atualiza
+todas as relações na mesma transação; não restam IDs inválidos.
+
+F13 — P1 — CICLO DE VIDA DE PROJETO INCOMPLETO NA INTERFACE
+Tipo: fluxo funcional ausente. Evidência: CÓDIGO.
+Referência: NewProject.tsx:86-87; ProjectDetail.tsx:158-287;
+Portfolio.tsx:305-330; useWorkspace.ts:122-128.
+Fato: projeto nasce planning. Os controles examinados alteram favorito, saúde e
+etapa, mas não oferecem fluxo completo para active/paused/completed.
+O Kanban do portfólio não oferece drag-and-drop ou comando para mudar status.
+Ação: operações explícitas para iniciar, pausar, concluir e arquivar; edição
+de nome, descrição, cliente, datas, membros e responsável.
+Aceite: usuário autorizado percorre o ciclo completo sem editar armazenamento
+ou código; dashboards e relatórios refletem o estado final.
+Arquivo/exclusão e reabertura devem ter regras acordadas.
+
+F14 — P1 — GATES NÃO CONTROLAM AVANÇO DE ETAPA
+Tipo: regra ausente, documentada. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: ProjectDetail.tsx:276-287; model.ts:38-48.
+Fato: clicar em etapa altera currentStageId diretamente, sem verificar tarefas,
+documentos e aprovadores requeridos.
+Ação: transição validada em serviço/servidor, com motivo de bloqueio e política
+de exceção autorizada; editor/gestão de gates e marcos.
+Aceite: gate pendente bloqueia avanço; requisitos e aprovação válidos liberam
+uma transição; tentativas diretas pela API respeitam a mesma regra.
+
+F15 — P1 — DECISÃO DE APROVAÇÃO NÃO TEM RASTREABILIDADE SUFICIENTE
+Tipo: regra e modelo incompletos. Evidência: EXECUTADO E05 + CÓDIGO.
+Referência: model.ts:133-142; useWorkspace.ts:296-343;
+Approvals.tsx:181-217; ProjectDetail.tsx:416-445.
+Resultado: approval-1 ficou approved e gate-aky permaneceu pending.
+A relação approval/gate/documento/revisão não existe de forma explícita no modelo.
+Approval não possui decidedBy, decidedAt ou parecer. Existe atividade genérica,
+mas não uma decisão formal completa.
+Ação: vincular a decisão ao objeto e à revisão; registrar autor, hora, parecer,
+política de unanimidade/quórum e invalidação quando a revisão muda.
+Aceite: apenas aprovador habilitado decide e a decisão preserva evidência;
+liberação do gate segue política definida.
+A independência atual entre aprovação e gate é limite documentado, não regressão
+introduzida nesta auditoria.
+
+F16 — P1 — VERSÃO DE DOCUMENTO NÃO PRESERVA REVISÕES
+Tipo: fluxo incompleto. Evidência: CÓDIGO.
+Referência: model.ts:114-132; useWorkspace.ts:252-266;
+Documents.tsx:627-666,799-806.
+Fato: version é texto editável e fileData é substituído; não há coleção de
+revisões com conteúdo e histórico próprios.
+Ação: documento lógico separado de revisões imutáveis e de suas aprovações.
+Aceite: enviar revisão 2 preserva revisão 1; download e aprovação identificam
+a revisão correta; restaurar uma revisão cria evento rastreável.
+
+F17 — P2 — CRONOGRAMA E DEPENDÊNCIAS AINDA SÃO SIMPLIFICADOS
+Tipo: modelo e fluxo incompletos. Evidência: CÓDIGO + DOCUMENTADO.
+Referência: model.ts:90-103; Schedule.tsx:21-79;
+TaskPanel.tsx; ProjectDetail.tsx:148.
+Fato: não há startDate na tarefa; dependencyIds é exibido como quantidade, mas
+não possui editor operacional; não há validação de ciclo ou predecessor.
+Gates rejeitados/changes_requested aparecem como Pendente no cronograma.
+Ação: datas próprias, relações sem ciclos e regras de calendário; preservar
+estados reais. Definir se replanejamento automático faz parte da 1.0.
+Aceite: início/prazo de cada tarefa geram barras corretas; dependência válida
+é editável; ciclo é recusado; status de gate não perde informação.
+
+F18 — P2 — RISCOS NÃO POSSUEM CICLO DE TRATAMENTO
+Tipo: fluxo incompleto. Evidência: CÓDIGO.
+Referência: useWorkspace.ts:345-370;
+ProjectDetail.tsx:461-476; Governance.tsx:162-171.
+Fato: addRisk fixa medium/medium/open; não há updateRisk na camada de aplicação.
+Impacto: usuário não consegue classificar risco novo como alto ou mitigá-lo
+pelo fluxo disponível; indicador crítico depende de dados de exemplo/importação.
+Ação: editar probabilidade, impacto, dono, mitigação, prazo e estado.
+Aceite: risco alto criado pelo usuário aparece no dashboard e sai da pendência
+após mitigação aprovada, mantendo histórico.
+
+F19 — P2 — QUALIDADE É CADASTRO GENÉRICO, NÃO PROCESSO COMPLETO
+Tipo: diferença de escopo. Evidência: CÓDIGO.
+Referência: model.ts:199-208; Quality.tsx:221-307.
+Fato: auditoria, não conformidade e CAPA compartilham um modelo simples.
+Ação: definir com o cliente o mínimo necessário de vínculos, evidências,
+causa raiz, ações e verificação de eficácia; implementar apenas o escopo aceito.
+Aceite: executar um caso real do início ao encerramento com evidências.
+Não declarar certificações ou aderência regulatória sem verificação específica.
+
+F20 — P2 — MÓDULOS COMERCIAIS SÃO PRINCIPALMENTE CLASSIFICAÇÃO
+Tipo: diferença de escopo. Evidência: CÓDIGO.
+Referência: catalog.ts:3-47; src/app/App.tsx:562-573.
+Fato: rotas de módulos renderizam Portfolio filtrado. Variantes RA/FSQ têm
+capabilities vazias.
+Ação: listar entregáveis reais de cada módulo contratado, ou comunicar o
+recurso como organização de projetos por serviço.
+Aceite: demonstração de cada módulo corresponde à promessa aprovada.
+Não incluir ferramentas futuras como se já fossem recursos existentes.
+
+F21 — P2 — PADRÕES FIXOS PODEM INSERIR MÓDULOS INATIVOS
+Tipo: defeito de consistência. Evidência: CÓDIGO.
+Referência: NewProject.tsx:31-40,50-58,129-135;
+useWorkspace.ts:68-120.
+Fato: escolher template filtra módulos pelo workspace; alternar o tipo de volta
+para symco usa selected.moduleIds sem essa interseção.
+Reprodução proposta: desativar insights no workspace, escolher template product,
+alternar independente e voltar a Symco; conferir módulo oculto no payload.
+Ação: normalizar/validar módulo, metodologia, responsável e membros no serviço,
+sem depender das opções visíveis.
+Aceite: projeto não recebe módulo inativo, salvo política explícita de legado.
+
+F22 — P2 — NOTIFICAÇÕES AINDA NÃO SÃO INDIVIDUAIS
+Tipo: fluxo ausente. Evidência: CÓDIGO.
+Referência: model.ts:190-196; src/app/App.tsx:480-496.
+Fato: o sino lista cinco atividades recentes do workspace; a coleção
+notifications não governa a apresentação.
+Ação: destinatários, estados de leitura e eventos relevantes; decidir canais.
+Aceite: atribuir tarefa notifica a pessoa correta; leitura persiste; usuário
+não recebe informação de projeto sem acesso. E-mail não é obrigatório se não
+fizer parte do escopo.
+
+F23 — P1 — HISTÓRICO DE ATIVIDADES NÃO É AUDITORIA COMPLETA
+Tipo: confiabilidade incompleta. Evidência: CÓDIGO.
+Referência: useWorkspace.ts:49-65,122-128,252-294,399-430;
+domain/automations.ts:55-64; Automations.tsx:33-38.
+Fato: várias alterações não geram evento; outras usam autoria fixa. Execução de
+automação usa type task_updated e é localizada por prefixo textual do resumo.
+Ação: eventos tipados de negócio, autor autenticado, origem, objeto, antes/depois
+quando pertinente, horário de servidor e restrição contra alteração pelo cliente.
+Aceite: editar projeto/documento, decidir aprovação e executar regra deixam
+eventos distintos e rastreáveis; mudar texto traduzido não quebra o histórico.
+
+F24 — P1 — ACESSIBILIDADE E PAINEL DE TAREFAS PENDENTES
+Tipo: defeito de interação e integração pendente. Evidência: CÓDIGO + GitHub.
+Referência: TaskPanel.tsx:28-45; ProjectDetail.tsx:129;
+styles/experience.css:2-4,534-544; styles/os.css:1193-1208.
+Fato: linha da tabela abre apenas por onClick; TaskPanel não aplica o mecanismo
+de foco/Escape/Tab do Modal compartilhado e fecha sem proteger rascunhos.
+A animação do contêiner mantém transform/filter com fill-mode both, podendo
+alterar o referencial do overlay fixed. A consequência visual não foi
+reproduzida em navegador nesta auditoria.
+O PR #3 está aberto, mergeable=false, mergeable_state=dirty.
+Ação: resolver conflitos, revisar o que permanece aplicável e reutilizar
+primitivas acessíveis; confirmar visualmente o overlay e o scroll.
+Aceite: abrir/editar/fechar pelo teclado, foco restaurado, Tab contido quando
+modal, aviso de descarte e painel correto após rolagem em desktop e celular.
+
+F25 — P2 — BUSCA, ROTAS E ARQUIVOS NÃO ABREM O CONTEXTO EXATO
+Tipo: acabamento funcional. Evidência: CÓDIGO.
+Referência: src/app/App.tsx:187-246,579-590;
+ProjectDetail.tsx:397-414; Documents.tsx:92-115.
+Fato: resultado de tarefa/documento abre o projeto sem selecionar o item.
+A aba Arquivos do projeto mostra link, mas não download dos bytes enviados pela
+página Documentos. Rota desconhecida pode exibir apenas título sem recuperação
+completa; projeto ausente tem estado próprio.
+Ação: deep links por entidade, detalhe/aba correta, download compartilhado e
+estado consistente de rota não encontrada.
+Aceite: buscar tarefa abre essa tarefa; arquivo local pode ser baixado a partir
+do projeto; URL inválida oferece navegação de recuperação.
+
+F26 — P2 — DEFINIÇÕES DE INDICADORES PODEM INDUZIR ERRO
+Tipo: semântica de produto. Evidência: CÓDIGO.
+Referência: Dashboard.tsx:33-41,61,151-171;
+Portfolio.tsx:61-77; Reports.tsx:12-34; selectors.ts:5-14.
+Fato: Entregas da semana inclui qualquer tarefa não concluída com prazo até
+hoje+7, incluindo atrasos antigos e sem limite inferior.
+Dashboard usa a primeira metodologia do workspace para resumir projetos que
+podem ter outras metodologias.
+KPIs do portfólio usam projects, enquanto a lista usa filtered.
+Progresso é fração simples de tarefas concluídas; não mede esforço ou gates.
+Relatórios filtram interseção do intervalo do projeto, não eventos do período,
+e isso já é explicado na interface.
+Ação: definir dicionário dos indicadores, separar atrasados/próximos e explicitar
+quando KPIs são globais ou filtrados.
+Aceite: massa de datas e metodologias variadas produz números esperados
+documentados; cliente confirma o significado de cada indicador.
+
+F27 — P2 — ESCALABILIDADE E DESEMPENHO NÃO COMPROVADOS
+Tipo: risco arquitetural. Evidência: CÓDIGO + build; medição de uso PENDENTE.
+Referência: useWorkspace.ts:28-45; localDatabase.ts:29-31;
+domain/automations.ts:5-11; src/app/App.tsx:187-246.
+Fato: cada alteração serializa todo o banco, inclusive arquivos. Há filtros/find
+repetidos e buscas em memória. O bundle inicial importa as telas estaticamente.
+Ação: medir antes de otimizar; paginação no servidor, índices de escopo, arquivos
+separados, consultas por entidade e carregamento por rota se necessário.
+Aceite: validar volume acordado de projetos, tarefas e arquivos em dispositivo
+de referência e rede definida; registrar tempo, memória e erros.
+Não foi demonstrado travamento nem aprovado um orçamento de performance aqui.
+
+F28 — P1 — DEPLOY NÃO DEPENDE DA APROVAÇÃO DOS TESTES
+Tipo: lacuna de entrega. Evidência: CÓDIGO + GitHub.
+Referência: .github/workflows/checks.yml; .github/workflows/pages.yml:18-64.
+Fato: validação e Pages são workflows independentes; o deploy depende apenas de
+seu job build, que não executa npm test. main foi retornada como protected=false.
+Impacto: um push com build válido e teste reprovado pode ser publicado.
+Ação: exigir validação antes de publicação; definir política de PR/checks,
+ambiente de homologação e procedimento de rollback.
+Aceite: alteração intencionalmente reprovada não chega à produção.
+Não se presume existência ou ausência de regras organizacionais fora do que
+foi exposto pela consulta realizada.
+
+F29 — P1 — ESTADOS DE ERRO E VALIDAÇÃO NÃO SÃO UNIFORMES
+Tipo: robustez incompleta. Evidência: CÓDIGO.
+Referência: src/app/App.tsx:88,144,151-162;
+localOnboarding.ts:47-55; useWorkspace.ts:28-45;
+SettingsPage.tsx:44-57,153-170.
+Fato: leitura/gravação da seleção de workspace não usa proteção; retorno de
+saveOnboarding é ignorado. Há required no HTML seguido de trim, permitindo
+texto somente com espaços em fluxos sem validação semântica adicional.
+A construção de next/applyAutomations acontece antes do try do commit;
+inconsistências podem lançar erro fora do tratamento de persistência.
+Não há Error Boundary na montagem examinada.
+Ação: validação de domínio, resultados de erro tipados, captura em camada
+apropriada, proteção de rascunho e recuperação de interface.
+Aceite: armazenamento bloqueado, objeto ausente, texto vazio e falha de API não
+derrubam a aplicação nem apresentam sucesso falso.
+
+F30 — P2 — ADMINISTRAÇÃO E DADOS INICIAIS PRECISAM DE FLUXOS REAIS
+Tipo: fluxo incompleto. Evidência: CÓDIGO.
+Referência: SettingsPage.tsx; useWorkspace.ts:399-430; seed.ts;
+src/app/App.tsx:147-162.
+Fato: clientes podem ser adicionados, mas não há CRUD administrativo completo;
+membros são exemplos; metodologias são listadas. Onboarding renomeia workspace
+e usuário existentes, mantendo os projetos demonstrativos.
+Ação: provisionamento vazio para cliente, demonstração separada, gestão de
+clientes/membros/metodologias e política de arquivamento.
+Aceite: novo ambiente inicia sem projetos fictícios; cadastros podem ser
+corrigidos/desativados e referências continuam consistentes.
+
+6. LACUNAS DE TESTE E QUALIDADE
+
+6.1 Cobertura existente
+Há 11 declarações de teste nos quatro arquivos:
+- domain.test.mjs: 2; seletores e persistência básica.
+- automations.test.mjs: 2; disparos, escopo e ausência de repetição em regravação.
+- flow.test.mjs: 2; fluxo de projeto/tarefa/comentário/recarga e demonstração.
+- pages.test.mjs: 5; telas, cadastros, bytes de upload, links, workspace e erro.
+
+Os testes de interface usam JSDOM e eventos simulados. São úteis para regressão
+funcional, mas não calculam layout real nem comprovam toque ou acessibilidade
+com tecnologia assistiva. Onze testes não equivalem a cobertura percentual.
+Não foi produzido relatório de cobertura de linhas/branches.
+
+6.2 Testes prioritários a acrescentar
+- Falha de criação/edição: draft preservado e sem falso redirecionamento.
+- Tipo, responsável e autoria de documento em criação e edição.
+- Relações de membros criadas junto com o projeto.
+- Exclusão de tarefa referenciada por subtarefa, dependência e gate.
+- Banco corrompido, esquema parcial e migração preservando bytes.
+- Concorrência entre abas e, posteriormente, entre usuários.
+- Transições de projeto e gate com requisitos pendentes.
+- Autorização: cada papel x operação x escopo, incluindo exportação/arquivos.
+- Aprovação vinculada à revisão e com autoria/hora/parecer.
+- Idempotência de requisições e regras em caso de retry de rede.
+- Backup/restauração com comprovação de arquivos e relações.
+- Navegação, foco, Escape, descarte e uso por teclado.
+- E2E em navegador para fluxo principal e rotas publicadas sob /Symco/.
+
+São testes para riscos e regras concretos, não para espelhar cada componente.
+
+7. ARQUITETURA RECOMENDADA PARA COMPLETAR A ENTREGA
+
+Esta é uma proposta de direção, não tecnologia já instalada ou decisão contratual.
+
+7.1 Persistência e serviços
+- Operações assíncronas por entidade e por comando de negócio.
+- Entidades relacionadas por chaves e escopo consistente de workspace/projeto.
+- Constraints para vínculos, unicidade, status e relacionamentos.
+- Validação de início/prazo, membership, responsáveis e IDs no servidor.
+- Transações para projeto+membros+tarefas iniciais, transições de gate e
+  evento de origem+efeitos de automação.
+- Atualização com revision/versão e resposta clara para conflito.
+- Resultado tipado: sucesso, validação, não autorizado, conflito e indisponível.
+
+7.2 Identidade e acesso
+- Usuário autenticado separado de cadastro de cliente/empresa.
+- Vínculo de usuário ao workspace e, quando necessário, ao projeto.
+- Regras no servidor ou políticas equivalentes no banco.
+- Cliente externo só vê o que lhe foi atribuído.
+- Segredos e credenciais privilegiadas não ficam no bundle do navegador.
+
+7.3 Documentos
+- Documento lógico, revisão e objeto de arquivo separados.
+- Autor imutável; responsável editável com histórico.
+- Download autorizado e referências estáveis a uma revisão específica.
+- Estado de upload, falha, repetição e finalização dos metadados.
+- Limites e política de tipos definidos pela operação do cliente.
+
+7.4 Histórico e automações
+- Eventos tipados, sem depender de prefixos de texto traduzidos.
+- Identificador de evento e de execução para idempotência.
+- Se regras forem movidas para servidor, garantir que cada efeito seja aplicado
+  uma vez por evento conforme a política, inclusive em retry.
+- Se houver tarefas agendadas, implementar execução independente do navegador,
+  tentativas, registro de falha e observabilidade.
+- Reabrir e concluir tarefa novamente constitui nova transição no motor atual;
+  definir se isso deve gerar nova execução. Não confundir retry com novo evento.
+
+7.5 Operação
+- Produção e homologação com dados separados.
+- Logs estruturados e monitoramento de falhas sem expor conteúdo indevido.
+- Migrações versionadas e procedimento de rollback de aplicação e dados.
+- Backup/restauração exercitados, responsáveis e limites operacionais definidos.
+- Para a primeira versão, preferir operação online clara, caso offline não tenha
+  sido contratado; sincronização offline completa aumenta substancialmente o
+  escopo e não deve ser prometida por acidente.
+
+8. EXPERIMENTOS EXECUTADOS E RESULTADOS
+
+Os procedimentos a seguir podem ser convertidos em testes permanentes.
+A execução usou os módulos originais no commit de referência, com storage ou
+repositório controlado. Não foram executados contra dados de produção.
+
+E01 — Falha de criação de projeto
+Preparação: repository.save lança Error('quota').
+Ação: chamar createProject com dados válidos.
+Observado: returnedId=true, persisted=false; actions.error informa falha.
+Conclusão: o chamador recebe identificador mesmo sem projeto salvo.
+Relacionamento: F08.
+
+E02 — Membros de projeto novo
+Preparação: banco demonstrativo clonado, repositório em memória.
+Ação: criar projeto com mariana, rafael e carlos em memberIds.
+Observado: três IDs no projeto e zero registros em database.members para o ID.
+Conclusão: relações de papel não acompanham a criação.
+Relacionamento: F10.
+
+E03 — Tipo/responsável de documento
+Ação: addDocument('aky-mayo', título, undefined,
+                  {type:'PDF',createdBy:'rafael'}).
+Observado: documento final com type='Registro', createdBy='mariana'.
+Conclusão: os campos fornecidos são sobrescritos.
+Relacionamento: F11.
+
+E04 — Exclusão e referências
+Preparação: criar subtarefa de task-3 e dependência task-4 -> task-3;
+o gate demonstrativo já requer task-3.
+Ação: deleteTask('task-3').
+Observado: tarefa ausente; uma subtarefa restante; dependência e gate ainda
+contêm o ID excluído.
+Conclusão: exclusão não mantém integridade das relações.
+Relacionamento: F12.
+
+E05 — Aprovação e gate
+Ação: updateApproval('approval-1','approved').
+Observado: approval='approved'; gate='pending'. Campos da aprovação continuam:
+id, projectId, title, requestedBy, approverIds, status, dueDate, createdAt.
+Conclusão: não há liberação vinculada nem campos formais de decisão.
+É limite previsto da fase atual.
+Relacionamento: F14/F15.
+
+E06 — JSON corrompido
+Preparação: localStorage['symos-database-v1']='{broken'.
+Ação: localDatabase.load().
+Observado: quatro projetos de demonstração; conteúdo original não preservado.
+Conclusão: recuperação destrutiva da cópia local.
+Relacionamento: F06.
+
+E07 — Esquema incompleto
+Preparação: JSON com version=1 e projects=[], sem workspaces.
+Ação: localDatabase.load().
+Observado: acceptedWithoutWorkspaces=true.
+Conclusão: verificação atual aceita um Database incompleto.
+Relacionamento: F07.
+
+E08 — Snapshot antigo
+Preparação: carregar duas cópias independentes do mesmo banco.
+Ação: A adiciona cliente e salva; B renomeia projeto no snapshot antigo e salva.
+Observado: clientLost=true.
+Conclusão: last-write-wins do objeto inteiro perde atualização independente.
+Relacionamento: F05.
+
+9. MATRIZ INICIAL DE PERMISSÕES A VALIDAR COM O CLIENTE
+
+Proposta para orientar implementação e homologação; não representa política
+já aprovada. Os papéis existem nos tipos, mas seus poderes precisam ser definidos.
+
+Owner/admin:
+- Gerenciar workspace, membros, configurações e recuperação conforme política.
+Project manager:
+- Gerenciar projetos atribuídos, responsáveis, etapas e fluxos autorizados.
+Member:
+- Trabalhar nas tarefas, comentários e documentos dos projetos permitidos.
+Client:
+- Consultar entregáveis e participar de aprovações explicitamente atribuídas.
+Viewer:
+- Consultar dados autorizados sem modificar.
+
+Questões obrigatórias:
+- Quem convida externos e quem revoga acesso?
+- Quem pode baixar/exportar documentos?
+- Cliente vê comentários internos e riscos?
+- Aprovador pode aprovar o próprio trabalho?
+- Gate exige um, todos ou parte dos aprovadores?
+- Quem pode reabrir projeto/gate aprovado?
+- Quem pode excluir, arquivar ou restaurar?
+- Quanto tempo o histórico e os documentos precisam ser mantidos?
+
+10. PLANO DE EXECUÇÃO POR MARCOS
+
+M0 — Escopo e definição de pronto
+Entregáveis: inventário de fluxos contratados, exemplos reais, matriz de papéis,
+volume esperado, navegadores/dispositivos e critérios de aceite.
+Saída: o que significa completo fica escrito e aprovado.
+Não adicionar todos os nomes do catálogo ao escopo sem validação.
+
+M1 — Integridade da base e resultados confiáveis
+Abrange: F05-F12, F21, F29, além da estratégia de migração.
+Entregáveis: erro tipado, preservação de draft, recuperação não destrutiva,
+consistência de memberships e documentos, política de exclusão e conflitos.
+Saída: reproduções de perda/inconsistência passam a ser regressões protegidas.
+
+M2 — Fundação compartilhada
+Abrange: F01-F04 e autoria/auditoria de F09/F23.
+Entregáveis: backend, autenticação, membership, autorização, arquivos, migrações,
+dados reais separados da demonstração e primeira restauração comprovada.
+Saída: dois usuários em dois computadores trabalham no mesmo projeto com acesso
+correto. O contrato assíncrono deve ser definido antes de adaptar todas as telas.
+
+M3 — Fluxo de trabalho completo
+Abrange: F13-F19 e F30 conforme escopo aprovado.
+Entregáveis: ciclo de projetos, tarefas, cronograma mínimo, riscos, decisões,
+documentos/revisões, aprovações e gates.
+Saída: um projeto real percorre criação, execução, revisão e encerramento.
+
+M4 — Colaboração e informação
+Abrange: F20/F22/F23/F25/F26 e regras de automação acordadas.
+Entregáveis: contexto exato na busca, notificações mínimas, indicadores definidos
+e execução confiável das regras incluídas na 1.0.
+Saída: participantes recebem e encontram o que precisam sem interpretação
+ambígua dos indicadores.
+
+M5 — Homologação e operação
+Abrange: F24/F27/F28 e matriz de testes.
+Entregáveis: revisão visual real, E2E, performance com volume acordado, backup
+restaurado, homologação, publicação condicionada à validação e suporte definido.
+Saída: critérios de aceite evidenciados e decisão de entrega registrada.
+
+Sequência e dependências:
+- M0 precede promessas de prazo e escopo fechado.
+- M1 e a modelagem de M2 devem compartilhar o mesmo desenho de entidades.
+- Regras de M3 devem ser aplicadas pela camada de negócio do servidor.
+- M5 verifica o conjunto final; não pode ser substituído por build aprovado.
+Não foram atribuídas estimativas de dias sem dimensionar equipe e requisitos.
+
+11. ROTEIRO DE HOMOLOGAÇÃO PARA O CLIENTE
+
+A01. Provisionar ambiente vazio, sem projetos e pessoas fictícios.
+A02. Owner acessa, convida gestor/membro e revoga um convite.
+A03. Convidado entra apenas no workspace correto; recuperação de acesso funciona.
+A04. Gestor cria projeto com cliente, metodologia, membros e datas.
+A05. Outro computador consulta o projeto recém-criado.
+A06. Criar/editar tarefa, mudar responsável e status; reload mantém os dados.
+A07. Dois usuários editam simultaneamente; preservar mudanças ou informar conflito.
+A08. Simular falha de gravação; rascunho permanece e não há falso sucesso.
+A09. Adicionar comentário e decisão; autor e hora correspondem à sessão.
+A10. Enviar documento, baixar em outro computador e verificar conteúdo.
+A11. Enviar nova revisão; preservar e baixar revisão anterior.
+A12. Solicitar aprovação vinculada à revisão; usuário indevido não pode decidir.
+A13. Gate pendente bloqueia transição; requisitos válidos permitem avançar.
+A14. Risco alto aparece como crítico; mitigação muda estado e deixa histórico.
+A15. Se qualidade estiver no escopo, concluir um caso real com suas evidências.
+A16. Se automações estiverem no escopo, repetir requisição sem duplicar efeitos;
+     diferenciar retry de nova conclusão após reabertura.
+A17. Iniciar/pausar/concluir/arquivar projeto conforme permissões.
+A18. Busca abre item exato; links diretos e reload funcionam no prefixo publicado.
+A19. Exportação respeita filtros e autorização e pode ser aberta corretamente.
+A20. Viewer e cliente não acessam informação interna nem executam mutações
+     proibidas, inclusive por requisição direta.
+A21. Restaurar backup em ambiente isolado, conferindo arquivos e relacionamentos.
+A22. Validar teclado, foco, modais, toque, celular/tablet e desktop reais.
+A23. Validar volume e dispositivo acordados, anotando medidas objetivas.
+A24. Falha de teste bloqueia publicação; rollback é ensaiado.
+A25. Cliente executa o fluxo principal e registra aceite ou pendências residuais.
+
+Cada caso deve registrar ambiente, versão, usuário/papel, dados de teste,
+resultado esperado, observado e evidência. A lista é um roteiro proposto,
+não resultado já aprovado.
+
+12. O QUE PODE FICAR PARA DEPOIS DA 1.0
+
+Somente mediante confirmação de que não foi prometido no escopo:
+- Motor genérico avançado de automações e integrações externas.
+- Agendamento complexo e múltiplos canais de notificação.
+- Sincronização offline completa.
+- Planejamento por recursos, caminho crítico e calendário industrial avançado.
+- Ferramentas especializadas de todos os módulos do catálogo.
+- Personalização ampla de dashboards e indicadores.
+- Aplicativo nativo e funcionalidades de inteligência adicionais.
+
+Não devem ser adiados para uma entrega operacional compartilhada:
+identidade, autorização, preservação dos dados, erro de gravação claro,
+arquivos compartilhados quando usados, consistência das relações,
+regras essenciais do fluxo e recuperação testada.
+
+13. PENDÊNCIAS DE REPOSITÓRIO E PROCESSO
+
+- PR #3 continua aberto e com conflitos na consulta desta auditoria.
+  Revisar seu conteúdo contra main atual; não mesclar automaticamente uma
+  implementação antiga de painel sem conferir o Modal e as telas novas.
+- PR #4 foi integrado em 09/10/2026 e trouxe as páginas adicionais.
+- README e PROTOTYPE-ALIGNMENT reconhecem o caráter local do protótipo.
+- Atualizar documentação junto com a implementação, separando demonstração de
+  produção e removendo afirmações antigas apenas quando o recurso estiver pronto.
+- Definir release identificável, checklist de publicação e histórico de migrações.
+- A versão 0.1.0 ajuda a identificar a fase, mas o número por si só não decide
+  maturidade nem substitui critérios de aceite.
+- Este trabalho acrescenta documentação de diagnóstico. Os defeitos descritos
+  não são considerados corrigidos pela presença deste arquivo.
+
+14. FONTES PRIMÁRIAS E REFERÊNCIAS
+
+Todos os caminhos de código deste relatório se referem ao commit:
+98437a93c00d60f96017dfc411cc5c603a644b74
+
+Raiz fixada:
+https://github.com/Leo-yTnk/Symco/tree/98437a93c00d60f96017dfc411cc5c603a644b74
+
+Documentação:
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/README.md
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/docs/PROTOTYPE-ALIGNMENT.md
+
+Persistência e aplicação:
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/src/repositories/localDatabase.ts
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/src/application/useWorkspace.ts
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/src/domain/model.ts
+https://github.com/Leo-yTnk/Symco/blob/98437a93c00d60f96017dfc411cc5c603a644b74/src/domain/automations.ts
+
+Interface, testes e entrega:
+https://github.com/Leo-yTnk/Symco/tree/98437a93c00d60f96017dfc411cc5c603a644b74/src/features
+https://github.com/Leo-yTnk/Symco/tree/98437a93c00d60f96017dfc411cc5c603a644b74/tests
+https://github.com/Leo-yTnk/Symco/tree/98437a93c00d60f96017dfc411cc5c603a644b74/.github/workflows
+
+Validação do commit analisado:
+https://github.com/Leo-yTnk/Symco/actions/runs/38005122045
+Deploy do commit analisado:
+https://github.com/Leo-yTnk/Symco/actions/runs/38005122044
+PR pendente:
+https://github.com/Leo-yTnk/Symco/pull/3
+PR de páginas adicionais:
+https://github.com/Leo-yTnk/Symco/pull/4
+
+A auditoria usa as fontes primárias do próprio projeto. As recomendações são
+inferências técnicas a partir dessas evidências, não alegações de recursos
+instalados em serviços externos ou requisitos já aprovados pelo cliente.
+
+15. CONCLUSÃO
+
+O principal ativo do projeto é a base de interface conectada a entidades e
+operações reais, com organização suficiente para evoluir. O maior risco é
+confundir essa amplitude visual com prontidão operacional.
+
+A próxima etapa deve converter o protótipo em um sistema compartilhado que
+preserva dados, identifica pessoas, aplica permissões e conclui o processo do
+cliente com rastreabilidade. Backend sem corrigir integridade e regras seria
+insuficiente; apenas refinamento visual também não resolve a entrega.
+
+A versão pode ser considerada pronta quando os fluxos contratados passarem
+pela homologação com usuários distintos, dados persistentes, acesso correto,
+tratamento de falhas e recuperação comprovada. Até lá, o posicionamento
+tecnicamente defensável é protótipo funcional em evolução.
