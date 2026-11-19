@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { useId, useState } from "react";
 import { Button, StatusSwitch } from "../components/os/controls";
 import {
@@ -231,17 +232,16 @@ function PreferenceSelect<Value extends string>({
       <label htmlFor={id}>
         <strong>{label}</strong>
       </label>
-      <select
+      <Select
+        label={label}
         id={id}
         value={value}
-        onChange={(event) => onChange(event.target.value as Value)}
-      >
-        {Object.entries(options).map(([key, name]) => (
-          <option key={key} value={key}>
-            {name as string}
-          </option>
-        ))}
-      </select>
+        onChange={onChange}
+        options={Object.entries(options).map(([key, name]) => ({
+          value: key as Value,
+          label: name as string,
+        }))}
+      />
     </div>
   );
 }

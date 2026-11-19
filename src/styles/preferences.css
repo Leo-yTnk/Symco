@@ -20,7 +20,7 @@
   flex: 1 1 11rem;
   min-width: 0;
 }
-.os-preference-row select {
+.os-preference-row .os-button.os-select {
   width: min(100%, 12rem);
 }
 .os-preference-row small {

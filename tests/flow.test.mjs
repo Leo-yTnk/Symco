@@ -89,8 +89,14 @@ test("create a project and a task, then restore both after a new mount", async (
     "Workspace Teste",
   );
   await click(button("Entrar no SymOS"));
-  assert.match(document.body.textContent, /Comece pela visão geral/);
-  await click(button("Pular tutorial"));
+  assert.equal(button("Tutorial"), undefined);
+  const sidebarToggle = document.querySelector('.os-sidebar-header button[aria-label="Recolher menu"]');
+  assert.match(sidebarToggle.parentElement.textContent, /by Symco/);
+  await click(sidebarToggle);
+  assert.equal(sidebarToggle.getAttribute("aria-expanded"), "false");
+  assert.equal(sidebarToggle.getAttribute("aria-label"), "Expandir menu");
+  await click(sidebarToggle);
+  assert.equal(sidebarToggle.getAttribute("aria-expanded"), "true");
   assert.match(document.body.textContent, /Workspace Teste/);
   await click(button("Novo projeto"));
   assert.match(document.body.textContent, /Criar novo projeto/);
@@ -147,6 +153,7 @@ test("create a project and a task, then restore both after a new mount", async (
     document.querySelector(".os-project-summary")?.textContent,
     /100%/,
   );
+  await click(button("Configurações"));
   await click(button("Tutorial"));
   assert.match(document.body.textContent, /Comece pela visão geral/);
   for (let step = 0; step < 4; step++) await click(button("Próximo"));
@@ -169,10 +176,12 @@ test("a fresh workspace opens without examples", async () => {
   await click(button("Continuar"));
   await input(document.querySelector(".os-field-stack input"), "Workspace Teste");
   await click(button("Entrar no SymOS"));
-  await click(button("Pular tutorial"));
   assert.match(document.body.textContent, /Nenhum projeto ainda/);
   assert.doesNotMatch(document.body.textContent, /Maionese Popular/);
-  await click(document.querySelector('button[aria-label="Abrir página inicial"]'));
+  assert.equal(button("Página inicial"), undefined);
+  assert.equal(button("Tutorial"), undefined);
+  await click(button("Configurações"));
+  await click(button("Página inicial"));
   await click(button("Voltar ao workspace"));
   assert.match(document.body.textContent, /Visão Geral/);
   await act(async () => root.unmount());

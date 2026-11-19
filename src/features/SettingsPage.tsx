@@ -1,4 +1,8 @@
-import { SegmentedControl, StatusSwitch } from "../components/os/controls";
+import {
+  Button,
+  SegmentedControl,
+  StatusSwitch,
+} from "../components/os/controls";
 import { useState } from "react";
 import { modules } from "../domain/catalog";
 import { type PageProps, Empty } from "./workspaceUi";
@@ -6,6 +10,7 @@ import { type usePreferences } from "../application/usePreferences";
 import { PreferencesPage, preferencesSafePath } from "./PreferencesPage";
 
 export const settingsPath = "/app/settings";
+export const welcomePath = `${settingsPath}/welcome`;
 const tabs = {
   general: "Geral",
   preferences: "Preferências",
@@ -30,10 +35,12 @@ export function SettingsPage({
   projects,
   navigate,
   tab,
+  startTutorial,
   safeMode,
   personalPreferences,
 }: PageProps & {
   tab: SettingsSection;
+  startTutorial: () => void;
   safeMode: boolean;
   personalPreferences: ReturnType<typeof usePreferences>;
 }) {
@@ -96,6 +103,13 @@ export function SettingsPage({
               </div>
             </section>
             <section className="os-section">
+              <h2>Primeiros passos</h2>
+              <div className="os-settings-shortcuts">
+                <Button onClick={() => navigate(welcomePath)}>
+                  Página inicial
+                </Button>
+                <Button onClick={startTutorial}>Tutorial</Button>
+              </div>
               <h2>Módulos do workspace</h2>
               <ModuleSettings {...{ workspace, actions }} />
               <h2>Dados e privacidade</h2>

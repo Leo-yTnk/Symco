@@ -1,18 +1,18 @@
+import { Select } from "../components/os/Dropdown";
 import { Button } from "../components/os/controls";
 import { useEffect, useState } from "react";
 import {
   Zap,
   BarChart3,
   Bell,
-  ChevronLeft,
-  Compass,
+  PanelLeftClose,
+  PanelLeftOpen,
   FileText,
   FolderKanban,
   LayoutDashboard,
   Menu,
   Plus,
   LogOut,
-  CircleHelp,
   Search,
   Settings,
   ShieldCheck,
@@ -31,6 +31,7 @@ import { Reports } from "../features/Reports";
 import {
   SettingsPage,
   settingsPath,
+  welcomePath,
   settingsSection,
 } from "../features/SettingsPage";
 import { preferencesSafePath } from "../features/PreferencesPage";
@@ -87,14 +88,12 @@ export default function App({
   const actions = useWorkspace(repository);
   const cloud = accountReady !== undefined;
   const { database } = actions;
-  const readPath = () =>
-    location.hash.startsWith("#/")
+  const readPath = () => {
+    const route = location.hash.startsWith("#/")
       ? location.hash.slice(1)
-      : location.pathname.startsWith("/app")
-        ? location.pathname
-        : accountReady
-          ? "/app"
-          : "/";
+      : location.pathname;
+    return route.startsWith("/app") ? route : "/app";
+  };
   const [path, setPath] = useState(readPath);
   const governanceTab = governanceSection(path);
   const settingsTab = settingsSection(path);
@@ -207,7 +206,6 @@ export default function App({
     setWorkspaceId(targetWorkspace);
     if (!cloud) localStorage.setItem("symos-workspace", targetWorkspace);
     navigate("/app");
-    setTourOpen(true);
   };
   const closeTutorial = () => {
     setTourOpen(false);
@@ -331,7 +329,7 @@ export default function App({
               modules.find((m) => path === `/app/modules/${m.id}`)?.name ||
               "Página não encontrada";
 
-  if (path === "/" || path === "/welcome" || !onboarding.completed) {
+  if (path === welcomePath || !onboarding.completed) {
     return (
       <Onboarding
         initial={onboarding.profile}
@@ -351,11 +349,27 @@ export default function App({
         id="workspace-navigation"
         className={`os-sidebar ${mobileNav ? "mobile-open" : ""}`}
       >
-        <div className="os-brand">
-          <span>
-            sym<span>OS</span>
-          </span>
-          <small>por symco</small>
+        <div className="os-sidebar-header">
+          <div className="os-brand">
+            <span>
+              sym<span>OS</span>
+            </span>
+            <small>by Symco</small>
+          </div>
+          <Button
+            variant="icon"
+            className="os-sidebar-toggle"
+            onClick={() => setSidebar((value) => !value)}
+            aria-label={sidebar ? "Recolher menu" : "Expandir menu"}
+            aria-controls="workspace-navigation"
+            aria-expanded={sidebar}
+          >
+            {sidebar ? (
+              <PanelLeftClose size={18} />
+            ) : (
+              <PanelLeftOpen size={18} />
+            )}
+          </Button>
         </div>
         <nav aria-label="Navegação principal">
           {navigation.map((group) => (
@@ -402,32 +416,14 @@ export default function App({
               </button>
             ))}
         </div>
-        <div className="os-sidebar-bottom">
-          <button
-            onClick={() => {
-              setTourOpen(false);
-              navigate("/");
-            }}
-            aria-label="Abrir página inicial"
-          >
-            <Compass size={17} />
-            <span>Página inicial</span>
-          </button>
-          {signOut && (
+        {signOut && (
+          <div className="os-sidebar-bottom">
             <button onClick={signOut} aria-label="Sair da conta">
               <LogOut size={17} />
               <span>Sair da conta</span>
             </button>
-          )}
-          <button
-            onClick={() => setSidebar((value) => !value)}
-            aria-label={sidebar ? "Recolher menu" : "Expandir menu"}
-            aria-expanded={sidebar}
-          >
-            <ChevronLeft size={17} />
-            <span>{sidebar ? "Recolher menu" : "Expandir menu"}</span>
-          </button>
-        </div>
+          </div>
+        )}
       </aside>
       <button
         type="button"
@@ -449,20 +445,18 @@ export default function App({
           >
             <Menu size={21} />
           </button>
-          <label className="os-workspace-select" data-tour="workspace">
+          <div className="os-workspace-select" data-tour="workspace">
             <span className="workspace-icon">S</span>
-            <select
-              aria-label="Workspace"
+            <Select
+              label="Workspace"
               value={workspace.id}
-              onChange={(event) => selectWorkspace(event.target.value)}
-            >
-              {database.workspaces.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={(value) => selectWorkspace(value)}
+              options={database.workspaces.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+            />
+          </div>
           <div className="os-search-wrap" data-tour="search">
             <label className="os-search">
               <Search size={16} />
@@ -506,25 +500,6 @@ export default function App({
               )}
             </div>
           </div>
-          <Button
-            variant="icon"
-            className="os-start-button"
-            title="Página inicial"
-            aria-label="Abrir página inicial"
-            onClick={() => {
-              setTourOpen(false);
-              navigate("/");
-            }}
-          >
-            <Compass size={18} />
-          </Button>
-          <Button
-            className="os-help-button"
-            onClick={startTutorial}
-            aria-label="Tutorial"
-          >
-            <CircleHelp size={17} /> <span>Tutorial</span>
-          </Button>
           <Button
             variant="icon"
             aria-label="Notificações"
@@ -645,6 +620,7 @@ export default function App({
               <SettingsPage
                 {...pageProps}
                 tab={settingsTab}
+                startTutorial={startTutorial}
                 safeMode={safeMode}
                 personalPreferences={personalPreferences}
               />

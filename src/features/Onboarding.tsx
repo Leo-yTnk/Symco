@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { useState, type FormEvent } from "react";
 import {
   ArrowLeft,
@@ -77,7 +78,7 @@ export function Onboarding({
         <section className="os-onboarding-story">
           <div className="os-onboarding-brand">
             sym<span>OS</span>
-            <small>por symco</small>
+            <small>by Symco</small>
           </div>
           <div className="os-story-body">
             <span className="os-eyebrow">
@@ -267,17 +268,20 @@ export function Onboarding({
                   </label>
                   <label>
                     Objetivo principal <small>opcional</small>
-                    <select
+                    <Select
+                      label="Objetivo principal"
                       value={profile.goal}
-                      onChange={(event) => set("goal", event.target.value)}
-                    >
-                      <option value="">Selecione</option>
-                      <option value="portfolio">Acompanhar o portfólio</option>
-                      <option value="execution">Organizar a execução</option>
-                      <option value="governance">
-                        Fortalecer a governança
-                      </option>
-                    </select>
+                      onChange={(nextValue) => set("goal", nextValue)}
+                      options={[
+                        { value: "", label: "Selecione" },
+                        { value: "portfolio", label: "Acompanhar o portfólio" },
+                        { value: "execution", label: "Organizar a execução" },
+                        {
+                          value: "governance",
+                          label: "Fortalecer a governança",
+                        },
+                      ]}
+                    />
                   </label>
                 </div>
                 <p className="os-privacy-note">

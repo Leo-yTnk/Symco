@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { healthLabels, projectStatusLabels } from "../domain/model";
@@ -73,40 +74,46 @@ export function Reports({ database, projects, navigate }: PageProps) {
         <div className="os-filters">
           <label>
             Cliente
-            <select value={client} onChange={(e) => setClient(e.target.value)}>
-              <option value="">Todos os clientes</option>
-              {database.clients
-                .filter((c) => projects.some((p) => p.clientId === c.id))
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </select>
+            <Select
+              label="Cliente"
+              value={client}
+              onChange={(nextValue) => setClient(nextValue)}
+              options={[
+                { value: "", label: "Todos os clientes" },
+                ...database.clients
+                  .filter((c) => projects.some((p) => p.clientId === c.id))
+                  .map((c) => ({ value: c.id, label: c.name })),
+              ]}
+            />
           </label>
           <label>
             Responsável
-            <select value={owner} onChange={(e) => setOwner(e.target.value)}>
-              <option value="">Todos</option>
-              {database.users
-                .filter((u) => projects.some((p) => p.ownerId === u.id))
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                  </option>
-                ))}
-            </select>
+            <Select
+              label="Responsável"
+              value={owner}
+              onChange={(nextValue) => setOwner(nextValue)}
+              options={[
+                { value: "", label: "Todos" },
+                ...database.users
+                  .filter((u) => projects.some((p) => p.ownerId === u.id))
+                  .map((u) => ({ value: u.id, label: u.name })),
+              ]}
+            />
           </label>
           <label>
             Status
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="">Todos</option>
-              {Object.entries(projectStatusLabels).map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
-                </option>
-              ))}
-            </select>
+            <Select
+              label="Status"
+              value={status}
+              onChange={(nextValue) => setStatus(nextValue)}
+              options={[
+                { value: "", label: "Todos" },
+                ...Object.entries(projectStatusLabels).map(([v, l]) => ({
+                  value: v,
+                  label: l,
+                })),
+              ]}
+            />
           </label>
           <label>
             Início do período

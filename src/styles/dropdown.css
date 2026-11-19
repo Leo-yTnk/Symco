@@ -5,6 +5,7 @@
   justify-content: space-between;
   border-color: var(--line-strong);
   font-weight: 450;
+  padding-inline-end: var(--space-2);
 }
 .os-select > span,
 .os-dropdown-option > span {
@@ -39,7 +40,6 @@
   max-height: 100%;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
   padding: var(--space-1);
   outline: none;
 }
@@ -54,6 +54,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
+  padding-inline-end: var(--space-1);
   border: 0;
   border-radius: var(--radius-sm);
   color: var(--ink);

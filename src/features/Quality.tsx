@@ -1,4 +1,4 @@
-import { EditRecordActions } from "../components/os/Dropdown";
+import { Select, EditRecordActions } from "../components/os/Dropdown";
 import { Badge } from "../components/os/controls";
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -78,17 +78,15 @@ export function Quality(props: PageProps) {
             </label>
             <label>
               Projeto
-              <select
+              <Select
+                label="Projeto"
                 value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-              >
-                <option value="">Todos os projetos</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(nextValue) => setProjectId(nextValue)}
+                options={[
+                  { value: "", label: "Todos os projetos" },
+                  ...projects.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
             </label>
           </div>
           <button
@@ -263,52 +261,51 @@ export function Quality(props: PageProps) {
             </label>
             <label>
               Projeto
-              <select name="project" defaultValue={editing?.projectId}>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Projeto"
+                name="project"
+                defaultValue={editing?.projectId}
+                options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              />
             </label>
             <label>
               Tipo
-              <select name="kind" defaultValue={editing?.kind}>
-                {Object.entries(kinds).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Tipo"
+                name="kind"
+                defaultValue={editing?.kind}
+                options={Object.entries(kinds).map(([v, l]) => ({
+                  value: v,
+                  label: l,
+                }))}
+              />
             </label>
             <label>
               Status
-              <select name="status" defaultValue={editing?.status}>
-                {Object.entries(states).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Status"
+                name="status"
+                defaultValue={editing?.status}
+                options={Object.entries(states).map(([v, l]) => ({
+                  value: v,
+                  label: l,
+                }))}
+              />
             </label>
             <label>
               Responsável
-              <select
+              <Select
+                label="Responsável"
                 name="owner"
                 defaultValue={editing?.ownerId ?? database.users[0]?.id}
-              >
-                {database.users
+                options={database.users
                   .filter((u) =>
                     database.workspaces
                       .find((w) => w.id === props.workspaceId)
                       ?.memberIds.includes(u.id),
                   )
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-              </select>
+                  .map((u) => ({ value: u.id, label: u.name }))}
+              />
             </label>
             <label>
               Prazo

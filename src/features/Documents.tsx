@@ -318,26 +318,28 @@ export function Documents(props: PageProps) {
                 }}
               />
             </label>
-            <select
-              aria-label="Agrupar documentos"
+            <Select
+              label="Agrupar documentos"
               value={group}
-              onChange={(e) => {
-                setGroup(e.target.value);
+              onChange={(nextValue) => {
+                setGroup(nextValue);
                 setCollapsed([]);
               }}
-            >
-              <option value="project">Por projeto</option>
-              <option value="category">Por pasta</option>
-              <option value="none">Sem agrupamento</option>
-            </select>
-            <select
-              aria-label="Ordenar documentos"
+              options={[
+                { value: "project", label: "Por projeto" },
+                { value: "category", label: "Por pasta" },
+                { value: "none", label: "Sem agrupamento" },
+              ]}
+            />
+            <Select
+              label="Ordenar documentos"
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            >
-              <option value="recent">Mais recentes</option>
-              <option value="name">Nome A–Z</option>
-            </select>
+              onChange={(nextValue) => setSort(nextValue)}
+              options={[
+                { value: "recent", label: "Mais recentes" },
+                { value: "name", label: "Nome A–Z" },
+              ]}
+            />
             <button
               className="os-button"
               onClick={() =>
@@ -769,46 +771,44 @@ function DocumentForm({
       </label>
       <label>
         Projeto
-        <select
+        <Select
+          label="Projeto"
           name="project"
           defaultValue={editing?.projectId}
           disabled={!!editing}
-        >
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+          options={projects.map((p) => ({ value: p.id, label: p.name }))}
+        />
       </label>
       <label>
         Pasta
-        <select
+        <Select
+          label="Pasta"
           name="category"
           defaultValue={editing?.category || categories[1]}
-        >
-          {categories.slice(1).map((c) => (
-            <option key={c}>{c}</option>
-          ))}
-        </select>
+          options={categories.slice(1).map((c) => ({ value: c, label: c }))}
+        />
       </label>
       <label>
         Módulo
-        <select name="module" defaultValue={editing?.moduleId || ""}>
-          <option value="">Sem módulo</option>
-          {modules
-            .filter((m) => projects.some((p) => p.moduleIds.includes(m.id)))
-            .map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-        </select>
+        <Select
+          label="Módulo"
+          name="module"
+          defaultValue={editing?.moduleId || ""}
+          options={[
+            { value: "", label: "Sem módulo" },
+            ...modules
+              .filter((m) => projects.some((p) => p.moduleIds.includes(m.id)))
+              .map((m) => ({ value: m.id, label: m.name })),
+          ]}
+        />
       </label>
       <label>
         Tipo
-        <select name="type" defaultValue={editing?.type || "PDF"}>
-          {[
+        <Select
+          label="Tipo"
+          name="type"
+          defaultValue={editing?.type || "PDF"}
+          options={[
             ...new Set([
               "PDF",
               "DOCX",
@@ -818,10 +818,8 @@ function DocumentForm({
               "Registro",
               editing?.type || "PDF",
             ]),
-          ].map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
+          ].map((t) => ({ value: t, label: t }))}
+        />
       </label>
       <div className="os-date-pair">
         <label>
@@ -834,46 +832,43 @@ function DocumentForm({
         </label>
         <label>
           Status
-          <select name="status" defaultValue={editing?.status || "draft"}>
-            {Object.entries(states).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
+          <Select
+            label="Status"
+            name="status"
+            defaultValue={editing?.status || "draft"}
+            options={Object.entries(states).map(([v, l]) => ({
+              value: v,
+              label: l,
+            }))}
+          />
         </label>
       </div>
       <label>
         Aprovação
-        <select
+        <Select
+          label="Aprovação"
           name="approval"
           defaultValue={editing?.approvalStatus || "pending"}
-        >
-          {Object.entries(approvalLabels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+          options={Object.entries(approvalLabels).map(([value, label]) => ({
+            value: value,
+            label: label,
+          }))}
+        />
       </label>
       <label>
         Responsável
-        <select
+        <Select
+          label="Responsável"
           name="owner"
           defaultValue={editing?.createdBy ?? database.users[0]?.id}
-        >
-          {database.users
+          options={database.users
             .filter((u) =>
               projects.some(
                 (p) => p.memberIds.includes(u.id) || p.ownerId === u.id,
               ),
             )
-            .map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-        </select>
+            .map((u) => ({ value: u.id, label: u.name }))}
+        />
       </label>
       <label>
         Link externo

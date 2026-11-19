@@ -257,7 +257,7 @@
 .os-filters label:first-child {
   flex-basis: 185px;
 }
-.os-filters :is(input, select) {
+.os-filters input {
   min-width: 0;
   width: 100%;
 }
@@ -458,10 +458,8 @@
   margin-bottom: 0;
 }
 .os-project-form input,
-.os-project-form select,
 .os-project-form textarea,
 .os-task-fields input,
-.os-task-fields select,
 .os-task-fields textarea,
 .os-record-form input,
 .os-record-form textarea,
@@ -539,11 +537,6 @@
 .os-project-summary label {
   font-size: var(--text-xs);
   color: var(--muted);
-}
-.os-project-summary select {
-  width: 100%;
-  border: 0;
-  padding: var(--space-1) 0;
 }
 .os-detail-layout {
   display: grid;
@@ -640,7 +633,7 @@
   font-size: var(--text-sm);
   color: var(--muted);
 }
-.os-records select {
+.os-records .os-select {
   align-self: end;
 }
 .os-record-form {

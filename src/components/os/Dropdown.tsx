@@ -160,12 +160,15 @@ function Dropdown({
     animation.current?.cancel();
     const style = getComputedStyle(element);
     const duration = motionDuration(style);
-    if (!element.animate || !duration || height <= collapsed.current) {
+    if (!element.animate || !duration) {
       finishRef.current();
       return;
     }
     const exit = element.animate(
-      [{ height: `${height}px` }, { height: `${collapsed.current}px` }],
+      [
+        { height: `${height}px`, filter: "blur(0)", opacity: 1 },
+        { height: `${collapsed.current}px`, filter: "blur(4px)", opacity: 0 },
+      ],
       {
         duration,
         easing: style.getPropertyValue("--ease-out").trim() || "ease-out",
@@ -328,22 +331,58 @@ function motionDuration(style: CSSStyleDeclaration) {
 export function Select<Value extends string>({
   id,
   label,
-  value,
+  value: controlledValue,
+  defaultValue,
+  name,
+  disabled,
   options,
   onChange,
 }: {
   id?: string;
   label: string;
-  value: Value;
+  value?: Value;
+  defaultValue?: Value;
+  name?: string;
+  disabled?: boolean;
   options: readonly { value: Value; label: string; disabled?: boolean }[];
-  onChange: (value: Value) => void;
+  onChange?: (value: Value) => void;
 }) {
   const menu = useDropdown();
+  const input = useRef<HTMLInputElement>(null);
+  const [formValue, setFormValue] = useState(defaultValue);
+  const requestedValue = controlledValue ?? formValue;
+  const selected =
+    options.find((option) => option.value === requestedValue) ??
+    options.find((option) => !option.disabled);
+  const value = selected?.value;
+
+  useEffect(() => {
+    const form = input.current?.form;
+    if (!form || controlledValue !== undefined) return;
+    const reset = (event: Event) => {
+      queueMicrotask(() => {
+        if (!event.defaultPrevented) setFormValue(defaultValue);
+      });
+    };
+    form.addEventListener("reset", reset);
+    return () => form.removeEventListener("reset", reset);
+  }, [controlledValue, defaultValue, value !== undefined]);
+
   const expanded = !!menu.anchor && !menu.closing;
   return (
     <>
+      {name && value !== undefined && (
+        <input
+          ref={input}
+          type="hidden"
+          name={name}
+          value={value}
+          disabled={disabled}
+        />
+      )}
       <Button
         id={id}
+        disabled={disabled}
         className="os-select"
         aria-label={label}
         aria-describedby={`${menu.id}-value`}
@@ -360,9 +399,7 @@ export function Select<Value extends string>({
           menu.open({ element: event.currentTarget });
         }}
       >
-        <span id={`${menu.id}-value`}>
-          {options.find((option) => option.value === value)?.label ?? "—"}
-        </span>
+        <span id={`${menu.id}-value`}>{selected?.label ?? "—"}</span>
         <ChevronDown size={16} aria-hidden="true" />
       </Button>
       {menu.anchor && (
@@ -377,7 +414,9 @@ export function Select<Value extends string>({
           matchAnchor
           onChoose={(next) => {
             const option = options.find((item) => item.value === next);
-            if (option && option.value !== value) onChange(option.value);
+            if (!option || option.value === value) return;
+            if (controlledValue === undefined) setFormValue(option.value);
+            onChange?.(option.value);
           }}
         />
       )}
