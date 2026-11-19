@@ -64,13 +64,13 @@ export function SettingsPage({
               <h2>Informações do workspace</h2>
               <form
                 className="os-record-form"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   const f = new FormData(e.currentTarget);
                   setMessage(
-                    actions.updateWorkspace(workspaceId, {
+                    (await actions.updateWorkspace(workspaceId, {
                       name: String(f.get("name")).trim(),
-                    })
+                    }))
                       ? "Configurações salvas."
                       : "Não foi possível salvar.",
                   );
@@ -174,14 +174,16 @@ export function SettingsPage({
             </div>
             <form
               className="os-record-form"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                const f = new FormData(e.currentTarget);
-                actions.addClient(
+                const form = e.currentTarget;
+                const f = new FormData(form);
+                const saved = await actions.addClient(
                   workspaceId,
                   String(f.get("name")).trim(),
                   String(f.get("contact")).trim(),
                 );
+                if (saved) form.reset();
               }}
             >
               <label>

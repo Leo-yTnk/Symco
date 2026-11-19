@@ -226,10 +226,10 @@ export function Automations(props: PageProps) {
         >
           <form
             className="os-record-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);
-              const ok = actions.saveAutomation(
+              const ok = await actions.saveAutomation(
                 {
                   workspaceId,
                   name: String(f.get("name")).trim(),

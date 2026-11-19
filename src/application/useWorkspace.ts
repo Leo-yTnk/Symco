@@ -11,10 +11,11 @@ import type {
   Task,
 } from "../domain/model";
 import { applyAutomations } from "../domain/automations";
+import { localDatabase } from "../repositories/localDatabase";
 import {
-  localDatabase,
+  DatabaseConflict,
   type DatabaseRepository,
-} from "../repositories/localDatabase";
+} from "../repositories/databaseRepository";
 
 const id = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -25,23 +26,36 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
   const [database, setDatabase] = useState<Database>(() => repository.load());
   const currentDatabase = useRef(database);
   const [error, setError] = useState("");
+  const [conflict, setConflict] = useState(false);
+  const saving = useRef(false);
+  const actorId = database.users[0].id;
   const commit = useCallback(
-    (update: (current: Database) => Database) => {
-      // Persist before publishing. Keeping this outside a React state updater avoids
-      // duplicate writes when StrictMode replays updater functions in development.
-      const previous = currentDatabase.current;
-      const next = applyAutomations(previous, update(previous));
+    async (update: (current: Database) => Database) => {
+      if (saving.current) {
+        setError("Aguarde o salvamento em andamento e tente de novo.");
+        return false;
+      }
+      saving.current = true;
       try {
-        repository.save(next);
+        const previous = currentDatabase.current;
+        const next = applyAutomations(previous, update(previous));
+        await repository.save(next);
         currentDatabase.current = next;
         setDatabase(next);
         setError("");
+        setConflict(false);
         return true;
-      } catch {
+      } catch (cause) {
+        const conflicted = cause instanceof DatabaseConflict;
+        setConflict(conflicted);
         setError(
-          "Não foi possível salvar. Verifique o armazenamento do navegador.",
+          conflicted
+            ? "Os dados mudaram em outra sessão. Recarregue para usar a versão mais recente."
+            : "Não foi possível salvar. Verifique a conexão ou o armazenamento e tente de novo.",
         );
         return false;
+      } finally {
+        saving.current = false;
       }
     },
     [repository],
@@ -55,7 +69,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
     id: id(),
     workspaceId: project.workspaceId,
     projectId: project.id,
-    actorId: "mariana",
+    actorId,
     type,
     summary,
     entityId,
@@ -64,8 +78,9 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
   return {
     database,
     error,
+    conflict,
     dismissError: () => setError(""),
-    createProject(
+    async createProject(
       input: NewProject,
       tasks: Pick<Task, "title" | "stageId" | "priority">[],
       customStages: string[] = [],
@@ -78,7 +93,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
         currentStageId: customStages.length ? "custom-0" : input.currentStageId,
         createdAt: now(),
       };
-      commit((current) => ({
+      const saved = await commit((current) => ({
         ...current,
         methodologies: customStages.length
           ? [
@@ -117,10 +132,10 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
           ...current.activities,
         ],
       }));
-      return project.id;
+      return saved ? project.id : undefined;
     },
     updateProject(projectId: string, changes: Partial<Project>) {
-      commit((current) => ({
+      return commit((current) => ({
         ...current,
         projects: current.projects.map((project) =>
           project.id === projectId ? { ...project, ...changes } : project,
@@ -128,7 +143,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       }));
     },
     createTask(input: NewTask) {
-      commit((current) => {
+      return commit((current) => {
         const project = current.projects.find(
           (item) => item.id === input.projectId,
         )!;
@@ -149,7 +164,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     updateTask(taskId: string, changes: Partial<Task>) {
-      commit((current) => {
+      return commit((current) => {
         const previous = current.tasks.find((task) => task.id === taskId);
         if (!previous) return current;
         const project = current.projects.find(
@@ -173,7 +188,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     deleteTask(taskId: string) {
-      commit((current) => {
+      return commit((current) => {
         const task = current.tasks.find((item) => item.id === taskId);
         if (!task) return current;
         const project = current.projects.find(
@@ -191,13 +206,13 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     addComment(projectId: string, body: string, taskId?: string) {
-      commit((current) => {
+      return commit((current) => {
         const project = current.projects.find((item) => item.id === projectId)!;
         const comment = {
           id: id(),
           projectId,
           taskId,
-          authorId: "mariana",
+          authorId: actorId,
           body,
           createdAt: now(),
         };
@@ -232,7 +247,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
           url,
           type: url ? "Link" : "Registro",
           createdAt: now(),
-          createdBy: "mariana",
+          createdBy: actorId,
         };
         return {
           ...current,
@@ -308,7 +323,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
             projectId,
             title,
             approverIds,
-            requestedBy: "mariana",
+            requestedBy: actorId,
             status: "pending",
             dueDate,
             createdAt: now(),
@@ -317,7 +332,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       }));
     },
     updateApproval(approvalId: string, status: ApprovalStatus) {
-      commit((current) => {
+      return commit((current) => {
         const approval = current.approvals.find(
           (item) => item.id === approvalId,
         );
@@ -343,7 +358,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     addRisk(projectId: string, title: string, description: string) {
-      commit((current) => {
+      return commit((current) => {
         const project = current.projects.find((item) => item.id === projectId)!;
         const risk = {
           id: id(),
@@ -370,14 +385,14 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     addDecision(projectId: string, title: string, description: string) {
-      commit((current) => {
+      return commit((current) => {
         const project = current.projects.find((item) => item.id === projectId)!;
         const decision = {
           id: id(),
           projectId,
           title,
           description,
-          decidedBy: "mariana",
+          decidedBy: actorId,
           decidedAt: now(),
           attachmentIds: [],
         };
@@ -397,7 +412,7 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     addClient(workspaceId: string, name: string, contact: string) {
-      commit((current) => ({
+      return commit((current) => ({
         ...current,
         clients: [
           ...current.clients,
@@ -411,12 +426,13 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       name: string,
       email: string,
       organization: string,
+      role: string,
     ) {
-      commit((current) => ({
+      return commit((current) => ({
         ...current,
         users: current.users.map((user) =>
           user.id === userId
-            ? { ...user, name, email: email || user.email }
+            ? { ...user, name, email: email || user.email, role, workspaceId }
             : user,
         ),
         workspaces: current.workspaces.map((workspace) =>

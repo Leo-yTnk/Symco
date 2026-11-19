@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Menu,
   Plus,
+  LogOut,
   CircleHelp,
   Search,
   Settings,
@@ -41,10 +42,13 @@ import {
 import { Onboarding } from "../features/Onboarding";
 import { Tutorial } from "../features/Tutorial";
 import {
+  initialOnboarding,
   loadOnboarding,
   saveOnboarding,
   type OnboardingProfile,
 } from "../repositories/localOnboarding";
+
+import type { DatabaseRepository } from "../repositories/databaseRepository";
 
 const navigation = [
   {
@@ -69,15 +73,28 @@ const navigation = [
   },
 ];
 
-export default function App() {
-  const actions = useWorkspace();
+export default function App({
+  repository,
+  accountReady,
+  signOut,
+  accountError,
+}: {
+  repository?: DatabaseRepository;
+  accountReady?: boolean;
+  signOut?: () => void;
+  accountError?: string;
+} = {}) {
+  const actions = useWorkspace(repository);
+  const cloud = accountReady !== undefined;
   const { database } = actions;
   const readPath = () =>
     location.hash.startsWith("#/")
       ? location.hash.slice(1)
       : location.pathname.startsWith("/app")
         ? location.pathname
-        : "/";
+        : accountReady
+          ? "/app"
+          : "/";
   const [path, setPath] = useState(readPath);
   const governanceTab = governanceSection(path);
   const settingsTab = settingsSection(path);
@@ -88,15 +105,40 @@ export default function App() {
     : settingsTab
       ? settingsPath
       : path;
+  const currentUser = database.users[0];
   const [workspaceId, setWorkspaceId] = useState(
-    () => localStorage.getItem("symos-workspace") || "symco",
+    () =>
+      (!cloud && localStorage.getItem("symos-workspace")) ||
+      currentUser.workspaceId ||
+      "symco",
   );
   const [sidebar, setSidebar] = useState(true);
   const [mobileNav, setMobileNav] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [onboarding, setOnboarding] = useState(loadOnboarding);
+  const [onboarding, setOnboarding] = useState(() =>
+    cloud
+      ? {
+          ...initialOnboarding,
+          completed: accountReady,
+          profile: {
+            ...initialOnboarding.profile,
+            name: currentUser.name,
+            email: currentUser.email,
+            role: currentUser.role || "",
+            workspaceType:
+              workspaceId === "personal"
+                ? ("independent" as const)
+                : ("symco" as const),
+            organization: accountReady
+              ? database.workspaces.find((item) => item.id === workspaceId)
+                  ?.name || ""
+              : "",
+          },
+        }
+      : loadOnboarding(),
+  );
   const [tourOpen, setTourOpen] = useState(false);
   const workspace =
     database.workspaces.find((item) => item.id === workspaceId) ||
@@ -104,8 +146,6 @@ export default function App() {
   const projects = database.projects.filter(
     (project) => project.workspaceId === workspace.id,
   );
-  const currentUser =
-    database.users.find((user) => user.id === "mariana") || database.users[0];
   const navigate = (next: string) => {
     history.pushState({}, "", `#${next}`);
     setPath(next);
@@ -146,31 +186,26 @@ export default function App() {
   }, []);
   const selectWorkspace = (value: string) => {
     setWorkspaceId(value);
-    localStorage.setItem("symos-workspace", value);
+    if (!cloud) localStorage.setItem("symos-workspace", value);
     navigate("/app");
   };
-  const completeOnboarding = (profile: OnboardingProfile) => {
+  const completeOnboarding = async (profile: OnboardingProfile) => {
     const targetWorkspace =
       profile.workspaceType === "independent" ? "personal" : "symco";
-    const next = { completed: true, tutorialSeen: false, profile };
-    saveOnboarding(next);
-    setOnboarding(next);
-    actions.configureIdentity(
+    const saved = await actions.configureIdentity(
       currentUser.id,
       targetWorkspace,
       profile.name.trim(),
       profile.email.trim(),
       profile.organization.trim(),
+      profile.role.trim(),
     );
-    setWorkspaceId(targetWorkspace);
-    localStorage.setItem("symos-workspace", targetWorkspace);
-    navigate("/app");
-    setTourOpen(true);
-  };
-  const exploreDemo = () => {
-    const next = { ...onboarding, completed: true };
-    saveOnboarding(next);
+    if (!saved) return;
+    const next = { completed: true, tutorialSeen: false, profile };
+    if (!cloud) saveOnboarding(next);
     setOnboarding(next);
+    setWorkspaceId(targetWorkspace);
+    if (!cloud) localStorage.setItem("symos-workspace", targetWorkspace);
     navigate("/app");
     setTourOpen(true);
   };
@@ -178,7 +213,7 @@ export default function App() {
     setTourOpen(false);
     const next = { ...onboarding, tutorialSeen: true };
     setOnboarding(next);
-    saveOnboarding(next);
+    if (!cloud) saveOnboarding(next);
   };
   const startTutorial = () => {
     navigate("/app");
@@ -301,7 +336,11 @@ export default function App() {
       <Onboarding
         initial={onboarding.profile}
         finish={completeOnboarding}
-        explore={exploreDemo}
+        cloud={cloud}
+        errorMessage={actions.error || accountError}
+        reload={actions.conflict ? () => location.reload() : undefined}
+        enter={onboarding.completed ? () => navigate("/app") : undefined}
+        signOut={signOut}
       />
     );
   }
@@ -374,6 +413,12 @@ export default function App() {
             <Compass size={17} />
             <span>Página inicial</span>
           </button>
+          {signOut && (
+            <button onClick={signOut} aria-label="Sair da conta">
+              <LogOut size={17} />
+              <span>Sair da conta</span>
+            </button>
+          )}
           <button
             onClick={() => setSidebar((value) => !value)}
             aria-label={sidebar ? "Recolher menu" : "Expandir menu"}
@@ -500,7 +545,7 @@ export default function App() {
             </span>
             <span>
               {currentUser.name}
-              <small>{onboarding.profile.role || "Gestora de projetos"}</small>
+              <small>{currentUser.role || onboarding.profile.role}</small>
             </span>
           </div>
           <div
@@ -580,6 +625,7 @@ export default function App() {
                 database={database}
                 workspace={workspace}
                 create={actions.createProject}
+                ownerId={currentUser.id}
                 navigate={navigate}
               />
             )}
@@ -630,12 +676,17 @@ export default function App() {
             )}
           </div>
         </main>
-        {actions.error && (
+        {(actions.error || accountError) && (
           <div className="os-error" role="alert">
-            {actions.error}
-            <button onClick={actions.dismissError} aria-label="Fechar">
-              <X size={15} />
-            </button>
+            {actions.error || accountError}
+            {actions.conflict && (
+              <button onClick={() => location.reload()}>Recarregar</button>
+            )}
+            {actions.error && (
+              <button onClick={actions.dismissError} aria-label="Fechar">
+                <X size={15} />
+              </button>
+            )}
           </div>
         )}
       </div>

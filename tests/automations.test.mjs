@@ -13,7 +13,7 @@ async function load(entry) {
     `data:text/javascript;base64,${Buffer.from(out.outputFiles[0].text).toString("base64")}`
   );
 }
-const { createSeed } = await load("src/domain/seed.ts");
+const { createSeed } = await load("tests/fixtures/seed.ts");
 const { applyAutomations } = await load("src/domain/automations.ts");
 const rule = {
   id: "rule",

@@ -1,4 +1,4 @@
-import type { Database, Project, Task } from "./model";
+import type { Database, Project, Task } from "../../src/domain/model";
 
 const today = new Date();
 const day = (offset: number) =>

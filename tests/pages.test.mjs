@@ -11,6 +11,14 @@ await build({
   format: "esm",
   outfile: ".tmp/pages.mjs",
 });
+await build({
+  entryPoints: ["tests/fixtures/seed.ts"],
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  outfile: ".tmp/pages-seed.mjs",
+});
+const { createSeed } = await import("../.tmp/pages-seed.mjs");
 const dom = new JSDOM('<div id="root"></div>', {
   url: "http://localhost/Symco/#/app",
 });
@@ -40,6 +48,7 @@ localStorage.setItem(
   "symos-onboarding-v1",
   JSON.stringify({ completed: true, tutorialSeen: true, profile: {} }),
 );
+localStorage.setItem("symos-database-v2", JSON.stringify(createSeed()));
 const { act, createElement } = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { default: App } = await import("../.tmp/pages.mjs");
@@ -55,8 +64,6 @@ const { useWorkspace } = await import("../.tmp/actions.mjs");
 const root = createRoot(document.getElementById("root"));
 async function mount() {
   await act(async () => root.render(createElement(App)));
-  if (document.body.textContent.includes("Explorar demonstração"))
-    await click(button("Explorar demonstração"));
   if (button("Pular tutorial")) await click(button("Pular tutorial"));
 }
 const button = (label) =>
@@ -85,7 +92,7 @@ async function route(path) {
     window.dispatchEvent(new Event("popstate"));
   });
 }
-const db = () => JSON.parse(localStorage.getItem("symos-database-v1"));
+const db = () => JSON.parse(localStorage.getItem("symos-database-v2"));
 test("all prototype workspace pages render and documents can be created, filtered and edited", async () => {
   await mount();
   for (const [path, title] of [
@@ -365,7 +372,7 @@ test("failed persistence does not publish uploaded metadata or generated automat
   await act(async () => isolated.render(createElement(Harness)));
   let ok;
   await act(async () => {
-    ok = actions.addDocument("aky-mayo", "Arquivo teste", undefined, {
+    ok = await actions.addDocument("aky-mayo", "Arquivo teste", undefined, {
       fileData: "data:text/plain;base64,dGVzdA==",
     });
   });

@@ -13,7 +13,11 @@ import type { OnboardingProfile } from "../repositories/localOnboarding";
 type Props = {
   initial: OnboardingProfile;
   finish: (profile: OnboardingProfile) => void;
-  explore: () => void;
+  cloud: boolean;
+  errorMessage?: string;
+  reload?: () => void;
+  enter?: () => void;
+  signOut?: () => void;
 };
 
 const benefits = [
@@ -34,7 +38,15 @@ const benefits = [
   },
 ];
 
-export function Onboarding({ initial, finish, explore }: Props) {
+export function Onboarding({
+  initial,
+  finish,
+  cloud,
+  errorMessage,
+  reload,
+  enter,
+  signOut,
+}: Props) {
   const [step, setStep] = useState(0);
   const [profile, setProfile] = useState(initial);
   const [error, setError] = useState("");
@@ -115,8 +127,7 @@ export function Onboarding({ initial, finish, explore }: Props) {
                 <h2>Bem-vindo ao seu sistema de projetos.</h2>
                 <p>
                   Antes de começar, vamos conhecer seu contexto para deixar o
-                  espaço mais útil. Você também pode explorar a demonstração
-                  agora.
+                  espaço mais útil.
                 </p>
                 <div className="os-benefits">
                   {benefits.map(({ icon: Icon, title, text }) => (
@@ -137,18 +148,18 @@ export function Onboarding({ initial, finish, explore }: Props) {
                 >
                   Configurar meu espaço <ArrowRight size={17} />
                 </button>
-                <button className="os-text-action" onClick={explore}>
-                  Explorar a demonstração
-                </button>
+                {enter && (
+                  <button className="os-text-action" onClick={enter}>
+                    Voltar ao workspace
+                  </button>
+                )}
               </>
             )}
             {step === 1 && (
               <form onSubmit={next}>
                 <span className="os-step-label">02 / SOBRE VOCÊ</span>
                 <h2>Quem vai conduzir os projetos?</h2>
-                <p>
-                  Essas informações personalizam a experiência neste navegador.
-                </p>
+                <p>Essas informações identificam você no workspace.</p>
                 <div className="os-field-stack">
                   <label>
                     Seu nome <span>*</span>
@@ -168,9 +179,10 @@ export function Onboarding({ initial, finish, explore }: Props) {
                     />
                   </label>
                   <label>
-                    E-mail <small>opcional</small>
+                    E-mail {!cloud && <small>opcional</small>}
                     <input
                       type="email"
+                      readOnly={cloud}
                       value={profile.email}
                       onChange={(event) => set("email", event.target.value)}
                       placeholder="voce@empresa.com"
@@ -269,8 +281,10 @@ export function Onboarding({ initial, finish, explore }: Props) {
                   </label>
                 </div>
                 <p className="os-privacy-note">
-                  <Check size={14} /> Neste protótipo, as informações ficam
-                  apenas neste navegador. Nenhuma identidade é verificada.
+                  <Check size={14} />
+                  {cloud
+                    ? "O perfil e os dados de trabalho ficam vinculados à sua conta."
+                    : "O perfil e os dados ficam salvos neste navegador."}
                 </p>
                 {error && (
                   <p className="os-validation" role="alert">
@@ -292,6 +306,21 @@ export function Onboarding({ initial, finish, explore }: Props) {
               </form>
             )}
           </div>
+          {errorMessage && (
+            <p className="os-validation" role="alert">
+              {errorMessage}
+            </p>
+          )}
+          {reload && (
+            <button className="os-text-action" onClick={reload}>
+              Recarregar
+            </button>
+          )}
+          {signOut && (
+            <button className="os-text-action" onClick={signOut}>
+              Sair da conta
+            </button>
+          )}
           <div className="os-onboarding-footer">
             {step === 0
               ? "Seu contexto, do primeiro passo ao próximo marco."

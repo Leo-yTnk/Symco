@@ -141,9 +141,7 @@ export function Approvals(props: PageProps) {
                       </td>
                       <td>{a.dueDate ? formatDate(a.dueDate) : "Sem prazo"}</td>
                       <td>
-                        <Badge
-                          state={`status-${a.status}`}
-                        >
+                        <Badge state={`status-${a.status}`}>
                           {approvalLabels[a.status]}
                         </Badge>
                       </td>
@@ -216,10 +214,10 @@ export function Approvals(props: PageProps) {
         >
           <form
             className="os-record-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);
-              const ok = actions.requestApproval(
+              const ok = await actions.requestApproval(
                 String(f.get("project")),
                 String(f.get("title")).trim(),
                 [String(f.get("approver"))],
