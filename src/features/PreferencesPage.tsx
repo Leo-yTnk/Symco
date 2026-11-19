@@ -225,10 +225,14 @@ function PreferenceSelect<Value extends string>({
   options: Record<Value, string>;
   onChange: (value: Value) => void;
 }) {
+  const id = useId();
   return (
-    <label className="os-preference-row">
-      <strong>{label}</strong>
+    <div className="os-preference-row">
+      <label htmlFor={id}>
+        <strong>{label}</strong>
+      </label>
       <select
+        id={id}
         value={value}
         onChange={(event) => onChange(event.target.value as Value)}
       >
@@ -238,6 +242,6 @@ function PreferenceSelect<Value extends string>({
           </option>
         ))}
       </select>
-    </label>
+    </div>
   );
 }

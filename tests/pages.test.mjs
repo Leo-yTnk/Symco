@@ -322,8 +322,8 @@ test("personal preferences stay active across routes and can be restored", async
     document.querySelector('nav [aria-current="page"]').textContent,
     "Configurações",
   );
-  const theme = [...document.querySelectorAll("label select")].find(
-    (select) => select.parentElement.textContent.startsWith("Tema"),
+  const theme = [...document.querySelectorAll(".os-preference-row select")].find(
+    (select) => select.labels[0].textContent === "Tema",
   );
   await act(async () => {
     theme.value = "dark";
