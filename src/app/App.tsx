@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { usePreferences } from "../application/usePreferences";
 import { useWorkspace } from "../application/useWorkspace";
 import { modules } from "../domain/catalog";
 import { Dashboard } from "../features/Dashboard";
@@ -26,7 +27,12 @@ import { NewProject } from "../features/NewProject";
 import { Documents } from "../features/Documents";
 import { Automations } from "../features/Automations";
 import { Reports } from "../features/Reports";
-import { SettingsPage } from "../features/SettingsPage";
+import {
+  SettingsPage,
+  settingsPath,
+  settingsSection,
+} from "../features/SettingsPage";
+import { preferencesSafePath } from "../features/PreferencesPage";
 import {
   Governance,
   governancePath,
@@ -58,7 +64,7 @@ const navigation = [
     links: [
       { label: "Automações", path: "/app/automations", icon: Zap },
       { label: "Relatórios", path: "/app/reports", icon: BarChart3 },
-      { label: "Configurações", path: "/app/settings", icon: Settings },
+      { label: "Configurações", path: settingsPath, icon: Settings },
     ],
   },
 ];
@@ -74,7 +80,14 @@ export default function App() {
         : "/";
   const [path, setPath] = useState(readPath);
   const governanceTab = governanceSection(path);
-  const pagePath = governanceTab ? governancePath : path;
+  const settingsTab = settingsSection(path);
+  const safeMode = path === preferencesSafePath;
+  const personalPreferences = usePreferences(safeMode);
+  const pagePath = governanceTab
+    ? governancePath
+    : settingsTab
+      ? settingsPath
+      : path;
   const [workspaceId, setWorkspaceId] = useState(
     () => localStorage.getItem("symos-workspace") || "symco",
   );
@@ -265,8 +278,8 @@ export default function App() {
     "/app/automations":
       "Conecte eventos e ações para simplificar o trabalho da equipe.",
     "/app/reports": "Transforme dados dos projetos em informação para decidir.",
-    "/app/settings":
-      "Configure o workspace, os módulos e as preferências da equipe.",
+    [settingsPath]:
+      "Gerencie o workspace, os módulos e suas preferências de interface.",
   };
   const title =
     path === "/app"
@@ -582,7 +595,14 @@ export default function App() {
             {path === "/app/documents" && <Documents {...pageProps} />}
             {path === "/app/automations" && <Automations {...pageProps} />}
             {path === "/app/reports" && <Reports {...pageProps} />}
-            {path === "/app/settings" && <SettingsPage {...pageProps} />}
+            {settingsTab && (
+              <SettingsPage
+                {...pageProps}
+                tab={settingsTab}
+                safeMode={safeMode}
+                personalPreferences={personalPreferences}
+              />
+            )}
             {path.startsWith("/app/modules/") &&
               modules.some((m) => path === `/app/modules/${m.id}`) && (
                 <Portfolio

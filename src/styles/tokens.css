@@ -1,4 +1,6 @@
+/* Palette tokens follow the same color scheme as native form controls. */
 :root {
+  color-scheme: light dark;
   --font-sans: "DM Sans", system-ui, sans-serif;
   --text-xs: 0.75rem;
   --text-sm: 0.8125rem;
@@ -13,28 +15,30 @@
   --nav-text: #dce9f7;
   --nav-muted: #a1b7ce;
   --nav-line: #29435e;
+  --nav-strong: #fff;
   --nav-accent: #68d9ef;
-  --ink: #132a43;
-  --ink-soft: #304963;
-  --muted: #516780;
-  --canvas: #f1f5f9;
-  --surface: #fff;
-  --surface-soft: #f7f9fc;
-  --line: #dce5ef;
-  --line-strong: #9aadc2;
-  --blue: #155fb8;
-  --blue-hover: #104c99;
-  --blue-soft: #e9f2ff;
-  --cyan: #007e9f;
-  --cyan-soft: #e4f6fa;
-  --success: #16694a;
-  --success-soft: #e8f6ee;
-  --warning: #865310;
-  --warning-soft: #fff2df;
-  --danger: #a12d42;
-  --danger-soft: #fff0f2;
-  --violet: #6945a6;
-  --violet-soft: #f1ebfa;
+  --ink: light-dark(#132a43, #edf4fc);
+  --ink-soft: light-dark(#304963, #c7d8e9);
+  --muted: light-dark(#516780, #a0b4ca);
+  --canvas: light-dark(#f1f5f9, #0c1623);
+  --surface: light-dark(#fff, #142437);
+  --surface-soft: light-dark(#f7f9fc, #1a2c42);
+  --line: light-dark(#dce5ef, #334962);
+  --line-strong: light-dark(#9aadc2, #627b96);
+  --blue: light-dark(#155fb8, #8bc0ff);
+  --blue-hover: light-dark(#104c99, #acd3ff);
+  --blue-soft: light-dark(#e9f2ff, #233e5d);
+  --on-accent: light-dark(#fff, #111b28);
+  --cyan: light-dark(#007e9f, #79d8ee);
+  --cyan-soft: light-dark(#e4f6fa, #153d4a);
+  --success: light-dark(#16694a, #79dfad);
+  --success-soft: light-dark(#e8f6ee, #1b3b33);
+  --warning: light-dark(#865310, #f6c982);
+  --warning-soft: light-dark(#fff2df, #493622);
+  --danger: light-dark(#a12d42, #ffabb9);
+  --danger-soft: light-dark(#fff0f2, #492b38);
+  --violet: light-dark(#6945a6, #cdb5ff);
+  --violet-soft: light-dark(#f1ebfa, #352b50);
   --scrim: rgb(9 27 48 / 48%);
 
   --space-1: 4px;
@@ -61,12 +65,57 @@
   --shadow-raised: 0 5px 14px rgb(12 32 56 / 10%), 0 1px 3px rgb(12 32 56 / 5%);
   --shadow-floating:
     0 12px 38px rgb(12 32 56 / 18%), 0 2px 6px rgb(12 32 56 / 8%);
+  --focus-width: 2px;
+  --focus-color: var(--cyan);
   --duration-fast: 140ms;
   --duration-normal: 240ms;
   --duration-layout: 320ms;
   --ease-out: cubic-bezier(0.2, 0.75, 0.25, 1);
   --ease-layout: cubic-bezier(0.24, 0.72, 0.3, 1);
   --press-scale: 0.97;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+:root[data-accent="teal"] {
+  --blue: light-dark(#136655, #83dfc5);
+  --blue-hover: light-dark(#0d5042, #a9eedb);
+  --blue-soft: light-dark(#e2f5ee, #1a3c39);
+}
+:root[data-accent="violet"] {
+  --blue: light-dark(#6345a6, #cbb5ff);
+  --blue-hover: light-dark(#4d3486, #e1d4ff);
+  --blue-soft: light-dark(#f1ebff, #382a55);
+}
+:root[data-high-contrast="true"] {
+  --ink: light-dark(#071421, #fff);
+  --ink-soft: var(--ink);
+  --muted: light-dark(#26394d, #d9e6f4);
+  --line: light-dark(#667b91, #7d94ad);
+  --line-strong: light-dark(#465d74, #a8bdd3);
+  --nav-muted: var(--nav-text);
+  --nav-line: #7d94ad;
+  --focus-color: light-dark(#004585, #fff);
+  --focus-width: 3px;
+}
+.os-sidebar {
+  --focus-color: var(--nav-accent);
+}
+:root[data-text-size="large"] {
+  font-size: 112.5%;
+}
+:root[data-text-size="larger"] {
+  font-size: 125%;
+}
+:root[data-reduce-motion="true"] {
+  --duration-fast: 0ms;
+  --duration-normal: 0ms;
+  --duration-layout: 0ms;
+  --press-scale: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

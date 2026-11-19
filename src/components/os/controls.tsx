@@ -46,10 +46,12 @@ export function StatusSwitch({
   label,
   checked,
   onChange,
+  disabled,
 }: {
   label: string;
   checked: boolean;
   onChange: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -58,6 +60,7 @@ export function StatusSwitch({
       role="switch"
       aria-label={label}
       aria-checked={checked}
+      disabled={disabled}
       onClick={onChange}
     >
       <span aria-hidden="true" />

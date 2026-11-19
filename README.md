@@ -32,6 +32,8 @@ Use os componentes em `src/components/os` para botões, indicadores, status, sel
 
 Ao mudar a posição de um elemento persistente, anime a partir da posição que ele ocupava até o destino. Use mudança de largura e posição para indicadores, expansão de altura para regiões recolhíveis e deslocamento para gavetas. Reserve a escala para o retorno tátil dos controles e o desfoque para a separação de camadas flutuantes. A preferência de movimento reduzido desativa os deslocamentos animados.
 
+Em **Configurações → Preferências**, tema, cor de destaque, tamanho do texto, contraste e movimento são salvos no navegador e valem para todos os workspaces. O CSS personalizado é aplicado quando salvo e pode ser desativado sem apagar o código. Se uma regra ocultar os controles, substitua o trecho após `#` no endereço por `/app/settings/preferences/safe` e desative ou corrija a regra.
+
 ## Fluxo disponível
 
 Troque de workspace, crie um projeto com template ou etapas próprias, escolha membros, abra o projeto, crie e edite tarefas, mova tarefas entre colunas do Kanban, comente, registre documentos como metadados ou links, riscos e decisões. Dashboard, portfólio, busca e atividade refletem as alterações. A recarga conserva os dados no mesmo navegador.

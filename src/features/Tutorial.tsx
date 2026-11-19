@@ -2,6 +2,8 @@ import { Button } from "../components/os/controls";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
+import { prefersReducedMotion } from "../application/usePreferences";
+
 type Step = { target: string; title: string; text: string; route?: string };
 
 export function Tutorial({
@@ -68,9 +70,7 @@ export function Tutorial({
     };
     document.querySelector<HTMLElement>(current.target)?.scrollIntoView?.({
       block: "nearest",
-      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
+      behavior: prefersReducedMotion() ? "instant" : "smooth",
     });
     measure();
     window.addEventListener("resize", measure);

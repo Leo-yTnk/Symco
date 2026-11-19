@@ -25,7 +25,7 @@
   min-height: 62px;
   width: max-content;
   padding: 0 15px;
-  color: var(--surface);
+  color: var(--nav-strong);
   display: flex;
   flex-direction: column;
   line-height: 0.9;
@@ -77,15 +77,15 @@
 .os-modules button:hover,
 .os-sidebar-bottom button:hover {
   background: var(--navy-raised);
-  color: var(--surface);
+  color: var(--nav-strong);
 }
 .os-nav-group button[aria-current="page"] {
-  color: var(--surface);
+  color: var(--nav-strong);
   background: var(--navy-raised);
   box-shadow: inset 3px 0 var(--nav-accent);
 }
 .os-nav-group button[aria-current="page"] svg {
-  color: var(--surface);
+  color: var(--nav-strong);
 }
 .os-modules {
   border-top: 1px solid var(--nav-line);
@@ -159,7 +159,7 @@
   display: grid;
   place-items: center;
   background: var(--navy-raised);
-  color: var(--surface);
+  color: var(--nav-strong);
   width: 23px;
   height: 23px;
   border-radius: var(--radius-sm);
@@ -191,7 +191,7 @@
   color: var(--muted);
 }
 .os-search:focus-within {
-  outline: 2px solid var(--cyan);
+  outline: var(--focus-width) solid var(--focus-color);
   outline-offset: 2px;
 }
 .os-search input {
