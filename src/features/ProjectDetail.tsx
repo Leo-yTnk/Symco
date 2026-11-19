@@ -1,3 +1,4 @@
+import { ProjectDangerZone } from "./ProjectDangerZone";
 import { EditRecordActions, Select } from "../components/os/Dropdown";
 import {
   GovernanceRecordEditor,
@@ -31,6 +32,7 @@ const sections = {
   tasks: "Tarefas",
   files: "Arquivos",
   governance: "Governança",
+  settings: "Configurações",
 } as const;
 
 const taskViews = {
@@ -291,6 +293,7 @@ export function ProjectDetail({
         <div className="os-detail-main">
           <SegmentedControl
             wide
+            wrap
             data-tour="project-tabs"
             label="Seções do projeto"
             options={sections}
@@ -350,6 +353,16 @@ export function ProjectDetail({
                   setNewTitle("");
                   setNewDescription("");
                   setRecordError("");
+                }}
+              />
+            )}
+            {tab === "settings" && (
+              <ProjectDangerZone
+                name={project.name}
+                remove={async () => {
+                  const removed = await actions.deleteProject(project.id);
+                  if (removed) navigate("/app/projects");
+                  return removed;
                 }}
               />
             )}

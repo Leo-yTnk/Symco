@@ -12,6 +12,7 @@ import type {
   Project,
   Task,
 } from "../domain/model";
+import { deleteProject } from "../domain/deleteProject";
 import { applyAutomations } from "../domain/automations";
 import { localDatabase } from "../repositories/localDatabase";
 import {
@@ -194,6 +195,12 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
           project.id === projectId ? { ...project, ...changes } : project,
         ),
       }));
+    },
+    deleteProject(projectId: string) {
+      return commit((current) => deleteProject(current, projectId), {
+        pending: "Apagando projeto…",
+        success: "Projeto apagado.",
+      });
     },
     createTask(input: NewTask) {
       return commit((current) => {

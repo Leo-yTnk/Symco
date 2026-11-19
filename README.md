@@ -29,7 +29,7 @@ Cada projeto pertence a um workspace. As telas filtram pelo workspace ativo e ca
 ## Conectar o Supabase
 
 1. Aplique a migração [`20261119180000_symos_account_data.sql`](supabase/migrations/20261119180000_symos_account_data.sql) ao projeto Supabase. Use o SQL Editor para executar o arquivo ou, em um projeto vinculado à CLI, use `supabase db push`.
-2. No Supabase, em **Authentication → Users**, crie o usuário que vai entrar no SymOS com e-mail e senha.
+2. Para liberar **Criar conta** na tela de login, habilite **Allow new users to sign up** no Supabase Auth. Se a confirmação por e-mail estiver ativada, inclua a URL publicada do SymOS (com o subcaminho do GitHub Pages) em **URL Configuration → Redirect URLs**. Configure SMTP próprio para entregar confirmações a endereços fora da equipe do Supabase. Contas também podem ser criadas em **Authentication → Users**.
 3. Localmente, copie `.env.example` para `.env.local` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Use a URL do projeto e a chave pública que começa com `sb_publishable_`. No GitHub Pages, use os mesmos nomes em **Settings → Secrets and variables → Actions → Variables**.
 4. Reinicie o Vite ou execute de novo o workflow **Deploy to GitHub Pages**. Entre no SymOS, configure o workspace e crie um primeiro projeto. Abra o app em outro navegador com a mesma conta para conferir a persistência.
 
