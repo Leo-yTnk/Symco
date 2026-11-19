@@ -219,10 +219,10 @@ export function Quality(props: PageProps) {
         >
           <form
             className="os-record-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               const f = new FormData(e.currentTarget);
-              const ok = actions.saveQuality(
+              const ok = await actions.saveQuality(
                 {
                   projectId: String(f.get("project")),
                   title: String(f.get("title")).trim(),
@@ -276,7 +276,10 @@ export function Quality(props: PageProps) {
             </label>
             <label>
               Responsável
-              <select name="owner" defaultValue={editing?.ownerId || "mariana"}>
+              <select
+                name="owner"
+                defaultValue={editing?.ownerId ?? database.users[0]?.id}
+              >
                 {database.users
                   .filter((u) =>
                     database.workspaces

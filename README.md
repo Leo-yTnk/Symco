@@ -1,6 +1,6 @@
 # SymOS
 
-Protótipo funcional de gestão de projetos da Symco. A aplicação usa React, TypeScript e Vite. Os dados são locais ao navegador nesta primeira fase.
+Sistema de gestão de projetos da Symco, desenvolvido com React, TypeScript e Vite. A persistência pode usar Supabase ou o armazenamento local do navegador.
 
 ## Executar
 
@@ -11,12 +11,12 @@ npm test
 npm run build
 ```
 
-Abra o endereço exibido pelo Vite. `/` apresenta a página inicial de contexto (KYC leve), com opção de configuração ou exploração da demonstração. As rotas de trabalho ficam sob `/app`; o primeiro acesso direto a elas também apresenta a configuração inicial.
+Abra o endereço exibido pelo Vite. `/` apresenta a página inicial de contexto (KYC leve), com a configuração de um workspace vazio. As rotas de trabalho ficam sob `/app`; o primeiro acesso direto a elas também apresenta a configuração inicial.
 
 ## Organização
 
 - `src/domain`: modelos tipados, catálogo de módulos e templates, dados iniciais e seletores derivados.
-- `src/repositories`: contrato de persistência e implementação `localStorage`.
+- `src/repositories`: contrato de persistência, com implementações para Supabase e `localStorage`.
 - `src/application`: ações de criação/edição, atualização imediata e registro de atividade.
 - `src/features`: telas de dashboard, portfólio, projeto, criação e governança.
 - `src/components/os`: componentes reutilizados entre as telas.
@@ -24,7 +24,18 @@ Abra o endereço exibido pelo Vite. `/` apresenta a página inicial de contexto 
 - `src/styles/components.css`: estilos dos controles compartilhados e regras de interação.
 - `src/styles/{layout,workspace,modules,flows}.css`: composição e layouts das telas.
 
-O banco local é semeado apenas na primeira visita (`symos-database-v1`). Cada projeto pertence a um workspace; os seletores e telas filtram os projetos pelo workspace ativo. O progresso é calculado a partir das tarefas concluídas. A metodologia e suas etapas são dados e podem ser escolhidas ou criadas no fluxo de novo projeto. Os serviços Symco ficam em um catálogo à parte do núcleo de projetos.
+Cada projeto pertence a um workspace. As telas filtram pelo workspace ativo e calculam o progresso a partir das tarefas concluídas. Projetos novos começam em branco. As metodologias, módulos e modelos de projeto continuam disponíveis para escolha.
+
+## Conectar o Supabase
+
+1. Aplique a migração [`20261119180000_symos_account_data.sql`](supabase/migrations/20261119180000_symos_account_data.sql) ao projeto Supabase. Use o SQL Editor para executar o arquivo ou, em um projeto vinculado à CLI, use `supabase db push`.
+2. No Supabase, em **Authentication → Users**, crie o usuário que vai entrar no SymOS com e-mail e senha.
+3. Localmente, copie `.env.example` para `.env.local` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Use a URL do projeto e a chave pública que começa com `sb_publishable_`. No GitHub Pages, use os mesmos nomes em **Settings → Secrets and variables → Actions → Variables**.
+4. Reinicie o Vite ou execute de novo o workflow **Deploy to GitHub Pages**. Entre no SymOS, configure o workspace e crie um primeiro projeto. Abra o app em outro navegador com a mesma conta para conferir a persistência.
+
+O Supabase guarda um documento JSON por conta e usa políticas de acesso por linha (RLS) para isolar os dados de cada usuário. O número de revisão impede que uma sessão desatualizada sobrescreva um salvamento feito em outra sessão. Em caso de conflito, recarregue antes de repetir a edição.
+
+Ao deixar as duas variáveis vazias, o SymOS inicia em modo local. Nesse modo, projetos da demonstração e registros associados deixam de aparecer. Projetos criados fora da demonstração continuam acessíveis. A chave anterior `symos-database-v1` fica preservada para recuperação, inclusive para quem adicionou conteúdo a um projeto de exemplo. O primeiro acesso ao Supabase começa vazio. Os dados locais não são enviados automaticamente.
 
 ## Design system
 
@@ -36,16 +47,16 @@ Em **Configurações → Preferências**, tema, cor de destaque, tamanho do text
 
 ## Fluxo disponível
 
-Troque de workspace, crie um projeto com template ou etapas próprias, escolha membros, abra o projeto, crie e edite tarefas, mova tarefas entre colunas do Kanban, comente, registre documentos como metadados ou links, riscos e decisões. Dashboard, portfólio, busca e atividade refletem as alterações. A recarga conserva os dados no mesmo navegador.
+Troque de workspace, crie um projeto com template ou etapas próprias, escolha membros, abra o projeto, crie e edite tarefas, mova tarefas entre colunas do Kanban, comente, registre documentos como metadados ou links, riscos e decisões. Dashboard, portfólio, busca e atividade refletem as alterações. A recarga conserva os dados na fonte de persistência configurada.
 
-A página inicial coleta apenas nome, função e nome do workspace como campos obrigatórios. As respostas ficam no próprio navegador; não constituem verificação formal de identidade. O tutorial guiado abre após a configuração e pode ser reaberto pelo botão **Tutorial** no topo. O ícone de bússola retorna à página inicial.
+A página inicial coleta apenas nome, função e nome do workspace como campos obrigatórios. O perfil fica salvo no Supabase quando a conexão está ativa e no navegador em modo local. O tutorial guiado abre após a configuração e pode ser reaberto pelo botão **Tutorial** no topo. O ícone de bússola retorna à página inicial.
 
 ## Páginas e documentos
 
-Governança reúne Qualidade, Aprovações, Riscos e Decisões do workspace. Qualidade abre por padrão e cada aba tem endereço próprio. Os endereços antigos continuam abrindo a aba correspondente. Automações e Relatórios têm fluxos próprios. Documentos oferece pastas, tabela agrupada, filtros, paginação, edição, links externos e arquivos locais de até 2 MB por arquivo. Cronograma exibe Gantt e lista de prazos. Configurações permite renomear o workspace, cadastrar clientes e ativar módulos. Projetos reúne cards, tabela e cronograma. Dentro de cada projeto, as abas são Resumo, Tarefas, Arquivos e Governança. Os endereços antigos de Portfólio e Cronograma abrem Projetos na visualização correspondente.
+Governança reúne Qualidade, Aprovações, Riscos e Decisões do workspace. Qualidade abre por padrão e cada aba tem endereço próprio. Os endereços antigos continuam abrindo a aba correspondente. Automações e Relatórios têm fluxos próprios. Documentos oferece pastas, tabela agrupada, filtros, paginação, edição, links externos e arquivos de até 2 MB por arquivo. Cronograma exibe Gantt e lista de prazos. Configurações permite renomear o workspace, cadastrar clientes e ativar módulos. Projetos reúne cards, tabela e cronograma. Dentro de cada projeto, as abas são Resumo, Tarefas, Arquivos e Governança. Os endereços antigos de Portfólio e Cronograma abrem Projetos na visualização correspondente.
 
-As rotas usam hash (`#/app/documents`, por exemplo) para suportar recarga no GitHub Pages. Os dados antigos são preservados. Consulte [o mapa de implementação e limites](docs/PROTOTYPE-ALIGNMENT.md).
+As rotas usam hash (`#/app/documents`, por exemplo) para suportar recarga no GitHub Pages. Consulte [o mapa de implementação e limites](docs/PROTOTYPE-ALIGNMENT.md).
 
 ## Limites desta fase
 
-Não há autenticação, sincronização entre dispositivos, controle de permissões no servidor nem armazenamento compartilhado de arquivos. Os usuários da demonstração representam perfis de exemplo; os tipos de papéis são a base para RBAC posterior. Solicitações de aprovação e regras locais estão disponíveis. Revisão formal de gates, permissões de aprovadores e execução de automações no servidor ainda dependem de backend. O protótipo antigo de board único foi substituído; dados salvos na chave antiga não são migrados automaticamente.
+O acesso ao Supabase é individual por conta. Colaboração entre contas, permissões por papel e execução de automações no servidor dependem de implementação adicional. No Supabase, arquivos pequenos ficam no documento JSON junto dos demais dados. Preferências de interface continuam neste navegador.

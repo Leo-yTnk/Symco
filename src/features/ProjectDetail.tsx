@@ -109,7 +109,7 @@ export function ProjectDetail({
   const projectActivities = database.activities.filter(
     (item) => item.projectId === project.id,
   );
-  const addRecord = (event: FormEvent) => {
+  const addRecord = async (event: FormEvent) => {
     event.preventDefault();
     if (!newTitle.trim()) return;
     if (tab === "files" && newDescription.trim()) {
@@ -123,23 +123,23 @@ export function ProjectDetail({
       }
     }
     setRecordError("");
-    if (tab === "files")
-      actions.addDocument(
-        project.id,
-        newTitle.trim(),
-        newDescription.trim() || undefined,
-      );
-    if (tab === "risks")
-      actions.addRisk(project.id, newTitle.trim(), newDescription.trim());
-    if (tab === "decisions")
-      actions.addDecision(project.id, newTitle.trim(), newDescription.trim());
+    const title = newTitle.trim();
+    const description = newDescription.trim();
+    const saveRecord = {
+      files: () =>
+        actions.addDocument(project.id, title, description || undefined),
+      risks: () => actions.addRisk(project.id, title, description),
+      decisions: () => actions.addDecision(project.id, title, description),
+    };
+    if (tab !== "files" && tab !== "risks" && tab !== "decisions") return;
+    if (!(await saveRecord[tab]())) return;
     setNewTitle("");
     setNewDescription("");
   };
-  const createTask = (event: FormEvent) => {
+  const createTask = async (event: FormEvent) => {
     event.preventDefault();
     if (!newTitle.trim()) return;
-    actions.createTask({
+    const saved = await actions.createTask({
       projectId: project.id,
       title: newTitle.trim(),
       assigneeId: project.ownerId,
@@ -149,6 +149,7 @@ export function ProjectDetail({
       dueDate: project.dueDate,
       dependencyIds: [],
     });
+    if (!saved) return;
     setNewTitle("");
     setCreating(false);
     setTaskView("table");
@@ -595,11 +596,13 @@ export function ProjectDetail({
                 </div>
               ))}
             <form
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
-                if (comment.trim())
-                  actions.addComment(project.id, comment.trim());
-                setComment("");
+                if (
+                  comment.trim() &&
+                  (await actions.addComment(project.id, comment.trim()))
+                )
+                  setComment("");
               }}
             >
               <label>

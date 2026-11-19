@@ -6,7 +6,13 @@ export type TaskStatus = "todo" | "in_progress" | "review" | "blocked" | "done";
 export type ApprovalStatus =
   "pending" | "approved" | "rejected" | "changes_requested";
 export type HealthStatus = "on_track" | "attention" | "at_risk" | "blocked";
-export type User = { id: ID; name: string; email: string };
+export type User = {
+  id: ID;
+  name: string;
+  email: string;
+  role?: string;
+  workspaceId?: ID;
+};
 export type Workspace = {
   id: ID;
   name: string;

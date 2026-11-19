@@ -626,7 +626,7 @@ export function Documents(props: PageProps) {
               if (file?.size) {
                 if (file.size > 2 * 1024 * 1024) {
                   setError(
-                    "O limite local é de 2 MB por arquivo. Para arquivos maiores, registre um link.",
+                    "O limite é de 2 MB por arquivo. Para arquivos maiores, registre um link.",
                   );
                   return;
                 }
@@ -664,8 +664,8 @@ export function Documents(props: PageProps) {
                 url: url || undefined,
               };
               const ok = editing
-                ? actions.updateDocument(editing.id, details)
-                : actions.addDocument(
+                ? await actions.updateDocument(editing.id, details)
+                : await actions.addDocument(
                     String(data.get("project")),
                     details.title,
                     details.url,
@@ -674,10 +674,7 @@ export function Documents(props: PageProps) {
               if (ok) {
                 setCreating(false);
                 setEditing(null);
-              } else
-                setError(
-                  "Não foi possível salvar. O armazenamento local pode estar cheio.",
-                );
+              } else setError("Não foi possível salvar o documento.");
             }}
           />
           {editing && (
@@ -828,7 +825,10 @@ function DocumentForm({
       </label>
       <label>
         Responsável
-        <select name="owner" defaultValue={editing?.createdBy || "mariana"}>
+        <select
+          name="owner"
+          defaultValue={editing?.createdBy ?? database.users[0]?.id}
+        >
           {database.users
             .filter((u) =>
               projects.some(

@@ -7,37 +7,33 @@ export function NewProject({
   database,
   workspace,
   create,
+  ownerId,
   navigate,
 }: {
   database: Database;
   workspace: Workspace;
+  ownerId: string;
   create: (
     input: Omit<Project, "id" | "createdAt">,
     tasks: Pick<Task, "title" | "stageId" | "priority">[],
     customStages?: string[],
-  ) => string;
+  ) => Promise<string | undefined>;
   navigate: (path: string) => void;
 }) {
   const [kind, setKind] = useState<Project["kind"]>(
     workspace.moduleIds.length ? "symco" : "independent",
   );
-  const [templateId, setTemplateId] = useState(
-    workspace.moduleIds.length ? "product" : "blank",
-  );
+  const [templateId, setTemplateId] = useState("blank");
   const [form, setForm] = useState({
     name: "",
     description: "",
     clientId: "",
-    ownerId: "mariana",
+    ownerId,
     startDate: new Date().toISOString().slice(0, 10),
     dueDate: "",
     methodologyId: workspace.id === "personal" ? "simple" : "symco-food",
-    moduleIds: workspace.moduleIds.includes("product")
-      ? ["product", "quality"].filter((moduleId) =>
-          workspace.moduleIds.includes(moduleId),
-        )
-      : ([] as string[]),
-    memberIds: ["mariana"] as string[],
+    moduleIds: [] as string[],
+    memberIds: [] as string[],
   });
   const [error, setError] = useState("");
   const [customStages, setCustomStages] = useState("");
@@ -59,7 +55,7 @@ export function NewProject({
             ),
     }));
   };
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.name.trim()) return setError("Informe o nome do projeto.");
     if (!form.dueDate || form.dueDate < form.startDate)
@@ -72,7 +68,7 @@ export function NewProject({
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    const projectId = create(
+    const projectId = await create(
       {
         workspaceId: workspace.id,
         kind,
@@ -98,7 +94,7 @@ export function NewProject({
       })),
       stages,
     );
-    navigate(`/app/projects/${projectId}`);
+    if (projectId) navigate(`/app/projects/${projectId}`);
   };
   return (
     <form onSubmit={submit} className="os-new-project">
@@ -165,7 +161,6 @@ export function NewProject({
       </div>
       <aside className="os-section os-project-form">
         <h2>Configure o projeto</h2>
-        <p className="os-muted">Os dados são salvos neste navegador.</p>
         <label>
           Nome do projeto *
           <input

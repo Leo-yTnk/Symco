@@ -15,7 +15,7 @@ export type OnboardingState = {
 };
 
 const KEY = "symos-onboarding-v1";
-const initial: OnboardingState = {
+export const initialOnboarding: OnboardingState = {
   completed: false,
   tutorialSeen: false,
   profile: {
@@ -34,15 +34,15 @@ export function loadOnboarding(): OnboardingState {
     const saved = JSON.parse(localStorage.getItem(KEY) || "null");
     if (saved && typeof saved.completed === "boolean") {
       return {
-        ...initial,
+        ...initialOnboarding,
         ...saved,
-        profile: { ...initial.profile, ...saved.profile },
+        profile: { ...initialOnboarding.profile, ...saved.profile },
       };
     }
   } catch {
     // A blocked or corrupt store leaves the introduction usable in memory.
   }
-  return initial;
+  return initialOnboarding;
 }
 
 export function saveOnboarding(state: OnboardingState): boolean {

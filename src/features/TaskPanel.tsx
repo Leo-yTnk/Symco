@@ -28,12 +28,11 @@ export function TaskPanel({
   const method = database.methodologies.find(
     (item) => item.id === project.methodologyId,
   );
-  const save = (event: FormEvent, dismiss: () => void) => {
+  const save = async (event: FormEvent, dismiss: () => void) => {
     event.preventDefault();
     if (!draft.title.trim()) return setError("Informe o título.");
     if (draft.status !== task.status) beforeStatusChange();
-    actions.updateTask(task.id, draft);
-    dismiss();
+    if (await actions.updateTask(task.id, draft)) dismiss();
   };
   return (
     <Drawer title={task.title} caption="Tarefa" close={close}>
@@ -173,11 +172,12 @@ export function TaskPanel({
               <button
                 type="button"
                 className="os-button danger"
-                onClick={() => {
-                  if (confirm("Excluir esta tarefa e seus comentários?")) {
-                    actions.deleteTask(task.id);
+                onClick={async () => {
+                  if (
+                    confirm("Excluir esta tarefa e seus comentários?") &&
+                    (await actions.deleteTask(task.id))
+                  )
                     dismiss();
-                  }
                 }}
               >
                 <Trash2 size={15} /> Excluir
@@ -196,11 +196,17 @@ export function TaskPanel({
                 </div>
               ))}
             <form
-              onSubmit={(event) => {
+              onSubmit={async (event) => {
                 event.preventDefault();
-                if (comment.trim())
-                  actions.addComment(project.id, comment.trim(), task.id);
-                setComment("");
+                if (
+                  comment.trim() &&
+                  (await actions.addComment(
+                    project.id,
+                    comment.trim(),
+                    task.id,
+                  ))
+                )
+                  setComment("");
               }}
             >
               <label>

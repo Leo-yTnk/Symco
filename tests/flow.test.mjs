@@ -145,7 +145,7 @@ test("create a project and a task, then restore both after a new mount", async (
   assert.match(document.body.textContent, /Primeira versão revisada/);
   assert.match(
     document.querySelector(".os-project-summary")?.textContent,
-    /25%/,
+    /100%/,
   );
   await click(button("Tutorial"));
   assert.match(document.body.textContent, /Comece pela visão geral/);
@@ -157,25 +157,23 @@ test("create a project and a task, then restore both after a new mount", async (
   await act(async () => root.unmount());
 });
 
-test("exploration can skip personal details and still keep the introduction available", async () => {
+test("a fresh workspace opens without examples", async () => {
   localStorage.clear();
   history.replaceState({}, "", "/app");
-  let root = createRoot(container);
+  const root = createRoot(container);
   await act(async () => root.render(createElement(App)));
-  await click(button("Explorar a demonstração"));
-  assert.match(document.body.textContent, /Comece pela visão geral/);
+  assert.equal(button("Explorar a demonstração"), undefined);
+  await click(button("Configurar meu espaço"));
+  await input(document.querySelector('input[autofocus], .os-field-stack input'), "Operador Teste");
+  await input(document.querySelector('input[placeholder="Ex.: Gerente de projetos"]'), "Coordenador");
+  await click(button("Continuar"));
+  await input(document.querySelector(".os-field-stack input"), "Workspace Teste");
+  await click(button("Entrar no SymOS"));
   await click(button("Pular tutorial"));
-  assert.match(document.body.textContent, /Maionese Popular/);
-  await click(
-    document.querySelector('button[aria-label="Abrir página inicial"]'),
-  );
-  assert.match(document.body.textContent, /Uma ideia merece mais/);
-  await act(async () => root.unmount());
-  root = createRoot(container);
-  await act(async () => root.render(createElement(App)));
-  assert.match(document.body.textContent, /Uma ideia merece mais/);
-  await click(button("Explorar a demonstração"));
-  await click(button("Pular tutorial"));
+  assert.match(document.body.textContent, /Nenhum projeto ainda/);
+  assert.doesNotMatch(document.body.textContent, /Maionese Popular/);
+  await click(document.querySelector('button[aria-label="Abrir página inicial"]'));
+  await click(button("Voltar ao workspace"));
   assert.match(document.body.textContent, /Visão Geral/);
   await act(async () => root.unmount());
 });

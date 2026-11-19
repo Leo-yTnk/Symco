@@ -166,6 +166,26 @@
   flex-direction: column;
   min-width: 0;
 }
+.os-access {
+  width: min(100%, 29rem);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-floating);
+}
+.os-access .os-onboarding-brand {
+  color: var(--ink);
+}
+.os-access .os-onboarding-brand span {
+  color: var(--blue);
+}
+.os-access .os-onboarding-content {
+  padding-bottom: 0;
+}
+.os-access h1 {
+  margin: 0 0 var(--space-4);
+  color: var(--ink);
+  font-size: var(--text-xl);
+}
 .os-onboarding-progress {
   display: flex;
   gap: 6px;
