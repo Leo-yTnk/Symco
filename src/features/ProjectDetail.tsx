@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { Badge, SegmentedControl } from "../components/os/controls";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronRight, Plus, Star } from "lucide-react";
 import type { WorkspaceActions } from "../application/useWorkspace";
 import { modules } from "../domain/catalog";
@@ -66,7 +67,42 @@ export function ProjectDetail({
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [recordError, setRecordError] = useState("");
+  const board = useRef<HTMLDivElement>(null);
+  const beforeMove = useRef<Map<string, DOMRect> | null>(null);
+  const captureKanban = () => {
+    if (!board.current) return;
+    beforeMove.current = new Map(
+      Array.from(
+        board.current.querySelectorAll<HTMLElement>("[data-task-id]"),
+        (card) => [card.dataset.taskId!, card.getBoundingClientRect()],
+      ),
+    );
+  };
   const tasks = projectTasks(database, project.id);
+  useLayoutEffect(() => {
+    const previous = beforeMove.current;
+    beforeMove.current = null;
+    if (!previous || !board.current) return;
+    const style = window.getComputedStyle(board.current);
+    const duration = parseFloat(style.getPropertyValue("--duration-layout"));
+    if (!duration) return;
+    const easing = style.getPropertyValue("--ease-layout").trim();
+    for (const card of board.current.querySelectorAll<HTMLElement>(
+      "[data-task-id]",
+    )) {
+      const start = previous.get(card.dataset.taskId!);
+      if (!start) continue;
+      const end = card.getBoundingClientRect();
+      const x = start.left - end.left;
+      const y = start.top - end.top;
+      if (x || y)
+        card.animate?.(
+          [{ translate: `${x}px ${y}px` }, { translate: "0px 0px" }],
+          { duration, easing },
+        );
+    }
+  }, [database.tasks]);
+
   const method = database.methodologies.find(
     (item) => item.id === project.methodologyId,
   );
@@ -147,9 +183,9 @@ export function ProjectDetail({
                   ?.name || "—"}
               </td>
               <td>
-                <span className={`os-badge task-${task.status}`}>
+                <Badge state={`task-${task.status}`}>
                   {statusLabels[task.status]}
-                </span>
+                </Badge>
               </td>
               <td>{task.priority}</td>
               <td>{formatDate(task.dueDate)}</td>
@@ -171,9 +207,9 @@ export function ProjectDetail({
       </div>
       <div className="os-detail-title">
         <div>
-          <span className={`os-badge status-${project.status}`}>
+          <Badge state={`status-${project.status}`}>
             {projectStatusLabels[project.status]}
-          </span>
+          </Badge>
           <p>
             {project.description ||
               "Adicione uma descrição para compartilhar o objetivo deste projeto."}
@@ -236,32 +272,20 @@ export function ProjectDetail({
       </div>
       <div className="os-detail-layout">
         <div className="os-detail-main">
-          <div
-            className="os-tabs"
+          <SegmentedControl
+            wide
             data-tour="project-tabs"
-            role="tablist"
-            aria-label="Seções do projeto"
-          >
-            {(
-              Object.entries(sections) as [keyof typeof sections, string][]
-            ).map(([key, label]) => (
-              <button
-                role="tab"
-                aria-selected={section === key}
-                className={section === key ? "active" : ""}
-                key={key}
-                onClick={() => {
-                  setSection(key);
-                  setNewTitle("");
-                  setNewDescription("");
-                  setRecordError("");
-                  setCreating(false);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+            label="Seções do projeto"
+            options={sections}
+            value={section}
+            onChange={(key) => {
+              setSection(key);
+              setNewTitle("");
+              setNewDescription("");
+              setRecordError("");
+              setCreating(false);
+            }}
+          />
           <section className="os-section">
             <div className="os-section-head">
               <div>
@@ -288,59 +312,29 @@ export function ProjectDetail({
               )}
             </div>
             {section === "tasks" && (
-              <div
-                className="os-view-tabs"
-                role="group"
-                aria-label="Visualização de tarefas"
-              >
-                {(
-                  Object.entries(taskViews) as [
-                    keyof typeof taskViews,
-                    string,
-                  ][]
-                ).map(([key, label]) => (
-                  <button
-                    key={key}
-                    className={taskView === key ? "active" : ""}
-                    aria-pressed={taskView === key}
-                    onClick={() => {
-                      setTaskView(key);
-                      setCreating(false);
-                      setNewTitle("");
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl
+                label="Visualização de tarefas"
+                options={taskViews}
+                value={taskView}
+                onChange={(key) => {
+                  setTaskView(key);
+                  setCreating(false);
+                  setNewTitle("");
+                }}
+              />
             )}
             {section === "governance" && (
-              <div
-                className="os-view-tabs"
-                role="group"
-                aria-label="Registros de governança"
-              >
-                {(
-                  Object.entries(governanceViews) as [
-                    keyof typeof governanceViews,
-                    string,
-                  ][]
-                ).map(([key, label]) => (
-                  <button
-                    key={key}
-                    className={governanceView === key ? "active" : ""}
-                    aria-pressed={governanceView === key}
-                    onClick={() => {
-                      setGovernanceView(key);
-                      setNewTitle("");
-                      setNewDescription("");
-                      setRecordError("");
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl
+                label="Registros de governança"
+                options={governanceViews}
+                value={governanceView}
+                onChange={(key) => {
+                  setGovernanceView(key);
+                  setNewTitle("");
+                  setNewDescription("");
+                  setRecordError("");
+                }}
+              />
             )}
             {tab === "overview" && (
               <>
@@ -404,7 +398,7 @@ export function ProjectDetail({
               </>
             )}
             {tab === "kanban" && (
-              <div className="os-kanban">
+              <div className="os-kanban" ref={board}>
                 {taskStatuses.map((status) => (
                   <div
                     className="os-kanban-column"
@@ -413,8 +407,11 @@ export function ProjectDetail({
                     onDrop={(event) => {
                       event.preventDefault();
                       const taskId = event.dataTransfer.getData("text/task-id");
-                      if (tasks.some((task) => task.id === taskId))
-                        actions.updateTask(taskId, { status });
+                      const task = tasks.find((item) => item.id === taskId);
+                      if (!task || task.status === status || !board.current)
+                        return;
+                      captureKanban();
+                      actions.updateTask(taskId, { status });
                     }}
                   >
                     <h3>
@@ -428,6 +425,7 @@ export function ProjectDetail({
                       .map((task) => (
                         <button
                           className="os-kanban-task"
+                          data-task-id={task.id}
                           key={task.id}
                           draggable
                           onDragStart={(event) =>
@@ -454,9 +452,9 @@ export function ProjectDetail({
                   .map((task) => (
                     <button key={task.id} onClick={() => setSelected(task)}>
                       <strong>{task.title}</strong>
-                      <span className={`os-badge task-${task.status}`}>
+                      <Badge state={`task-${task.status}`}>
                         {statusLabels[task.status]}
-                      </span>
+                      </Badge>
                       <small>{formatDate(task.dueDate)}</small>
                     </button>
                   ))}
@@ -638,6 +636,7 @@ export function ProjectDetail({
           database={database}
           project={project}
           actions={actions}
+          beforeStatusChange={captureKanban}
           close={() => setSelected(null)}
         />
       )}

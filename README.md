@@ -20,9 +20,17 @@ Abra o endereço exibido pelo Vite. `/` apresenta a página inicial de contexto 
 - `src/application`: ações de criação/edição, atualização imediata e registro de atividade.
 - `src/features`: telas de dashboard, portfólio, projeto, criação e governança.
 - `src/components/os`: componentes reutilizados entre as telas.
-- `src/styles/os.css`: tokens básicos e estilos responsivos.
+- `src/styles/tokens.css`: cores semânticas, tipografia, tamanhos, elevação e tempos de movimento.
+- `src/styles/components.css`: estilos dos controles compartilhados e regras de interação.
+- `src/styles/{layout,workspace,modules,flows}.css`: composição e layouts das telas.
 
 O banco local é semeado apenas na primeira visita (`symos-database-v1`). Cada projeto pertence a um workspace; os seletores e telas filtram os projetos pelo workspace ativo. O progresso é calculado a partir das tarefas concluídas. A metodologia e suas etapas são dados e podem ser escolhidas ou criadas no fluxo de novo projeto. Os serviços Symco ficam em um catálogo à parte do núcleo de projetos.
+
+## Design system
+
+Use os componentes em `src/components/os` para botões, indicadores, status, seletores de visualização, grupos recolhíveis e gavetas. Use os tokens semânticos para aplicar a mesma cor, profundidade e espaçamento em contextos equivalentes.
+
+Ao mudar a posição de um elemento persistente, anime a partir da posição que ele ocupava até o destino. Use mudança de largura e posição para indicadores, expansão de altura para regiões recolhíveis e deslocamento para gavetas. Reserve a escala para o retorno tátil dos controles e o desfoque para a separação de camadas flutuantes. A preferência de movimento reduzido desativa os deslocamentos animados.
 
 ## Fluxo disponível
 

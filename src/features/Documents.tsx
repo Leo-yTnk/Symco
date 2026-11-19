@@ -1,3 +1,4 @@
+import { Badge, Disclosure } from "../components/os/controls";
 import { useState, type FormEvent } from "react";
 import {
   FileText,
@@ -6,7 +7,6 @@ import {
   Plus,
   Upload,
   Search,
-  ChevronDown,
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
@@ -372,26 +372,26 @@ export function Documents(props: PageProps) {
           ) : (
             groups.map((g, i) => (
               <div className="os-board-group" key={g}>
-                <button
-                  className={`os-group-title group-${i % 3}`}
-                  aria-expanded={!collapsed.includes(g)}
-                  onClick={() =>
-                    setCollapsed((c) =>
-                      c.includes(g) ? c.filter((x) => x !== g) : [...c, g],
+                <Disclosure
+                  className={`group-${i % 3}`}
+                  open={!collapsed.includes(g)}
+                  onToggle={() =>
+                    setCollapsed((items) =>
+                      items.includes(g)
+                        ? items.filter((item) => item !== g)
+                        : [...items, g],
                     )
                   }
+                  label={
+                    <>
+                      <ChevronRight size={16} aria-hidden="true" />
+                      {group === "project" ? projectName(g) : g}
+                      <small>
+                        {visible.filter((d) => groupKey(d) === g).length}
+                      </small>
+                    </>
+                  }
                 >
-                  {collapsed.includes(g) ? (
-                    <ChevronRight size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}{" "}
-                  {group === "project" ? projectName(g) : g}{" "}
-                  <small>
-                    {visible.filter((d) => groupKey(d) === g).length}
-                  </small>
-                </button>
-                {!collapsed.includes(g) && (
                   <div className="os-table-scroll">
                     <table className="os-table os-sheet-table">
                       <thead>
@@ -490,22 +490,20 @@ export function Documents(props: PageProps) {
                               <td>{userName(database, d.createdBy)}</td>
                               <td>{formatDate(d.updatedAt || d.createdAt)}</td>
                               <td>
-                                <span
-                                  className={`os-status-pill status-${d.status || "draft"}`}
-                                >
+                                <Badge state={`status-${d.status || "draft"}`}>
                                   {states[d.status || "draft"]}
-                                </span>
+                                </Badge>
                               </td>
                               <td>
-                                <span
-                                  className={`os-status-pill status-${d.approvalStatus === "approved" ? "approved" : "review"}`}
+                                <Badge
+                                  state={`status-${d.approvalStatus || "pending"}`}
                                 >
                                   {
                                     approvalLabels[
                                       d.approvalStatus || "pending"
                                     ]
                                   }
-                                </span>
+                                </Badge>
                               </td>
                               <td>
                                 <button
@@ -528,7 +526,7 @@ export function Documents(props: PageProps) {
                       </tbody>
                     </table>
                   </div>
-                )}
+                </Disclosure>
               </div>
             ))
           )}

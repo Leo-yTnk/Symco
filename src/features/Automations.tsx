@@ -1,3 +1,4 @@
+import { SegmentedControl, StatusSwitch } from "../components/os/controls";
 import { useState } from "react";
 import { Plus, Zap } from "lucide-react";
 import type { Automation } from "../domain/model";
@@ -62,21 +63,16 @@ export function Automations(props: PageProps) {
         />
         <section className="os-section">
           <div className="os-portfolio-toolbar">
-            <div className="os-view-tabs">
-              {[
-                ["rules", "Suas regras"],
-                ["models", "Modelos"],
-                ["history", "Histórico de execuções"],
-              ].map(([v, l]) => (
-                <button
-                  className={tab === v ? "active" : ""}
-                  key={v}
-                  onClick={() => setTab(v)}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              options={{
+                rules: "Suas regras",
+                models: "Modelos",
+                history: "Histórico de execuções",
+              }}
+              label="Automações"
+              value={tab}
+              onChange={setTab}
+            />
             <button className="os-button primary" onClick={openNew}>
               <Plus size={16} />
               Nova automação
@@ -181,20 +177,16 @@ export function Automations(props: PageProps) {
                           <td>{r.runs}</td>
                           <td>{r.lastRun ? formatDate(r.lastRun) : "—"}</td>
                           <td>
-                            <button
-                              role="switch"
-                              aria-checked={r.enabled}
-                              aria-label={`Ativar ${r.name}`}
-                              className={`os-switch ${r.enabled ? "on" : ""}`}
-                              onClick={() =>
+                            <StatusSwitch
+                              checked={r.enabled}
+                              label={`Ativar ${r.name}`}
+                              onChange={() =>
                                 actions.saveAutomation(
                                   { ...r, enabled: !r.enabled },
                                   r.id,
                                 )
                               }
-                            >
-                              <span />
-                            </button>
+                            />
                           </td>
                         </tr>
                       ))}

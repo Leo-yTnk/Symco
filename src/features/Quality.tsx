@@ -1,3 +1,4 @@
+import { Badge } from "../components/os/controls";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { QualityRecord } from "../domain/model";
@@ -145,11 +146,11 @@ export function Quality(props: PageProps) {
                             </td>
                             <td>{formatDate(r.dueDate)}</td>
                             <td>
-                              <span
-                                className={`os-status-pill status-${r.status === "done" ? "approved" : "draft"}`}
+                              <Badge
+                                state={`status-${r.status === "done" ? "approved" : "draft"}`}
                               >
                                 {states[r.status]}
-                              </span>
+                              </Badge>
                             </td>
                           </tr>
                         ))}
