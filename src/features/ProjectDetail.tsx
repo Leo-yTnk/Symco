@@ -537,24 +537,19 @@ export function ProjectDetail({
                           {approvalLabels[item.status]} ·{" "}
                           {formatDate(item.dueDate)}
                         </small>
-                        <select
-                          aria-label={`Estado de ${item.title}`}
+                        <Select
+                          label={`Estado de ${item.title}`}
                           value={item.status}
-                          onChange={(event) =>
+                          onChange={(nextValue) =>
                             actions.updateApproval(
                               item.id,
-                              event.target.value as typeof item.status,
+                              nextValue as typeof item.status,
                             )
                           }
-                        >
-                          {Object.entries(approvalLabels).map(
-                            ([key, value]) => (
-                              <option key={key} value={key}>
-                                {value}
-                              </option>
-                            ),
+                          options={Object.entries(approvalLabels).map(
+                            ([key, value]) => ({ value: key, label: value }),
                           )}
-                        </select>
+                        />
                       </div>
                     ))}
                 {tab === "decisions" &&

@@ -294,7 +294,7 @@
   font-size: var(--text-sm);
   font-weight: 700;
 }
-.os-field-stack label span {
+.os-field-stack label > span {
   color: var(--danger);
 }
 .os-field-stack label small {
@@ -302,10 +302,11 @@
   color: var(--muted);
   font-weight: 400;
 }
-.os-field-stack input,
-.os-field-stack select {
+.os-field-stack input {
   display: block;
   width: 100%;
+}
+.os-field-stack :is(input, .os-select) {
   margin-top: var(--space-2);
 }
 .os-step-actions {

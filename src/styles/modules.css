@@ -311,6 +311,11 @@
   z-index: 2;
   pointer-events: none;
 }
+.os-settings-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 .os-quality-grid,
 .os-report-grid,
 .os-settings-grid {

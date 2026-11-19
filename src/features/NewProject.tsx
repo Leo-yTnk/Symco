@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { useState, type FormEvent } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { modules, templates } from "../domain/catalog";
@@ -181,66 +182,52 @@ export function NewProject({
         </label>
         <label>
           Cliente
-          <select
+          <Select
+            label="Cliente"
             value={form.clientId}
-            onChange={(event) =>
-              setForm({ ...form, clientId: event.target.value })
-            }
-          >
-            <option value="">Sem cliente</option>
-            {database.clients
-              .filter((item) => item.workspaceId === workspace.id)
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+            onChange={(nextValue) => setForm({ ...form, clientId: nextValue })}
+            options={[
+              { value: "", label: "Sem cliente" },
+              ...database.clients
+                .filter((item) => item.workspaceId === workspace.id)
+                .map((item) => ({ value: item.id, label: item.name })),
+            ]}
+          />
         </label>
         <label>
           Responsável
-          <select
+          <Select
+            label="Responsável"
             value={form.ownerId}
-            onChange={(event) =>
-              setForm({ ...form, ownerId: event.target.value })
-            }
-          >
-            {database.users
+            onChange={(nextValue) => setForm({ ...form, ownerId: nextValue })}
+            options={database.users
               .filter((item) => workspace.memberIds.includes(item.id))
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+              .map((item) => ({ value: item.id, label: item.name }))}
+          />
         </label>
         <label>
           Membros adicionais
-          <select
+          <Select
+            label="Membros adicionais"
             value=""
-            onChange={(event) => {
-              if (event.target.value)
+            onChange={(nextValue) => {
+              if (nextValue)
                 setForm((current) => ({
                   ...current,
-                  memberIds: [
-                    ...new Set([...current.memberIds, event.target.value]),
-                  ],
+                  memberIds: [...new Set([...current.memberIds, nextValue])],
                 }));
             }}
-          >
-            <option value="">Adicionar membro</option>
-            {database.users
-              .filter(
-                (item) =>
-                  workspace.memberIds.includes(item.id) &&
-                  !form.memberIds.includes(item.id),
-              )
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+            options={[
+              { value: "", label: "Adicionar membro" },
+              ...database.users
+                .filter(
+                  (item) =>
+                    workspace.memberIds.includes(item.id) &&
+                    !form.memberIds.includes(item.id),
+                )
+                .map((item) => ({ value: item.id, label: item.name })),
+            ]}
+          />
         </label>
         <small>
           {form.memberIds
@@ -249,23 +236,19 @@ export function NewProject({
         </small>
         <label>
           Metodologia
-          <select
+          <Select
+            label="Metodologia"
             value={form.methodologyId}
-            onChange={(event) =>
-              setForm({ ...form, methodologyId: event.target.value })
+            onChange={(nextValue) =>
+              setForm({ ...form, methodologyId: nextValue })
             }
-          >
-            {database.methodologies
+            options={database.methodologies
               .filter(
                 (item) =>
                   item.workspaceId === workspace.id || item.id === "simple",
               )
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+              .map((item) => ({ value: item.id, label: item.name }))}
+          />
         </label>
         <label>
           Etapas personalizadas (opcional, separadas por vírgula)

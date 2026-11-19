@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { SegmentedControl } from "../components/os/controls";
 import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
@@ -143,38 +144,44 @@ export function Schedule(
             </label>
             <label>
               Projeto
-              <select
+              <Select
+                label="Projeto"
                 value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-              >
-                <option value="">Todos os projetos</option>
-                {projects.map((p) => (
-                  <option value={p.id} key={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(nextValue) => setProjectId(nextValue)}
+                options={[
+                  { value: "", label: "Todos os projetos" },
+                  ...projects.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
             </label>
             <label>
               Tipo
-              <select value={kind} onChange={(e) => setKind(e.target.value)}>
-                <option value="">Todos</option>
-                {["Tarefa", "Marco", "Gate"].map((k) => (
-                  <option key={k}>{k}</option>
-                ))}
-              </select>
+              <Select
+                label="Tipo"
+                value={kind}
+                onChange={(nextValue) => setKind(nextValue)}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...["Tarefa", "Marco", "Gate"].map((k) => ({
+                    value: k,
+                    label: k,
+                  })),
+                ]}
+              />
             </label>
             {view === "gantt" && (
               <label>
                 Escala
-                <select
-                  value={weeks}
-                  onChange={(e) => setWeeks(Number(e.target.value))}
-                >
-                  <option value={3}>3 semanas</option>
-                  <option value={6}>6 semanas</option>
-                  <option value={12}>12 semanas</option>
-                </select>
+                <Select
+                  label="Escala"
+                  value={String(weeks)}
+                  onChange={(nextValue) => setWeeks(Number(nextValue))}
+                  options={[
+                    { value: "3", label: "3 semanas" },
+                    { value: "6", label: "6 semanas" },
+                    { value: "12", label: "12 semanas" },
+                  ]}
+                />
               </label>
             )}
           </div>

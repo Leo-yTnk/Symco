@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { SegmentedControl, StatusSwitch } from "../components/os/controls";
 import { useState } from "react";
 import { Plus, Zap } from "lucide-react";
@@ -252,34 +253,39 @@ export function Automations(props: PageProps) {
             </label>
             <label>
               Quando
-              <select name="trigger" defaultValue={editing?.trigger}>
-                {Object.entries(triggers).map(([v, l]) => (
-                  <option value={v} key={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Quando"
+                name="trigger"
+                defaultValue={editing?.trigger}
+                options={Object.entries(triggers).map(([v, l]) => ({
+                  value: v,
+                  label: l,
+                }))}
+              />
             </label>
             <label>
               Projeto
-              <select name="project" defaultValue={editing?.projectId || ""}>
-                <option value="">Todos os projetos do workspace</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Projeto"
+                name="project"
+                defaultValue={editing?.projectId || ""}
+                options={[
+                  { value: "", label: "Todos os projetos do workspace" },
+                  ...projects.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
             </label>
             <label>
               Então
-              <select name="action" defaultValue={editing?.action}>
-                {Object.entries(effects).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Então"
+                name="action"
+                defaultValue={editing?.action}
+                options={Object.entries(effects).map(([v, l]) => ({
+                  value: v,
+                  label: l,
+                }))}
+              />
             </label>
             <label className="os-check">
               <input

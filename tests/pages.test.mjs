@@ -444,8 +444,8 @@ test("dropdown clips temporarily through opening and closing animations", async 
     );
     assert.equal(popup.hasAttribute("data-animating"), true);
     assert.deepEqual(animations[1].frames, [
-      { height: "128px" },
-      { height: "48px" },
+      { height: "128px", filter: "blur(0)", opacity: 1 },
+      { height: "48px", filter: "blur(4px)", opacity: 0 },
     ]);
     await act(async () => animations[1].finish());
     assert.equal(document.querySelector(".os-dropdown"), null);
@@ -511,11 +511,8 @@ test("project deletion requires confirmation and undo restores connected records
 });
 
 test("empty workspace settings stay scoped to the selected workspace", async () => {
-  const select = document.querySelector('select[aria-label="Workspace"]');
-  await act(async () => {
-    select.value = "personal";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  await click(document.querySelector('button[aria-label="Workspace"]'));
+  await click(button("Projetos pessoais"));
   await route("/app/settings");
   const name = document.querySelector('input[name="name"]');
   await input(name, "Meu espaço");
@@ -543,13 +540,8 @@ test("personal preferences stay active across routes and can be restored", async
     document.querySelector('nav [aria-current="page"]').textContent,
     "Configurações",
   );
-  const theme = [
-    ...document.querySelectorAll(".os-preference-row select"),
-  ].find((select) => select.labels[0].textContent === "Tema");
-  await act(async () => {
-    theme.value = "dark";
-    theme.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  await click(document.querySelector('button[aria-label="Tema"]'));
+  await click(button("Escuro"));
   await click(
     document.querySelector('[role="switch"][aria-label="Reduzir movimento"]'),
   );

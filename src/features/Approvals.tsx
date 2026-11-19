@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { SegmentedControl, Badge } from "../components/os/controls";
 import { useState } from "react";
 import { Plus, CheckCircle2 } from "lucide-react";
@@ -71,31 +72,30 @@ export function Approvals(props: PageProps) {
             </label>
             <label>
               Projeto
-              <select
+              <Select
+                label="Projeto"
                 value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setProjectId(value)}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...projects.map((p) => ({ value: p.id, label: p.name })),
+                ]}
+              />
             </label>
             <label>
               Status
-              <select
+              <Select
+                label="Status"
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {Object.entries(approvalLabels).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setStatus(value)}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...Object.entries(approvalLabels).map(([v, l]) => ({
+                    value: v,
+                    label: l,
+                  })),
+                ]}
+              />
             </label>
           </div>
           {filtered.length ? (
@@ -233,29 +233,25 @@ export function Approvals(props: PageProps) {
             </label>
             <label>
               Projeto
-              <select name="project">
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                label="Projeto"
+                name="project"
+                options={projects.map((p) => ({ value: p.id, label: p.name }))}
+              />
             </label>
             <label>
               Aprovador
-              <select name="approver">
-                {database.users
+              <Select
+                label="Aprovador"
+                name="approver"
+                options={database.users
                   .filter((u) =>
                     database.workspaces
                       .find((w) => w.id === workspaceId)
                       ?.memberIds.includes(u.id),
                   )
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-              </select>
+                  .map((u) => ({ value: u.id, label: u.name }))}
+              />
             </label>
             <label>
               Prazo
