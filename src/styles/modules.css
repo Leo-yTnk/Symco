@@ -95,6 +95,7 @@
 }
 .os-disclosure {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 0fr;
   visibility: hidden;
   transition:
