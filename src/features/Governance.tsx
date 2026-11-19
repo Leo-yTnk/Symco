@@ -1,3 +1,9 @@
+import { useState } from "react";
+import { EditRecordActions } from "../components/os/Dropdown";
+import {
+  GovernanceRecordEditor,
+  type GovernanceRecord,
+} from "./GovernanceRecordEditor";
 import { Button, SegmentedControl } from "../components/os/controls";
 import { formatDate, userName } from "../domain/selectors";
 import { Approvals } from "./Approvals";
@@ -50,7 +56,7 @@ export function Governance({
       {section === "quality" && <Quality {...props} />}
       {section === "approvals" && <Approvals {...props} />}
       {(section === "risks" || section === "decisions") && (
-        <Records section={section} {...props} />
+        <Records key={section} section={section} {...props} />
       )}
     </>
   );
@@ -61,28 +67,20 @@ function Records({
   database,
   projects,
   navigate,
+  actions,
 }: PageProps & {
   section: "risks" | "decisions";
 }) {
   const projectNames = new Map(projects.map(({ id, name }) => [id, name]));
-  const entries =
+  const [editing, setEditing] = useState<GovernanceRecord | null>(null);
+  const entries: GovernanceRecord[] =
     section === "risks"
       ? database.risks
           .filter(({ projectId }) => projectNames.has(projectId))
-          .map(({ id, projectId, title, status, impact }) => ({
-            id,
-            projectId,
-            title,
-            detail: `${status === "open" ? "Aberto" : "Mitigado"} · impacto ${impact}`,
-          }))
+          .map((record) => ({ kind: "risk", record }))
       : database.decisions
           .filter(({ projectId }) => projectNames.has(projectId))
-          .map(({ id, projectId, title, decidedBy, decidedAt }) => ({
-            id,
-            projectId,
-            title,
-            detail: `Decidido por ${userName(database, decidedBy)} · ${formatDate(decidedAt)}`,
-          }));
+          .map((record) => ({ kind: "decision", record }));
 
   return (
     <section className="os-section">
@@ -94,17 +92,42 @@ function Records({
       </div>
       {entries.length ? (
         <div className="os-records">
-          {entries.map(({ id, projectId, title, detail }) => (
-            <button
-              key={id}
-              onClick={() => navigate(`/app/projects/${projectId}`)}
-            >
-              <strong>{title}</strong>
-              <small>
-                {projectNames.get(projectId)} · {detail}
-              </small>
-            </button>
-          ))}
+          {entries.map((entry) => {
+            const { id, projectId, title } = entry.record;
+            const detail =
+              entry.kind === "risk"
+                ? `${entry.record.status === "open" ? "Aberto" : "Mitigado"} · impacto ${entry.record.impact}`
+                : `Decidido por ${userName(database, entry.record.decidedBy)} · ${formatDate(entry.record.decidedAt)}`;
+            return (
+              <EditRecordActions
+                key={id}
+                title={title}
+                edit={() => setEditing(entry)}
+                remove={() => {
+                  void (entry.kind === "risk"
+                    ? actions.deleteRisk(id)
+                    : actions.deleteDecision(id));
+                }}
+              >
+                {(events, trigger) => (
+                  <div className="os-record-with-actions" {...events}>
+                    <div>
+                      <Button
+                        variant="link"
+                        onClick={() => navigate(`/app/projects/${projectId}`)}
+                      >
+                        {title}
+                      </Button>
+                      <small>
+                        {projectNames.get(projectId)} · {detail}
+                      </small>
+                    </div>
+                    {trigger}
+                  </div>
+                )}
+              </EditRecordActions>
+            );
+          })}
         </div>
       ) : (
         <div className="os-empty">
@@ -114,6 +137,13 @@ function Records({
             Ver projetos
           </Button>
         </div>
+      )}
+      {editing && (
+        <GovernanceRecordEditor
+          entry={editing}
+          actions={actions}
+          close={() => setEditing(null)}
+        />
       )}
     </section>
   );

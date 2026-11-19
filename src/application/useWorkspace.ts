@@ -7,6 +7,8 @@ import type {
   Workspace,
   ApprovalStatus,
   Database,
+  Decision,
+  Risk,
   Project,
   Task,
 } from "../domain/model";
@@ -28,26 +30,60 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
   const saving = useRef(false);
+  const undoSnapshot = useRef<Database>();
+  const [operation, setOperation] = useState<{
+    message: string;
+    pending: boolean;
+    canUndo?: boolean;
+  } | null>(null);
   const actorId = database.users[0].id;
   const commit = useCallback(
-    async (update: (current: Database) => Database) => {
+    async (
+      update: (current: Database) => Database,
+      feedback?: { pending: string; success: string },
+      undo = false,
+    ) => {
       if (saving.current) {
         setError("Aguarde o salvamento em andamento e tente de novo.");
         return false;
       }
       saving.current = true;
+      if (feedback) setOperation({ message: feedback.pending, pending: true });
       try {
         const previous = currentDatabase.current;
-        const next = applyAutomations(previous, update(previous));
+        const updated = update(previous);
+        const next = undo ? updated : applyAutomations(previous, updated);
         await repository.save(next);
         currentDatabase.current = next;
         setDatabase(next);
         setError("");
         setConflict(false);
+        // A snapshot is only safe to restore until the next successful save.
+        undoSnapshot.current = feedback && !undo ? previous : undefined;
+        setOperation(
+          feedback
+            ? {
+                message: feedback.success,
+                pending: false,
+                canUndo: !undo,
+              }
+            : null,
+        );
         return true;
       } catch (cause) {
         const conflicted = cause instanceof DatabaseConflict;
         setConflict(conflicted);
+        if (conflicted) undoSnapshot.current = undefined;
+        if (feedback || conflicted)
+          setOperation(
+            undoSnapshot.current
+              ? {
+                  message: "A alteração anterior ainda pode ser desfeita.",
+                  pending: false,
+                  canUndo: true,
+                }
+              : null,
+          );
         setError(
           conflicted
             ? "Os dados mudaram em outra sessão. Recarregue para usar a versão mais recente."
@@ -79,6 +115,23 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
     database,
     error,
     conflict,
+    operation,
+    dismissOperation() {
+      undoSnapshot.current = undefined;
+      setOperation(null);
+    },
+    undoOperation() {
+      const snapshot = undoSnapshot.current;
+      if (snapshot)
+        return commit(
+          () => snapshot,
+          {
+            pending: "Desfazendo alteração…",
+            success: "Alteração desfeita.",
+          },
+          true,
+        );
+    },
     dismissError: () => setError(""),
     async createProject(
       input: NewProject,
@@ -164,46 +217,69 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     updateTask(taskId: string, changes: Partial<Task>) {
-      return commit((current) => {
-        const previous = current.tasks.find((task) => task.id === taskId);
-        if (!previous) return current;
-        const project = current.projects.find(
-          (item) => item.id === previous.projectId,
-        )!;
-        return {
-          ...current,
-          tasks: current.tasks.map((task) =>
-            task.id === taskId ? { ...task, ...changes } : task,
-          ),
-          activities: [
-            activity(
-              project,
-              "task_updated",
-              `atualizou ${previous.title}${changes.status ? ` para ${changes.status}` : ""}`,
-              taskId,
+      return commit(
+        (current) => {
+          const previous = current.tasks.find((task) => task.id === taskId);
+          if (!previous) return current;
+          const project = current.projects.find(
+            (item) => item.id === previous.projectId,
+          )!;
+          return {
+            ...current,
+            tasks: current.tasks.map((task) =>
+              task.id === taskId ? { ...task, ...changes } : task,
             ),
-            ...current.activities,
-          ],
-        };
-      });
+            activities: [
+              activity(
+                project,
+                "task_updated",
+                `atualizou ${previous.title}${changes.status ? ` para ${changes.status}` : ""}`,
+                taskId,
+              ),
+              ...current.activities,
+            ],
+          };
+        },
+        { pending: "Salvando tarefa…", success: "Tarefa atualizada." },
+      );
     },
     deleteTask(taskId: string) {
-      return commit((current) => {
-        const task = current.tasks.find((item) => item.id === taskId);
-        if (!task) return current;
-        const project = current.projects.find(
-          (item) => item.id === task.projectId,
-        )!;
-        return {
-          ...current,
-          tasks: current.tasks.filter((item) => item.id !== taskId),
-          comments: current.comments.filter((item) => item.taskId !== taskId),
-          activities: [
-            activity(project, "task_deleted", `removeu ${task.title}`, taskId),
-            ...current.activities,
-          ],
-        };
-      });
+      return commit(
+        (current) => {
+          const task = current.tasks.find((item) => item.id === taskId);
+          if (!task) return current;
+          const project = current.projects.find(
+            (item) => item.id === task.projectId,
+          )!;
+          return {
+            ...current,
+            tasks: current.tasks
+              .filter((item) => item.id !== taskId)
+              .map((item) =>
+                item.dependencyIds.includes(taskId)
+                  ? {
+                      ...item,
+                      dependencyIds: item.dependencyIds.filter(
+                        (id) => id !== taskId,
+                      ),
+                    }
+                  : item,
+              ),
+            subtasks: current.subtasks.filter((item) => item.taskId !== taskId),
+            comments: current.comments.filter((item) => item.taskId !== taskId),
+            activities: [
+              activity(
+                project,
+                "task_deleted",
+                `removeu ${task.title}`,
+                taskId,
+              ),
+              ...current.activities,
+            ],
+          };
+        },
+        { pending: "Apagando tarefa…", success: "Tarefa apagada." },
+      );
     },
     addComment(projectId: string, body: string, taskId?: string) {
       return commit((current) => {
@@ -265,30 +341,70 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
       });
     },
     updateDocument(documentId: string, changes: Partial<Attachment>) {
-      return commit((current) => ({
-        ...current,
-        attachments: current.attachments.map((item) =>
-          item.id === documentId
-            ? {
-                ...item,
-                ...changes,
-                updatedAt: now(),
-                id: item.id,
-                projectId: item.projectId,
-              }
-            : item,
-        ),
-      }));
+      return commit(
+        (current) => ({
+          ...current,
+          attachments: current.attachments.map((item) =>
+            item.id === documentId
+              ? {
+                  ...item,
+                  ...changes,
+                  updatedAt: now(),
+                  id: item.id,
+                  projectId: item.projectId,
+                }
+              : item,
+          ),
+        }),
+        { pending: "Salvando documento…", success: "Documento atualizado." },
+      );
+    },
+    deleteDocument(documentId: string) {
+      return commit(
+        (current) => ({
+          ...current,
+          attachments: current.attachments.filter(
+            (item) => item.id !== documentId,
+          ),
+          decisions: current.decisions.map((item) =>
+            item.attachmentIds.includes(documentId)
+              ? {
+                  ...item,
+                  attachmentIds: item.attachmentIds.filter(
+                    (id) => id !== documentId,
+                  ),
+                }
+              : item,
+          ),
+        }),
+        { pending: "Apagando documento…", success: "Documento apagado." },
+      );
     },
     saveQuality(input: Omit<QualityRecord, "id">, recordId?: string) {
-      return commit((current) => ({
-        ...current,
-        qualityRecords: recordId
-          ? (current.qualityRecords || []).map((r) =>
-              r.id === recordId ? { ...input, id: recordId } : r,
-            )
-          : [...(current.qualityRecords || []), { ...input, id: id() }],
-      }));
+      return commit(
+        (current) => ({
+          ...current,
+          qualityRecords: recordId
+            ? (current.qualityRecords || []).map((r) =>
+                r.id === recordId ? { ...input, id: recordId } : r,
+              )
+            : [...(current.qualityRecords || []), { ...input, id: id() }],
+        }),
+        recordId
+          ? { pending: "Salvando registro…", success: "Registro atualizado." }
+          : undefined,
+      );
+    },
+    deleteQuality(recordId: string) {
+      return commit(
+        (current) => ({
+          ...current,
+          qualityRecords: (current.qualityRecords || []).filter(
+            (item) => item.id !== recordId,
+          ),
+        }),
+        { pending: "Apagando registro…", success: "Registro apagado." },
+      );
     },
     saveAutomation(input: Omit<Automation, "id" | "runs">, ruleId?: string) {
       return commit((current) => ({
@@ -357,6 +473,37 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
         };
       });
     },
+    updateRisk(
+      recordId: string,
+      changes: Pick<
+        Risk,
+        | "title"
+        | "description"
+        | "status"
+        | "impact"
+        | "probability"
+        | "mitigation"
+      >,
+    ) {
+      return commit(
+        (current) => ({
+          ...current,
+          risks: current.risks.map((item) =>
+            item.id === recordId ? { ...item, ...changes } : item,
+          ),
+        }),
+        { pending: "Salvando risco…", success: "Risco atualizado." },
+      );
+    },
+    deleteRisk(recordId: string) {
+      return commit(
+        (current) => ({
+          ...current,
+          risks: current.risks.filter((item) => item.id !== recordId),
+        }),
+        { pending: "Apagando risco…", success: "Risco apagado." },
+      );
+    },
     addRisk(projectId: string, title: string, description: string) {
       return commit((current) => {
         const project = current.projects.find((item) => item.id === projectId)!;
@@ -383,6 +530,29 @@ export function useWorkspace(repository: DatabaseRepository = localDatabase) {
           ],
         };
       });
+    },
+    updateDecision(
+      recordId: string,
+      changes: Pick<Decision, "title" | "description">,
+    ) {
+      return commit(
+        (current) => ({
+          ...current,
+          decisions: current.decisions.map((item) =>
+            item.id === recordId ? { ...item, ...changes } : item,
+          ),
+        }),
+        { pending: "Salvando decisão…", success: "Decisão atualizada." },
+      );
+    },
+    deleteDecision(recordId: string) {
+      return commit(
+        (current) => ({
+          ...current,
+          decisions: current.decisions.filter((item) => item.id !== recordId),
+        }),
+        { pending: "Apagando decisão…", success: "Decisão apagada." },
+      );
     },
     addDecision(projectId: string, title: string, description: string) {
       return commit((current) => {

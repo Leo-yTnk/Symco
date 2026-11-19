@@ -1,9 +1,10 @@
+import { Select } from "../components/os/Dropdown";
 import { Drawer } from "../components/os/Drawer";
 import { useState, type FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 import type { WorkspaceActions } from "../application/useWorkspace";
 import { modules } from "../domain/catalog";
-import type { Database, Project, Task, TaskStatus } from "../domain/model";
+import type { Database, Project, Task } from "../domain/model";
 import { statusLabels, taskStatuses } from "../domain/model";
 import { formatDate, userName } from "../domain/selectors";
 
@@ -63,78 +64,67 @@ export function TaskPanel({
             <div className="os-date-pair">
               <label>
                 Status
-                <select
+                <Select
+                  label="Status"
                   value={draft.status}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      status: event.target.value as TaskStatus,
-                    })
-                  }
-                >
-                  {taskStatuses.map((item) => (
-                    <option key={item} value={item}>
-                      {statusLabels[item]}
-                    </option>
-                  ))}
-                </select>
+                  options={taskStatuses.map((value) => ({
+                    value,
+                    label: statusLabels[value],
+                  }))}
+                  onChange={(status) => setDraft({ ...draft, status })}
+                />
               </label>
               <label>
                 Prioridade
-                <select
+                <Select
+                  label="Prioridade"
                   value={draft.priority}
-                  onChange={(event) =>
-                    setDraft({
-                      ...draft,
-                      priority: event.target.value as Task["priority"],
-                    })
+                  options={
+                    [
+                      { value: "low", label: "Baixa" },
+                      { value: "medium", label: "Média" },
+                      { value: "high", label: "Alta" },
+                      { value: "critical", label: "Crítica" },
+                    ] as const
                   }
-                >
-                  {["low", "medium", "high", "critical"].map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(priority) => setDraft({ ...draft, priority })}
+                />
               </label>
             </div>
             <label>
               Responsável
-              <select
+              <Select
+                label="Responsável"
                 value={draft.assigneeId || ""}
-                onChange={(event) =>
-                  setDraft({ ...draft, assigneeId: event.target.value })
-                }
-              >
-                <option value="">A definir</option>
-                {database.users
-                  .filter((item) =>
-                    database.workspaces
-                      .find((workspace) => workspace.id === project.workspaceId)
-                      ?.memberIds.includes(item.id),
-                  )
-                  .map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-              </select>
+                options={[
+                  { value: "", label: "A definir" },
+                  ...database.users
+                    .filter((user) =>
+                      database.workspaces
+                        .find(
+                          (workspace) => workspace.id === project.workspaceId,
+                        )
+                        ?.memberIds.includes(user.id),
+                    )
+                    .map((user) => ({ value: user.id, label: user.name })),
+                ]}
+                onChange={(assigneeId) => setDraft({ ...draft, assigneeId })}
+              />
             </label>
             <label>
               Etapa
-              <select
+              <Select
+                label="Etapa"
                 value={draft.stageId || ""}
-                onChange={(event) =>
-                  setDraft({ ...draft, stageId: event.target.value })
-                }
-              >
-                <option value="">Sem etapa</option>
-                {method?.stages.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Sem etapa" },
+                  ...(method?.stages ?? []).map((stage) => ({
+                    value: stage.id,
+                    label: stage.name,
+                  })),
+                ]}
+                onChange={(stageId) => setDraft({ ...draft, stageId })}
+              />
             </label>
             <label>
               Prazo
@@ -148,21 +138,20 @@ export function TaskPanel({
             </label>
             <label>
               Módulo
-              <select
+              <Select
+                label="Módulo"
                 value={draft.moduleId || ""}
-                onChange={(event) =>
-                  setDraft({ ...draft, moduleId: event.target.value })
-                }
-              >
-                <option value="">Sem módulo</option>
-                {modules
-                  .filter((item) => project.moduleIds.includes(item.id))
-                  .map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-              </select>
+                options={[
+                  { value: "", label: "Sem módulo" },
+                  ...modules
+                    .filter((module) => project.moduleIds.includes(module.id))
+                    .map((module) => ({
+                      value: module.id,
+                      label: module.name,
+                    })),
+                ]}
+                onChange={(moduleId) => setDraft({ ...draft, moduleId })}
+              />
             </label>
             {error && <p className="os-validation">{error}</p>}
             <div className="os-panel-actions">
@@ -173,11 +162,7 @@ export function TaskPanel({
                 type="button"
                 className="os-button danger"
                 onClick={async () => {
-                  if (
-                    confirm("Excluir esta tarefa e seus comentários?") &&
-                    (await actions.deleteTask(task.id))
-                  )
-                    dismiss();
+                  if (await actions.deleteTask(task.id)) dismiss();
                 }}
               >
                 <Trash2 size={15} /> Excluir

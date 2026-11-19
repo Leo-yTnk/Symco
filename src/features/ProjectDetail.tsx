@@ -1,3 +1,8 @@
+import { EditRecordActions, Select } from "../components/os/Dropdown";
+import {
+  GovernanceRecordEditor,
+  type GovernanceRecord,
+} from "./GovernanceRecordEditor";
 import { Badge, SegmentedControl } from "../components/os/controls";
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronRight, Plus, Star } from "lucide-react";
@@ -61,6 +66,9 @@ export function ProjectDetail({
       : section === "governance"
         ? governanceView
         : section;
+  const [editingRecord, setEditingRecord] = useState<GovernanceRecord | null>(
+    null,
+  );
   const [selected, setSelected] = useState<Task | null>(null);
   const [creating, setCreating] = useState(false);
   const [comment, setComment] = useState("");
@@ -154,6 +162,13 @@ export function ProjectDetail({
     setCreating(false);
     setTaskView("table");
   };
+  const taskActions = (task: Task) => ({
+    title: task.title,
+    edit: () => setSelected(task),
+    remove: () => {
+      void actions.deleteTask(task.id);
+    },
+  });
   const renderTaskTable = () => (
     <div className="os-table-scroll">
       <table className="os-table">
@@ -167,31 +182,38 @@ export function ProjectDetail({
             <th>Prioridade</th>
             <th>Prazo</th>
             <th>Dependências</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
           {tasks.map((task) => (
-            <tr key={task.id} onClick={() => setSelected(task)}>
-              <td>
-                <strong>{task.title}</strong>
-              </td>
-              <td>{userName(database, task.assigneeId)}</td>
-              <td>
-                {modules.find((item) => item.id === task.moduleId)?.name || "—"}
-              </td>
-              <td>
-                {method?.stages.find((item) => item.id === task.stageId)
-                  ?.name || "—"}
-              </td>
-              <td>
-                <Badge state={`task-${task.status}`}>
-                  {statusLabels[task.status]}
-                </Badge>
-              </td>
-              <td>{task.priority}</td>
-              <td>{formatDate(task.dueDate)}</td>
-              <td>{task.dependencyIds.length || "—"}</td>
-            </tr>
+            <EditRecordActions key={task.id} {...taskActions(task)}>
+              {(events, trigger) => (
+                <tr {...events} onClick={() => setSelected(task)}>
+                  <td>
+                    <strong>{task.title}</strong>
+                  </td>
+                  <td>{userName(database, task.assigneeId)}</td>
+                  <td>
+                    {modules.find((item) => item.id === task.moduleId)?.name ||
+                      "—"}
+                  </td>
+                  <td>
+                    {method?.stages.find((item) => item.id === task.stageId)
+                      ?.name || "—"}
+                  </td>
+                  <td>
+                    <Badge state={`task-${task.status}`}>
+                      {statusLabels[task.status]}
+                    </Badge>
+                  </td>
+                  <td>{task.priority}</td>
+                  <td>{formatDate(task.dueDate)}</td>
+                  <td>{task.dependencyIds.length || "—"}</td>
+                  <td>{trigger}</td>
+                </tr>
+              )}
+            </EditRecordActions>
           ))}
         </tbody>
       </table>
@@ -255,20 +277,14 @@ export function ProjectDetail({
         ))}
         <label>
           Saúde
-          <select
+          <Select
+            label="Saúde"
             value={project.health}
-            onChange={(event) =>
-              actions.updateProject(project.id, {
-                health: event.target.value as Project["health"],
-              })
-            }
-          >
-            {Object.entries(healthLabels).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-          </select>
+            options={(Object.keys(healthLabels) as Project["health"][]).map(
+              (value) => ({ value, label: healthLabels[value] }),
+            )}
+            onChange={(health) => actions.updateProject(project.id, { health })}
+          />
         </label>
       </div>
       <div className="os-detail-layout">
@@ -424,22 +440,31 @@ export function ProjectDetail({
                     {tasks
                       .filter((task) => task.status === status)
                       .map((task) => (
-                        <button
-                          className="os-kanban-task"
-                          data-task-id={task.id}
-                          key={task.id}
-                          draggable
-                          onDragStart={(event) =>
-                            event.dataTransfer.setData("text/task-id", task.id)
-                          }
-                          onClick={() => setSelected(task)}
-                        >
-                          <strong>{task.title}</strong>
-                          <small>
-                            {userName(database, task.assigneeId)} ·{" "}
-                            {formatDate(task.dueDate)}
-                          </small>
-                        </button>
+                        <EditRecordActions key={task.id} {...taskActions(task)}>
+                          {(events, trigger) => (
+                            <div className="os-record-with-actions" {...events}>
+                              <button
+                                className="os-kanban-task"
+                                data-task-id={task.id}
+                                draggable
+                                onDragStart={(event) =>
+                                  event.dataTransfer.setData(
+                                    "text/task-id",
+                                    task.id,
+                                  )
+                                }
+                                onClick={() => setSelected(task)}
+                              >
+                                <strong>{task.title}</strong>
+                                <small>
+                                  {userName(database, task.assigneeId)} ·{" "}
+                                  {formatDate(task.dueDate)}
+                                </small>
+                              </button>
+                              {trigger}
+                            </div>
+                          )}
+                        </EditRecordActions>
                       ))}
                   </div>
                 ))}
@@ -451,13 +476,20 @@ export function ProjectDetail({
                   .filter((task) => task.dueDate)
                   .sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))
                   .map((task) => (
-                    <button key={task.id} onClick={() => setSelected(task)}>
-                      <strong>{task.title}</strong>
-                      <Badge state={`task-${task.status}`}>
-                        {statusLabels[task.status]}
-                      </Badge>
-                      <small>{formatDate(task.dueDate)}</small>
-                    </button>
+                    <EditRecordActions key={task.id} {...taskActions(task)}>
+                      {(events, trigger) => (
+                        <div className="os-record-with-actions" {...events}>
+                          <button onClick={() => setSelected(task)}>
+                            <strong>{task.title}</strong>
+                            <Badge state={`task-${task.status}`}>
+                              {statusLabels[task.status]}
+                            </Badge>
+                            <small>{formatDate(task.dueDate)}</small>
+                          </button>
+                          {trigger}
+                        </div>
+                      )}
+                    </EditRecordActions>
                   ))}
               </div>
             )}
@@ -516,27 +548,59 @@ export function ProjectDetail({
                   database.decisions
                     .filter((item) => item.projectId === project.id)
                     .map((item) => (
-                      <div key={item.id}>
-                        <strong>{item.title}</strong>
-                        <p>{item.description}</p>
-                        <small>
-                          {userName(database, item.decidedBy)} ·{" "}
-                          {formatDate(item.decidedAt)}
-                        </small>
-                      </div>
+                      <EditRecordActions
+                        key={item.id}
+                        title={item.title}
+                        edit={() =>
+                          setEditingRecord({ kind: "decision", record: item })
+                        }
+                        remove={() => {
+                          void actions.deleteDecision(item.id);
+                        }}
+                      >
+                        {(events, trigger) => (
+                          <div className="os-record-with-actions" {...events}>
+                            <div>
+                              <strong>{item.title}</strong>
+                              <p>{item.description}</p>
+                              <small>
+                                {userName(database, item.decidedBy)} ·{" "}
+                                {formatDate(item.decidedAt)}
+                              </small>
+                            </div>
+                            {trigger}
+                          </div>
+                        )}
+                      </EditRecordActions>
                     ))}
                 {tab === "risks" &&
                   database.risks
                     .filter((item) => item.projectId === project.id)
                     .map((item) => (
-                      <div key={item.id}>
-                        <strong>{item.title}</strong>
-                        <p>{item.description}</p>
-                        <small>
-                          {item.status === "open" ? "Aberto" : "Mitigado"} ·
-                          Impacto {item.impact}
-                        </small>
-                      </div>
+                      <EditRecordActions
+                        key={item.id}
+                        title={item.title}
+                        edit={() =>
+                          setEditingRecord({ kind: "risk", record: item })
+                        }
+                        remove={() => {
+                          void actions.deleteRisk(item.id);
+                        }}
+                      >
+                        {(events, trigger) => (
+                          <div className="os-record-with-actions" {...events}>
+                            <div>
+                              <strong>{item.title}</strong>
+                              <p>{item.description}</p>
+                              <small>
+                                {item.status === "open" ? "Aberto" : "Mitigado"}{" "}
+                                · Impacto {item.impact}
+                              </small>
+                            </div>
+                            {trigger}
+                          </div>
+                        )}
+                      </EditRecordActions>
                     ))}
                 {tab !== "approvals" && (
                   <form className="os-record-form" onSubmit={addRecord}>
@@ -630,6 +694,13 @@ export function ProjectDetail({
           </section>
         </aside>
       </div>
+      {editingRecord && (
+        <GovernanceRecordEditor
+          entry={editingRecord}
+          actions={actions}
+          close={() => setEditingRecord(null)}
+        />
+      )}
       {selected && (
         <TaskPanel
           key={selected.id}

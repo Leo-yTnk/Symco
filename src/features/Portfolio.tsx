@@ -1,3 +1,4 @@
+import { Select } from "../components/os/Dropdown";
 import { SegmentedControl } from "../components/os/controls";
 import { useMemo, useState } from "react";
 import type { Database, Project } from "../domain/model";
@@ -100,114 +101,117 @@ export function Portfolio({
         </label>
         <label>
           Cliente
-          <select
+          <Select
+            label="Cliente"
             value={filters.client}
-            onChange={(event) => set("client", event.target.value)}
-          >
-            <option value="">Todos</option>
-            {database.clients
-              .filter((item) =>
-                projects.some((project) => project.clientId === item.id),
-              )
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
+            onChange={(next) => set("client", next)}
+            options={[
+              { value: "", label: "Todos" },
+              ...database.clients
+                .filter((item) =>
+                  projects.some((project) => project.clientId === item.id),
+                )
+                .map((item) => ({ value: item.id, label: item.name })),
+            ]}
+          />
         </label>
         <label>
           Responsável
-          <select
+          <Select
+            label="Responsável"
             value={filters.owner}
-            onChange={(event) => set("owner", event.target.value)}
-          >
-            <option value="">Todos</option>
-            {database.users.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("owner", next)}
+            options={[
+              { value: "", label: "Todos" },
+              ...database.users.map((item) => ({
+                value: item.id,
+                label: item.name,
+              })),
+            ]}
+          />
         </label>
         <label>
           Status
-          <select
+          <Select
+            label="Status"
             value={filters.status}
-            onChange={(event) => set("status", event.target.value)}
-          >
-            <option value="">Todos</option>
-            {Object.entries(projectStatusLabels).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("status", next)}
+            options={[
+              { value: "", label: "Todos" },
+              ...Object.entries(projectStatusLabels).map(([value, label]) => ({
+                value,
+                label,
+              })),
+            ]}
+          />
         </label>
         <label>
           Etapa
-          <select
+          <Select
+            label="Etapa"
             value={filters.stage}
-            onChange={(event) => set("stage", event.target.value)}
-          >
-            <option value="">Todas</option>
-            {[
-              ...new Map(
-                database.methodologies
-                  .flatMap((item) => item.stages)
-                  .map((item) => [item.id, item]),
-              ).values(),
-            ].map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("stage", next)}
+            options={[
+              { value: "", label: "Todas" },
+              ...[
+                ...new Map(
+                  database.methodologies
+                    .flatMap((item) => item.stages)
+                    .map((item) => [item.id, item]),
+                ).values(),
+              ].map((item) => ({ value: item.id, label: item.name })),
+            ]}
+          />
         </label>
         <label>
           Módulo
-          <select
+          <Select
+            label="Módulo"
             value={filters.module}
-            onChange={(event) => set("module", event.target.value)}
-          >
-            <option value="">Todos</option>
-            {database.workspaces
-              .flatMap((item) => item.moduleIds)
-              .filter((item, index, all) => all.indexOf(item) === index)
-              .map((item) => (
-                <option key={item} value={item}>
-                  {modules.find((module) => module.id === item)?.name || item}
-                </option>
-              ))}
-          </select>
+            onChange={(next) => set("module", next)}
+            options={[
+              { value: "", label: "Todos" },
+              ...[
+                ...new Set(
+                  database.workspaces.flatMap((item) => item.moduleIds),
+                ),
+              ].map((value) => ({
+                value,
+                label:
+                  modules.find((module) => module.id === value)?.name || value,
+              })),
+            ]}
+          />
         </label>
         <label>
           Saúde
-          <select
+          <Select
+            label="Saúde"
             value={filters.health}
-            onChange={(event) => set("health", event.target.value)}
-          >
-            <option value="">Todas</option>
-            {Object.entries(healthLabels).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("health", next)}
+            options={[
+              { value: "", label: "Todas" },
+              ...Object.entries(healthLabels).map(([value, label]) => ({
+                value,
+                label,
+              })),
+            ]}
+          />
         </label>
         <label>
           Tag
-          <select
+          <Select
+            label="Tag"
             value={filters.tag}
-            onChange={(event) => set("tag", event.target.value)}
-          >
-            <option value="">Todas</option>
-            {database.tags.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("tag", next)}
+            options={[
+              { value: "", label: "Todas" },
+              ...database.tags.map((item) => ({
+                value: item.id,
+                label: item.name,
+              })),
+            ]}
+          />
         </label>
         <label>
           Mês do prazo
