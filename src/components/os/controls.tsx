@@ -93,6 +93,7 @@ export function SegmentedControl<Value extends string>({
   onChange,
   label,
   wide,
+  wrap,
   ...props
 }: {
   options: Record<Value, string>;
@@ -100,6 +101,7 @@ export function SegmentedControl<Value extends string>({
   onChange: (value: Value) => void;
   label: string;
   wide?: boolean;
+  wrap?: boolean;
   "data-tour"?: string;
 }) {
   const active = useRef<HTMLButtonElement>(null);
@@ -111,7 +113,8 @@ export function SegmentedControl<Value extends string>({
     const group = indicator?.parentElement;
     if (!button || !indicator || !group) return;
     const position = () => {
-      indicator.style.translate = `${button.offsetLeft}px`;
+      indicator.style.translate = `${button.offsetLeft}px ${button.offsetTop}px`;
+      indicator.style.height = `${button.offsetHeight}px`;
       indicator.style.width = `${button.offsetWidth}px`;
       if (indicator.hasAttribute("data-initial")) {
         indicator.getBoundingClientRect();
@@ -131,6 +134,7 @@ export function SegmentedControl<Value extends string>({
     <div
       {...props}
       className={`os-segmented ${wide ? "os-tabs" : "os-view-tabs"}`}
+      data-wrap={wrap || undefined}
       role="group"
       aria-label={label}
     >

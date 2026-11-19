@@ -359,17 +359,20 @@ label.os-check input {
 :is(.os-tabs, .os-view-tabs) button[aria-pressed="true"] {
   color: var(--blue);
 }
+.os-segmented[data-wrap] {
+  flex-wrap: wrap;
+}
 .os-segment-marker {
   position: absolute;
   z-index: -1;
-  top: var(--space-1);
-  bottom: var(--space-1);
+  top: 0;
   left: 0;
   border-radius: var(--radius-sm);
   background: var(--blue-soft);
   transition:
     translate var(--duration-layout) var(--ease-layout),
-    width var(--duration-layout) var(--ease-layout);
+    width var(--duration-layout) var(--ease-layout),
+    height var(--duration-layout) var(--ease-layout);
 }
 .os-segment-marker[data-initial] {
   transition: none;

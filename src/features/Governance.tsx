@@ -1,241 +1,120 @@
-import { useState, type FormEvent } from "react";
-import type { WorkspaceActions } from "../application/useWorkspace";
-import { modules } from "../domain/catalog";
-import type { Database, Project } from "../domain/model";
-import { approvalLabels } from "../domain/model";
+import { Button, SegmentedControl } from "../components/os/controls";
 import { formatDate, userName } from "../domain/selectors";
+import { Approvals } from "./Approvals";
+import { Quality } from "./Quality";
+import type { PageProps } from "./workspaceUi";
+
+export const governancePath = "/app/governance";
+const sections = {
+  quality: "Qualidade",
+  approvals: "Aprovações",
+  risks: "Riscos",
+  decisions: "Decisões",
+};
+type Section = keyof typeof sections;
+
+export function governanceSection(path: string): Section | undefined {
+  if (path === governancePath) return "quality";
+  return (Object.keys(sections) as Section[]).find(
+    (section) =>
+      path === `${governancePath}/${section}` || path === `/app/${section}`,
+  );
+}
 
 export function Governance({
-  path,
-  workspaceId,
+  section,
+  ...props
+}: PageProps & { section: Section }) {
+  const { database, projects, navigate } = props;
+  const projectIds = new Set(projects.map(({ id }) => id));
+  const pending = database.approvals.filter(
+    ({ projectId, status }) =>
+      projectIds.has(projectId) && status === "pending",
+  ).length;
+
+  return (
+    <>
+      <SegmentedControl
+        label="Seções de governança"
+        wide
+        wrap
+        options={{
+          ...sections,
+          approvals: pending ? `Aprovações (${pending})` : sections.approvals,
+        }}
+        value={section}
+        onChange={(next) => {
+          if (next !== section) navigate(`${governancePath}/${next}`);
+        }}
+      />
+      {section === "quality" && <Quality {...props} />}
+      {section === "approvals" && <Approvals {...props} />}
+      {(section === "risks" || section === "decisions") && (
+        <Records section={section} {...props} />
+      )}
+    </>
+  );
+}
+
+function Records({
+  section,
   database,
   projects,
-  actions,
   navigate,
-}: {
-  path: string;
-  workspaceId: string;
-  database: Database;
-  projects: Project[];
-  actions: WorkspaceActions;
-  navigate: (path: string) => void;
+}: PageProps & {
+  section: "risks" | "decisions";
 }) {
-  const ids = new Set(projects.map((item) => item.id));
-  const [clientName, setClientName] = useState("");
-  const [contact, setContact] = useState("");
-  const addClient = (event: FormEvent) => {
-    event.preventDefault();
-    if (!clientName.trim()) return;
-    actions.addClient(workspaceId, clientName.trim(), contact.trim());
-    setClientName("");
-    setContact("");
-  };
-  if (path === "/app/settings")
-    return (
-      <div className="os-section">
-        <h2>Workspace e membros</h2>
-        <p className="os-muted">
-          Estrutura local de demonstração. Contas e permissões de servidor ainda
-          não estão conectadas.
-        </p>
-        <div className="os-records">
-          {database.users
-            .filter((user) =>
-              database.workspaces
-                .find((workspace) => workspace.id === workspaceId)
-                ?.memberIds.includes(user.id),
-            )
-            .map((user) => (
-              <div key={user.id}>
-                <strong>{user.name}</strong>
-                <small>{user.email}</small>
-              </div>
-            ))}
-        </div>
-        <h2>Clientes</h2>
-        <div className="os-records">
-          {database.clients
-            .filter((item) => item.workspaceId === workspaceId)
-            .map((item) => (
-              <div key={item.id}>
-                <strong>{item.name}</strong>
-                <small>
-                  {item.contact || "Sem contato"} ·{" "}
-                  {
-                    projects.filter((project) => project.clientId === item.id)
-                      .length
-                  }{" "}
-                  projetos · {item.status}
-                </small>
-              </div>
-            ))}
-        </div>
-        <form className="os-inline-form" onSubmit={addClient}>
-          <label>
-            Nome do cliente
-            <input
-              value={clientName}
-              required
-              onChange={(event) => setClientName(event.target.value)}
-            />
-          </label>
-          <label>
-            Contato
-            <input
-              value={contact}
-              onChange={(event) => setContact(event.target.value)}
-            />
-          </label>
-          <button className="os-button primary">Adicionar cliente</button>
-        </form>
-        <h2>Módulos disponíveis</h2>
-        <div className="os-module-grid">
-          {modules
-            .filter((item) =>
-              database.workspaces
-                .find((workspace) => workspace.id === workspaceId)
-                ?.moduleIds.includes(item.id),
-            )
-            .map((item) => (
-              <div key={item.id}>
-                <strong>{item.name}</strong>
-                <p>{item.description}</p>
-                {item.variants.map((variant) => (
-                  <small key={variant.id}>{variant.name} </small>
-                ))}
-              </div>
-            ))}
-        </div>
-      </div>
-    );
+  const projectNames = new Map(projects.map(({ id, name }) => [id, name]));
   const entries =
-    path === "/app/calendar"
-      ? [
-          ...database.tasks
-            .filter((item) => ids.has(item.projectId) && item.dueDate)
-            .map((item) => ({
-              id: item.id,
-              projectId: item.projectId,
-              title: item.title,
-              detail: "Tarefa",
-              date: item.dueDate!,
-            })),
-          ...database.milestones
-            .filter((item) => ids.has(item.projectId))
-            .map((item) => ({
-              id: item.id,
-              projectId: item.projectId,
-              title: item.title,
-              detail: "Marco",
-              date: item.dueDate,
-            })),
-          ...database.gates
-            .filter((item) => ids.has(item.projectId) && item.dueDate)
-            .map((item) => ({
-              id: item.id,
-              projectId: item.projectId,
-              title: item.title,
-              detail: "Gate",
-              date: item.dueDate!,
-            })),
-        ].sort((a, b) => a.date.localeCompare(b.date))
-      : path === "/app/documents"
-        ? database.attachments
-            .filter((item) => ids.has(item.projectId))
-            .map((item) => ({
-              id: item.id,
-              projectId: item.projectId,
-              title: item.title,
-              detail: item.type,
-              date: item.createdAt,
-            }))
-        : path === "/app/approvals"
-          ? database.approvals
-              .filter((item) => ids.has(item.projectId))
-              .map((item) => ({
-                id: item.id,
-                projectId: item.projectId,
-                title: item.title,
-                detail: approvalLabels[item.status],
-                date: item.dueDate || item.createdAt,
-              }))
-          : path === "/app/risks"
-            ? database.risks
-                .filter((item) => ids.has(item.projectId))
-                .map((item) => ({
-                  id: item.id,
-                  projectId: item.projectId,
-                  title: item.title,
-                  detail: `${item.status === "open" ? "Aberto" : "Mitigado"} · impacto ${item.impact}`,
-                  date: "",
-                }))
-            : database.decisions
-                .filter((item) => ids.has(item.projectId))
-                .map((item) => ({
-                  id: item.id,
-                  projectId: item.projectId,
-                  title: item.title,
-                  detail: `Decidido por ${userName(database, item.decidedBy)}`,
-                  date: item.decidedAt,
-                }));
+    section === "risks"
+      ? database.risks
+          .filter(({ projectId }) => projectNames.has(projectId))
+          .map(({ id, projectId, title, status, impact }) => ({
+            id,
+            projectId,
+            title,
+            detail: `${status === "open" ? "Aberto" : "Mitigado"} · impacto ${impact}`,
+          }))
+      : database.decisions
+          .filter(({ projectId }) => projectNames.has(projectId))
+          .map(({ id, projectId, title, decidedBy, decidedAt }) => ({
+            id,
+            projectId,
+            title,
+            detail: `Decidido por ${userName(database, decidedBy)} · ${formatDate(decidedAt)}`,
+          }));
+
   return (
-    <div className="os-section">
+    <section className="os-section">
       <div className="os-section-head">
         <div>
-          <h2>
-            {
-              (
-                {
-                  "/app/calendar": "Prazos e marcos",
-                  "/app/documents": "Documentos registrados",
-                  "/app/approvals": "Aprovações",
-                  "/app/risks": "Riscos",
-                  "/app/decisions": "Decisões",
-                } as Record<string, string>
-              )[path]
-            }
-          </h2>
+          <h2>{sections[section]}</h2>
           <p>Registros dos projetos do workspace atual.</p>
         </div>
       </div>
       {entries.length ? (
         <div className="os-records">
-          {entries.map((item) => (
+          {entries.map(({ id, projectId, title, detail }) => (
             <button
-              key={item.id}
-              onClick={() => navigate(`/app/projects/${item.projectId}`)}
+              key={id}
+              onClick={() => navigate(`/app/projects/${projectId}`)}
             >
-              <strong>{item.title}</strong>
+              <strong>{title}</strong>
               <small>
-                {
-                  database.projects.find(
-                    (project) => project.id === item.projectId,
-                  )?.name
-                }{" "}
-                · {item.detail}
-                {item.date && ` · ${formatDate(item.date)}`}
+                {projectNames.get(projectId)} · {detail}
               </small>
             </button>
           ))}
         </div>
       ) : (
         <div className="os-empty">
-          <h2>Nenhum registro ainda</h2>
+          <h3>Nenhum registro ainda</h3>
           <p>Abra um projeto para adicionar ou acompanhar itens.</p>
-          <button
-            className="os-button primary"
-            onClick={() => navigate("/app/projects")}
-          >
+          <Button variant="primary" onClick={() => navigate("/app/projects")}>
             Ver projetos
-          </button>
+          </Button>
         </div>
       )}
-      {path === "/app/approvals" && entries.length > 0 && (
-        <p className="os-muted">
-          Abra um projeto e use a aba Aprovações para registrar uma decisão.
-        </p>
-      )}
-      {actions.error && <p role="alert">{actions.error}</p>}
-    </div>
+    </section>
   );
 }
