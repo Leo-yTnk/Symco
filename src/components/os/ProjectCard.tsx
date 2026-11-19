@@ -1,3 +1,4 @@
+import { Badge } from "./controls";
 import { ArrowUpRight, CalendarDays } from "lucide-react";
 import type { Database, Project } from "../../domain/model";
 import {
@@ -28,9 +29,9 @@ export function ProjectCard({
         <span>
           {projectClient(database, project).slice(0, 2).toUpperCase()}
         </span>
-        <span className={`os-badge status-${project.status}`}>
+        <Badge state={`status-${project.status}`}>
           {projectStatusLabels[project.status]}
-        </span>
+        </Badge>
       </div>
       <div className="os-project-body">
         <small>{projectClient(database, project)}</small>
@@ -38,7 +39,9 @@ export function ProjectCard({
         <p>{project.description}</p>
         <div className="os-project-meta">
           <span>{stageName(database, project)}</span>
-          <span>{healthLabels[project.health]}</span>
+          <Badge state={`health-${project.health}`}>
+            {healthLabels[project.health]}
+          </Badge>
         </div>
         <div className="os-progress-label">
           <span>Progresso</span>

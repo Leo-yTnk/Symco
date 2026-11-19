@@ -1,3 +1,4 @@
+import { Button } from "../components/os/controls";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
@@ -65,9 +66,12 @@ export function Tutorial({
         setSpotlight(target.getBoundingClientRect()),
       );
     };
-    document
-      .querySelector<HTMLElement>(current.target)
-      ?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+    document.querySelector<HTMLElement>(current.target)?.scrollIntoView?.({
+      block: "nearest",
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
     measure();
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
@@ -160,9 +164,9 @@ export function Tutorial({
             TUTORIAL · {String(index + 1).padStart(2, "0")} /{" "}
             {String(steps.length).padStart(2, "0")}
           </span>
-          <button onClick={close} aria-label="Fechar tutorial">
+          <Button variant="icon" onClick={close} aria-label="Fechar tutorial">
             <X size={18} />
-          </button>
+          </Button>
         </header>
         <div key={index} className="os-tour-body">
           <h2 ref={heading} tabIndex={-1}>
@@ -179,26 +183,23 @@ export function Tutorial({
           ))}
         </div>
         <footer>
-          <button className="os-text-action" onClick={close}>
+          <Button variant="link" onClick={close}>
             Pular tutorial
-          </button>
+          </Button>
           <div>
             {index > 0 && (
-              <button className="os-button" onClick={() => go(index - 1)}>
+              <Button onClick={() => go(index - 1)}>
                 <ArrowLeft size={15} /> Voltar
-              </button>
+              </Button>
             )}
             {index < steps.length - 1 ? (
-              <button
-                className="os-button primary"
-                onClick={() => go(index + 1)}
-              >
+              <Button variant="primary" onClick={() => go(index + 1)}>
                 Próximo <ArrowRight size={15} />
-              </button>
+              </Button>
             ) : (
-              <button className="os-button primary" onClick={close}>
+              <Button variant="primary" onClick={close}>
                 Concluir <Check size={15} />
-              </button>
+              </Button>
             )}
           </div>
         </footer>

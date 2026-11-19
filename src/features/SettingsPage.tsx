@@ -1,3 +1,4 @@
+import { SegmentedControl, StatusSwitch } from "../components/os/controls";
 import { useState } from "react";
 import { modules } from "../domain/catalog";
 import { type PageProps, Empty } from "./workspaceUi";
@@ -19,20 +20,16 @@ export function SettingsPage({
   };
   return (
     <>
-      <div className="os-tabs">
-        {Object.entries(tabs).map(([v, l]) => (
-          <button
-            key={v}
-            className={tab === v ? "active" : ""}
-            onClick={() => {
-              setTab(v);
-              setMessage("");
-            }}
-          >
-            {l}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        wide
+        options={tabs}
+        label="Configurações"
+        value={tab}
+        onChange={(option) => {
+          setTab(option);
+          setMessage("");
+        }}
+      />
       <div className="os-settings-grid">
         {tab === "general" ? (
           <>
@@ -229,21 +226,17 @@ function ModuleSettings({
             <strong>{m.name}</strong>
             <small>{m.description}</small>
           </span>
-          <button
-            role="switch"
-            aria-checked={workspace.moduleIds.includes(m.id)}
-            aria-label={`Ativar ${m.name}`}
-            className={`os-switch ${workspace.moduleIds.includes(m.id) ? "on" : ""}`}
-            onClick={() =>
+          <StatusSwitch
+            checked={workspace.moduleIds.includes(m.id)}
+            label={`Ativar ${m.name}`}
+            onChange={() =>
               actions.updateWorkspace(workspace.id, {
                 moduleIds: workspace.moduleIds.includes(m.id)
                   ? workspace.moduleIds.filter((id) => id !== m.id)
                   : [...workspace.moduleIds, m.id],
               })
             }
-          >
-            <span />
-          </button>
+          />
         </div>
       ))}
     </div>

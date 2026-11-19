@@ -1,3 +1,4 @@
+import { Button } from "../components/os/controls";
 import { useEffect, useState } from "react";
 import {
   Activity,
@@ -103,7 +104,8 @@ export default function App() {
     setPath(next);
     setMobileNav(false);
     setSearchOpen(false);
-    window.scrollTo(0, 0);
+    setNotificationsOpen(false);
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   useEffect(() => {
@@ -300,7 +302,10 @@ export default function App() {
 
   return (
     <div className={`os-shell ${sidebar ? "" : "os-collapsed"}`}>
-      <aside className={`os-sidebar ${mobileNav ? "mobile-open" : ""}`}>
+      <aside
+        id="workspace-navigation"
+        className={`os-sidebar ${mobileNav ? "mobile-open" : ""}`}
+      >
         <div className="os-brand">
           <span>
             sym<span>OS</span>
@@ -318,12 +323,15 @@ export default function App() {
                   }
                   key={target}
                   title={label}
-                  className={
+                  aria-label={label}
+                  aria-current={
                     path === target ||
                     (target === "/app/projects" &&
-                      (isProjectsPage || !!project))
-                      ? "selected"
-                      : ""
+                      (isProjectsPage ||
+                        !!project ||
+                        path === "/app/projects/new"))
+                      ? "page"
+                      : undefined
                   }
                   onClick={() => navigate(target)}
                 >
@@ -362,27 +370,31 @@ export default function App() {
           </button>
           <button
             onClick={() => setSidebar((value) => !value)}
-            aria-label="Recolher ou expandir navegação"
+            aria-label={sidebar ? "Recolher menu" : "Expandir menu"}
+            aria-expanded={sidebar}
           >
             <ChevronLeft size={17} />
-            <span>Recolher menu</span>
+            <span>{sidebar ? "Recolher menu" : "Expandir menu"}</span>
           </button>
         </div>
       </aside>
-      {mobileNav && (
-        <button
-          className="os-scrim"
-          aria-label="Fechar menu"
-          onClick={() => setMobileNav(false)}
-        />
-      )}
+      <button
+        type="button"
+        className="os-scrim"
+        data-open={mobileNav}
+        tabIndex={-1}
+        aria-label="Fechar menu"
+        onClick={() => setMobileNav(false)}
+      />
       <div className="os-workspace">
         <header className="os-topbar">
           <button
             className="os-mobile-menu"
             data-tour="mobile-menu"
-            aria-label="Abrir menu"
-            onClick={() => setMobileNav(true)}
+            aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
+            aria-controls="workspace-navigation"
+            aria-expanded={mobileNav}
+            onClick={() => setMobileNav((open) => !open)}
           >
             <Menu size={21} />
           </button>
@@ -413,33 +425,39 @@ export default function App() {
               />
               <kbd>⌘ K</kbd>
             </label>
-            {searchOpen && (
-              <div className="os-search-popover">
-                {matches.length ? (
-                  matches.map((item) => (
-                    <button
-                      key={`${item.type}-${item.id}`}
-                      onClick={() => {
-                        navigate(item.path);
-                        setSearch("");
-                      }}
-                    >
-                      <span>{item.name}</span>
-                      <small>{item.type}</small>
-                    </button>
-                  ))
-                ) : (
-                  <p>
-                    {search
-                      ? "Nenhum resultado encontrado."
-                      : "Busque em projetos, tarefas, clientes, documentos e pessoas."}
-                  </p>
-                )}
-              </div>
-            )}
+            <div
+              className="os-search-popover"
+              data-open={searchOpen}
+              aria-hidden={!searchOpen}
+              ref={(element) => {
+                element?.toggleAttribute("inert", !searchOpen);
+              }}
+            >
+              {matches.length ? (
+                matches.map((item) => (
+                  <button
+                    key={`${item.type}-${item.id}`}
+                    onClick={() => {
+                      navigate(item.path);
+                      setSearch("");
+                    }}
+                  >
+                    <span>{item.name}</span>
+                    <small>{item.type}</small>
+                  </button>
+                ))
+              ) : (
+                <p>
+                  {search
+                    ? "Nenhum resultado encontrado."
+                    : "Busque em projetos, tarefas, clientes, documentos e pessoas."}
+                </p>
+              )}
+            </div>
           </div>
-          <button
-            className="os-icon-button os-start-button"
+          <Button
+            variant="icon"
+            className="os-start-button"
             title="Página inicial"
             aria-label="Abrir página inicial"
             onClick={() => {
@@ -448,17 +466,23 @@ export default function App() {
             }}
           >
             <Compass size={18} />
-          </button>
-          <button className="os-help-button" onClick={startTutorial}>
+          </Button>
+          <Button
+            className="os-help-button"
+            onClick={startTutorial}
+            aria-label="Tutorial"
+          >
             <CircleHelp size={17} /> <span>Tutorial</span>
-          </button>
-          <button
-            className="os-icon-button"
+          </Button>
+          <Button
+            variant="icon"
             aria-label="Notificações"
+            aria-expanded={notificationsOpen}
+            aria-controls="workspace-notifications"
             onClick={() => setNotificationsOpen((value) => !value)}
           >
             <Bell size={18} />
-          </button>
+          </Button>
           <div className="os-user">
             <span className="os-avatar">
               {currentUser.name
@@ -473,9 +497,15 @@ export default function App() {
               <small>{onboarding.profile.role || "Gestora de projetos"}</small>
             </span>
           </div>
-        </header>
-        {notificationsOpen && (
-          <div className="os-notifications">
+          <div
+            id="workspace-notifications"
+            className="os-notifications"
+            data-open={notificationsOpen}
+            aria-hidden={!notificationsOpen}
+            ref={(element) => {
+              element?.toggleAttribute("inert", !notificationsOpen);
+            }}
+          >
             <strong>Atividades recentes</strong>
             {database.activities
               .filter((item) => item.workspaceId === workspace.id)
@@ -492,7 +522,7 @@ export default function App() {
                 </button>
               ))}
           </div>
-        )}
+        </header>
         <main className="os-main">
           <div className="os-page-content" key={path}>
             <div className="os-page-header">
@@ -507,13 +537,13 @@ export default function App() {
                 )}
               </div>
               {(path === "/app" || isProjectsPage) && (
-                <button
+                <Button
                   data-tour="new-project"
-                  className="os-button primary"
+                  variant="primary"
                   onClick={() => navigate("/app/projects/new")}
                 >
                   <Plus size={16} /> Novo projeto
-                </button>
+                </Button>
               )}
             </div>
             {path === "/app" && (

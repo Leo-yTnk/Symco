@@ -1,3 +1,4 @@
+import { Metric } from "../components/os/controls";
 import {
   ArrowRight,
   CircleAlert,
@@ -98,12 +99,13 @@ export function Dashboard({
       <div className="os-primary">
         <div className="os-kpis" data-tour="dashboard">
           {metrics.map(({ label, value, icon: Icon, tone }) => (
-            <div className={`os-kpi tone-${tone}`} key={label}>
-              <Icon size={21} />
-              <span>{label}</span>
-              <strong>{value}</strong>
-              <small>Dados do workspace</small>
-            </div>
+            <Metric
+              key={label}
+              label={label}
+              value={value}
+              icon={<Icon size={19} />}
+              tone={tone}
+            />
           ))}
         </div>
         <section className="os-section">

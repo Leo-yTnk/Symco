@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
-import { X, FileText, Activity } from "lucide-react";
+import { Metric } from "../components/os/controls";
+export { Drawer as Modal } from "../components/os/Drawer";
+import { FileText, Activity } from "lucide-react";
 import type { Database, Project } from "../domain/model";
 import type { WorkspaceActions } from "../application/useWorkspace";
 import { userName, formatDate } from "../domain/selectors";
@@ -17,16 +18,14 @@ export function Metrics({
 }) {
   return (
     <div className="os-kpis">
-      {items.map((m, i) => (
-        <div
-          className={`os-kpi tone-${m.tone || ["blue", "amber", "red", "purple"][i % 4]}`}
+      {items.map((m) => (
+        <Metric
           key={m.label}
-        >
-          <Activity size={18} />
-          <span>{m.label}</span>
-          <strong>{m.value}</strong>
-          <small>Workspace atual</small>
-        </div>
+          icon={<Activity size={18} />}
+          label={m.label}
+          value={m.value}
+          tone={m.tone}
+        />
       ))}
     </div>
   );
@@ -41,71 +40,6 @@ export function Empty({
       <FileText size={28} />
       <h2>{text}</h2>
       <p>Adicione um registro ou ajuste os filtros.</p>
-    </div>
-  );
-}
-export function Modal({
-  title,
-  close,
-  children,
-}: {
-  title: string;
-  close: () => void;
-  children: React.ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const closeRef = useRef(close);
-  closeRef.current = close;
-  useEffect(() => {
-    const previous = document.activeElement as HTMLElement;
-    const element = ref.current!;
-    const focusable = () =>
-      [
-        ...element.querySelectorAll<HTMLElement>(
-          "button,input,select,textarea,a[href]",
-        ),
-      ].filter((e) => !e.hasAttribute("disabled"));
-    focusable()[0]?.focus();
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        closeRef.current();
-      }
-      if (e.key === "Tab") {
-        const nodes = focusable();
-        if (e.shiftKey && document.activeElement === nodes[0]) {
-          e.preventDefault();
-          nodes.at(-1)?.focus();
-        } else if (!e.shiftKey && document.activeElement === nodes.at(-1)) {
-          e.preventDefault();
-          nodes[0]?.focus();
-        }
-      }
-    };
-    element.addEventListener("keydown", key);
-    return () => {
-      element.removeEventListener("keydown", key);
-      previous?.focus();
-    };
-  }, []);
-  return (
-    <div className="os-overlay" onClick={close}>
-      <div
-        ref={ref}
-        className="os-task-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header>
-          <h2>{title}</h2>
-          <button aria-label="Fechar painel" onClick={close}>
-            <X size={20} />
-          </button>
-        </header>
-        {children}
-      </div>
     </div>
   );
 }

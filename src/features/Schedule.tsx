@@ -1,3 +1,4 @@
+import { SegmentedControl } from "../components/os/controls";
 import { useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate, userName } from "../domain/selectors";
@@ -104,20 +105,12 @@ export function Schedule(
         />
         <section className="os-section">
           <div className="os-portfolio-toolbar">
-            <div className="os-view-tabs">
-              {[
-                ["gantt", "Gantt"],
-                ["list", "Lista de prazos"],
-              ].map(([v, l]) => (
-                <button
-                  key={v}
-                  className={view === v ? "active" : ""}
-                  onClick={() => setView(v)}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              options={{ gantt: "Gantt", list: "Lista de prazos" }}
+              label="Visualização do cronograma"
+              value={view}
+              onChange={setView}
+            />
             <div className="os-action-row">
               <button
                 className="os-icon-button"

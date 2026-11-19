@@ -1,3 +1,4 @@
+import { SegmentedControl } from "../components/os/controls";
 import { useMemo, useState } from "react";
 import type { Database, Project } from "../domain/model";
 import { healthLabels, projectStatusLabels } from "../domain/model";
@@ -78,24 +79,12 @@ export function Portfolio({
         ]}
       />
       <div className="os-portfolio-toolbar">
-        <div className="os-view-tabs" role="group" aria-label="Visualização">
-          {(["cards", "table", "schedule"] as const).map((item) => (
-            <button
-              key={item}
-              className={view === item ? "active" : ""}
-              aria-pressed={view === item}
-              onClick={() => setView(item)}
-            >
-              {
-                {
-                  cards: "Cards",
-                  table: "Tabela",
-                  schedule: "Cronograma",
-                }[item]
-              }
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label="Visualização"
+          options={{ cards: "Cards", table: "Tabela", schedule: "Cronograma" }}
+          value={view}
+          onChange={setView}
+        />
         <span className="os-muted">
           {filtered.length} de {projects.length} projetos
         </span>

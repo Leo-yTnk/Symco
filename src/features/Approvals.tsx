@@ -1,3 +1,4 @@
+import { SegmentedControl, Badge } from "../components/os/controls";
 import { useState } from "react";
 import { Plus, CheckCircle2 } from "lucide-react";
 import { approvalLabels, type Approval } from "../domain/model";
@@ -37,26 +38,16 @@ export function Approvals(props: PageProps) {
         />
         <section className="os-section">
           <div className="os-portfolio-toolbar">
-            <div className="os-view-tabs">
-              <button
-                className={!status ? "active" : ""}
-                onClick={() => setStatus("")}
-              >
-                Todas as solicitações
-              </button>
-              <button
-                className={status === "pending" ? "active" : ""}
-                onClick={() => setStatus("pending")}
-              >
-                Pendentes
-              </button>
-              <button
-                className={status === "approved" ? "active" : ""}
-                onClick={() => setStatus("approved")}
-              >
-                Aprovadas
-              </button>
-            </div>
+            <SegmentedControl
+              options={{
+                "": "Todas as solicitações",
+                pending: "Pendentes",
+                approved: "Aprovadas",
+              }}
+              label="Status da aprovação"
+              value={status}
+              onChange={setStatus}
+            />
             <button
               disabled={!projects.length}
               className="os-button primary"
@@ -150,11 +141,11 @@ export function Approvals(props: PageProps) {
                       </td>
                       <td>{a.dueDate ? formatDate(a.dueDate) : "Sem prazo"}</td>
                       <td>
-                        <span
-                          className={`os-status-pill status-${a.status === "approved" ? "approved" : a.status === "pending" ? "draft" : "review"}`}
+                        <Badge
+                          state={`status-${a.status}`}
                         >
                           {approvalLabels[a.status]}
-                        </span>
+                        </Badge>
                       </td>
                     </tr>
                   ))}
