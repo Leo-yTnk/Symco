@@ -12,10 +12,10 @@ type Turnstile = {
   remove: (id: string) => void;
 };
 
-const browser = window as Window & { turnstile?: Turnstile };
 let loading: Promise<Turnstile> | undefined;
 
 function loadTurnstile() {
+  const browser = window as Window & { turnstile?: Turnstile };
   if (browser.turnstile) return Promise.resolve(browser.turnstile);
   loading ??= new Promise<Turnstile>((resolve, reject) => {
     const script = document.createElement("script");

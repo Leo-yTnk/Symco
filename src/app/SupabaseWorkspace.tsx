@@ -55,7 +55,7 @@ export function SupabaseWorkspace({ client }: { client: SupabaseClient }) {
   return <AccessForm client={client} />;
 }
 
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim();
+const turnstileSiteKey = import.meta.env?.VITE_TURNSTILE_SITE_KEY?.trim();
 const captchaError = "A verificação de segurança falhou. Atualize a página e tente de novo.";
 
 const signupErrors: Record<string, string> = {
@@ -110,7 +110,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
           email: address,
           password,
           options: {
-            captchaToken: captchaToken || undefined,
+            ...(captchaToken ? { captchaToken } : {}),
             emailRedirectTo: new URL(location.pathname, location.origin).href,
           },
         });
@@ -126,7 +126,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
         const { error: failure } = await client.auth.signInWithPassword({
           email: address,
           password,
-          options: { captchaToken: captchaToken || undefined },
+          ...(captchaToken ? { options: { captchaToken } } : {}),
         });
         if (failure) {
           setError(
