@@ -41,7 +41,6 @@
   background: var(--navy-raised);
 }
 .os-brand {
-  min-height: 62px;
   width: max-content;
   padding-inline-start: 15px;
   min-width: 0;
@@ -138,6 +137,46 @@
   }
   .os-sidebar-header {
     position: relative;
+    transition:
+      min-height var(--duration-layout) var(--ease-layout),
+      margin-block-end var(--duration-layout) var(--ease-layout);
+  }
+  .os-sidebar .os-nav-group {
+    transition: margin var(--duration-layout) var(--ease-layout);
+  }
+  .os-sidebar .os-nav-group > small {
+    block-size: 1lh;
+    overflow: clip;
+    transition:
+      block-size var(--duration-layout) var(--ease-layout),
+      margin var(--duration-layout) var(--ease-layout),
+      opacity var(--duration-normal) var(--ease-out),
+      filter var(--duration-normal) var(--ease-out),
+      visibility var(--duration-normal),
+      translate var(--duration-layout) var(--ease-layout);
+  }
+  .os-sidebar :is(.os-nav-group, .os-sidebar-bottom) button {
+    --sidebar-icon-size: 17px;
+    transition:
+      padding-inline-start var(--duration-layout) var(--ease-layout),
+      background var(--duration-fast) var(--ease-out);
+  }
+  .os-sidebar :is(.os-nav-group, .os-sidebar-bottom) button svg {
+    inline-size: var(--sidebar-icon-size);
+  }
+  .os-collapsed .os-sidebar-header {
+    min-height: var(--control-size);
+    margin-block-end: var(--space-3);
+  }
+  .os-collapsed .os-nav-group {
+    margin: 0 0 var(--space-2);
+  }
+  .os-collapsed .os-nav-group > small {
+    block-size: 0;
+    margin: 0;
+  }
+  .os-collapsed .os-sidebar :is(.os-nav-group, .os-sidebar-bottom) button {
+    padding-inline-start: calc((100% - var(--sidebar-icon-size)) / 2);
   }
   .os-sidebar .os-sidebar-toggle {
     position: absolute;
