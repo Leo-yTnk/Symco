@@ -1,3 +1,4 @@
+import { EditRecordActions } from "../components/os/Dropdown";
 import { Badge } from "../components/os/controls";
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -119,40 +120,56 @@ export function Quality(props: PageProps) {
                         <th>Registro</th>
                         <th>Prazo</th>
                         <th>Status</th>
+                        <th>Ações</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rows
                         .filter((r) => r.kind === kind)
                         .map((r) => (
-                          <tr key={r.id}>
-                            <td>
-                              <button
-                                className="os-link"
-                                onClick={() => {
-                                  setEditing(r);
-                                  setError("");
-                                }}
-                              >
-                                {r.title}
-                              </button>
-                              <small>
-                                {
-                                  projects.find((p) => p.id === r.projectId)
-                                    ?.name
-                                }{" "}
-                                · {userName(database, r.ownerId)}
-                              </small>
-                            </td>
-                            <td>{formatDate(r.dueDate)}</td>
-                            <td>
-                              <Badge
-                                state={`status-${r.status === "done" ? "approved" : "draft"}`}
-                              >
-                                {states[r.status]}
-                              </Badge>
-                            </td>
-                          </tr>
+                          <EditRecordActions
+                            key={r.id}
+                            title={r.title}
+                            edit={() => {
+                              setEditing(r);
+                              setError("");
+                            }}
+                            remove={() => {
+                              actions.deleteQuality(r.id);
+                            }}
+                          >
+                            {(events, trigger) => (
+                              <tr {...events}>
+                                <td>
+                                  <button
+                                    className="os-link"
+                                    onClick={() => {
+                                      setEditing(r);
+                                      setError("");
+                                    }}
+                                  >
+                                    {r.title}
+                                  </button>
+                                  <small>
+                                    {
+                                      projects.find((p) => p.id === r.projectId)
+                                        ?.name
+                                    }{" "}
+                                    · {userName(database, r.ownerId)}
+                                  </small>
+                                </td>
+                                <td>{formatDate(r.dueDate)}</td>
+                                <td>
+                                  <Badge
+                                    state={`status-${r.status === "done" ? "approved" : "draft"}`}
+                                  >
+                                    {states[r.status]}
+                                  </Badge>
+                                </td>
+                                <td>{trigger}</td>
+                              </tr>
+                            )}
+                          </EditRecordActions>
                         ))}
                     </tbody>
                   </table>

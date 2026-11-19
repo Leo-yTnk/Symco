@@ -676,19 +676,41 @@ export default function App({
             )}
           </div>
         </main>
-        {(actions.error || accountError) && (
-          <div className="os-error" role="alert">
-            {actions.error || accountError}
-            {actions.conflict && (
-              <button onClick={() => location.reload()}>Recarregar</button>
-            )}
-            {actions.error && (
-              <button onClick={actions.dismissError} aria-label="Fechar">
-                <X size={15} />
-              </button>
-            )}
-          </div>
-        )}
+        <div className="os-notices">
+          <span className="os-operation-announcement" role="status">
+            {actions.operation?.message}
+          </span>
+          {actions.operation && (
+            <div className="os-operation">
+              <span>{actions.operation.message}</span>
+              {actions.operation.canUndo && (
+                <Button onClick={actions.undoOperation}>Desfazer</Button>
+              )}
+              {!actions.operation.pending && (
+                <Button
+                  variant="icon"
+                  aria-label="Fechar aviso"
+                  onClick={actions.dismissOperation}
+                >
+                  <X size={15} />
+                </Button>
+              )}
+            </div>
+          )}
+          {(actions.error || accountError) && (
+            <div className="os-error" role="alert">
+              {actions.error || accountError}
+              {actions.conflict && (
+                <button onClick={() => location.reload()}>Recarregar</button>
+              )}
+              {actions.error && (
+                <button onClick={actions.dismissError} aria-label="Fechar">
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       {tourOpen && (
         <Tutorial

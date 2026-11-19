@@ -1,0 +1,142 @@
+.os-button.os-select {
+  width: 100%;
+  min-width: 0;
+  text-align: start;
+  justify-content: space-between;
+  border-color: var(--line-strong);
+  font-weight: 450;
+}
+.os-select > span,
+.os-dropdown-option > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.os-select svg {
+  flex: none;
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+.os-select[aria-expanded="true"] svg {
+  rotate: 180deg;
+}
+.os-dropdown {
+  position: fixed;
+  z-index: 130;
+  width: max-content;
+  min-width: min(10rem, calc(100vw - 2 * var(--space-2)));
+  max-width: min(24rem, calc(100vw - 2 * var(--space-2)));
+  visibility: hidden;
+  overflow: clip;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-floating);
+}
+.os-dropdown[data-closing="true"] {
+  pointer-events: none;
+}
+.os-dropdown-list {
+  max-height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-1);
+  outline: none;
+}
+.os-dropdown-option {
+  display: flex;
+  width: 100%;
+  min-height: var(--control-size);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: transparent;
+  font-size: var(--text-base);
+  text-align: start;
+}
+.os-dropdown-option > span {
+  flex: 1;
+}
+.os-dropdown-option svg {
+  flex: none;
+}
+.os-dropdown-option[data-active="true"]:not(:disabled),
+.os-dropdown-option[aria-selected="true"] {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.os-dropdown-option[data-danger="true"] {
+  color: var(--danger);
+}
+.os-dropdown-option[data-danger="true"][data-active="true"]:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.os-record-with-actions {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.os-record-menu-trigger {
+  flex: none;
+}
+.os-notices {
+  position: fixed;
+  z-index: 120;
+  inset-inline-end: var(--space-4);
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  max-width: min(30rem, calc(100% - 2 * var(--space-4)));
+  display: grid;
+  justify-items: end;
+  gap: var(--space-2);
+}
+.os-operation-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.os-operation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-floating);
+}
+.os-records > .os-record-with-actions {
+  flex-direction: row;
+  gap: var(--space-2);
+}
+.os-record-with-actions > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.os-record-with-actions small {
+  display: block;
+}
+.os-timeline .os-record-with-actions > button:first-child {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.os-timeline .os-record-with-actions strong {
+  min-width: 0;
+}
+
+.os-kanban-column .os-record-with-actions {
+  position: relative;
+}
+.os-kanban-column .os-kanban-task {
+  padding-inline-end: calc(var(--control-size) + var(--space-2));
+}
+.os-kanban-column .os-record-menu-trigger {
+  position: absolute;
+  inset-inline-end: var(--space-1);
+  inset-block-start: var(--space-1);
+}

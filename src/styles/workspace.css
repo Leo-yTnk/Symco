@@ -362,7 +362,7 @@
   display: grid;
   gap: 7px;
 }
-.os-timeline button {
+.os-timeline button:not(.os-record-menu-trigger) {
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -689,15 +689,11 @@
   justify-self: start;
 }
 .os-error {
-  position: fixed;
-  bottom: 18px;
-  right: 18px;
   background: var(--surface-soft);
   border: 1px solid var(--line);
   padding: var(--space-3);
   border-radius: var(--radius);
   color: var(--danger);
-  z-index: 120;
   display: flex;
   gap: var(--space-2);
 }

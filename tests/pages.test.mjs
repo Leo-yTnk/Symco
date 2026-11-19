@@ -28,6 +28,9 @@ for (const key of [
   "navigator",
   "HTMLElement",
   "Element",
+  "Node",
+  "KeyboardEvent",
+  "getComputedStyle",
   "MouseEvent",
   "Event",
   "localStorage",
@@ -296,6 +299,90 @@ test("uploads store actual bytes and invalid external URLs are rejected", async 
   await click(document.querySelector('[aria-label="Fechar painel"]'));
 });
 
+test("context menus edit, delete and restore persisted workspace records", async () => {
+  await route("/app/documents");
+  const uploaded = db().attachments.find(
+    (item) => item.title === "local-test.txt",
+  );
+  const documentRow = () =>
+    [...document.querySelectorAll(".os-sheet-table tbody tr")].find((row) =>
+      row.textContent.includes(uploaded.title),
+    );
+  await act(async () =>
+    documentRow().dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        cancelable: true,
+        clientX: 300,
+        clientY: 200,
+      }),
+    ),
+  );
+  assert.equal(document.activeElement.getAttribute("role"), "menu");
+  await click(button("Apagar"));
+  assert.equal(documentRow(), undefined);
+  assert.equal(
+    db().attachments.some((item) => item.id === uploaded.id),
+    false,
+  );
+  await click(button("Desfazer"));
+  assert.deepEqual(
+    db().attachments.find((item) => item.id === uploaded.id),
+    uploaded,
+  );
+  assert.ok(documentRow());
+
+  await route("/app/governance/risks");
+  const risk = db().risks[0];
+  const trigger = document.querySelector(
+    `[aria-label="Ações de ${risk.title}"]`,
+  );
+  trigger.focus();
+  await act(async () =>
+    trigger.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "F10",
+        shiftKey: true,
+        bubbles: true,
+        cancelable: true,
+      }),
+    ),
+  );
+  await click(button("Editar"));
+  assert.equal(
+    document.querySelector('[role="dialog"] h2').textContent,
+    "Editar risco",
+  );
+  const select = document.querySelector(
+    '[aria-haspopup="listbox"][aria-label="Status"]',
+  );
+  await click(select);
+  assert.equal(document.activeElement.getAttribute("role"), "listbox");
+  assert.equal(
+    document.querySelector('[role="option"][aria-selected="true"]').textContent,
+    "Aberto",
+  );
+  for (const key of ["End", "Enter"]) {
+    await act(async () =>
+      document.activeElement.dispatchEvent(
+        new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }),
+      ),
+    );
+  }
+  assert.equal(select.textContent, "Mitigado");
+  assert.equal(document.activeElement, select);
+  await click(button("Salvar alterações"));
+  assert.equal(
+    db().risks.find((item) => item.id === risk.id).status,
+    "mitigated",
+  );
+  await click(button("Desfazer"));
+  assert.deepEqual(
+    db().risks.find((item) => item.id === risk.id),
+    risk,
+  );
+});
+
 test("empty workspace settings stay scoped to the selected workspace", async () => {
   const select = document.querySelector('select[aria-label="Workspace"]');
   await act(async () => {
@@ -329,14 +416,16 @@ test("personal preferences stay active across routes and can be restored", async
     document.querySelector('nav [aria-current="page"]').textContent,
     "Configurações",
   );
-  const theme = [...document.querySelectorAll(".os-preference-row select")].find(
-    (select) => select.labels[0].textContent === "Tema",
-  );
+  const theme = [
+    ...document.querySelectorAll(".os-preference-row select"),
+  ].find((select) => select.labels[0].textContent === "Tema");
   await act(async () => {
     theme.value = "dark";
     theme.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  await click(document.querySelector('[role="switch"][aria-label="Reduzir movimento"]'));
+  await click(
+    document.querySelector('[role="switch"][aria-label="Reduzir movimento"]'),
+  );
   const { dataset } = document.documentElement;
   assert.equal(dataset.theme, "dark");
   assert.equal(dataset.reduceMotion, "true");
@@ -348,7 +437,10 @@ test("personal preferences stay active across routes and can be restored", async
   assert.equal(saved.reduceMotion, true);
 
   await route("/app/settings/preferences/safe");
-  assert.match(document.querySelector(".os-preference-notice").textContent, /Modo de recuperação ativo/);
+  assert.match(
+    document.querySelector(".os-preference-notice").textContent,
+    /Modo de recuperação ativo/,
+  );
   await click(button("Restaurar tema e acessibilidade"));
   assert.equal(dataset.theme, "system");
   assert.equal(dataset.reduceMotion, "false");
@@ -379,5 +471,96 @@ test("failed persistence does not publish uploaded metadata or generated automat
   assert.equal(ok, false);
   assert.equal(actions.database.attachments.length, initial.attachments.length);
   assert.match(actions.error, /Não foi possível salvar/);
+  await act(async () => isolated.unmount());
+});
+
+test("task deletion and its undo save atomically with related records", async () => {
+  const initial = createSeed();
+  const [task, dependent] = initial.tasks;
+  dependent.dependencyIds = [...dependent.dependencyIds, task.id];
+  initial.subtasks.push({
+    id: "undo-subtask",
+    taskId: task.id,
+    title: "Subtarefa",
+    done: false,
+  });
+  initial.comments.push({
+    id: "undo-comment",
+    taskId: task.id,
+    projectId: task.projectId,
+    authorId: initial.users[0].id,
+    body: "Comentário",
+    createdAt: task.createdAt,
+  });
+
+  let actions;
+  let persisted = initial;
+  let finishSave;
+  const repository = {
+    load: () => initial,
+    save: async (next) => {
+      await new Promise((resolve, reject) => {
+        finishSave = { resolve, reject };
+      });
+      persisted = next;
+    },
+  };
+  function Harness() {
+    actions = useWorkspace(repository);
+    return null;
+  }
+  const isolated = createRoot(document.getElementById("root"));
+  await act(async () => isolated.render(createElement(Harness)));
+  let removal;
+  await act(async () => {
+    removal = actions.deleteTask(task.id);
+  });
+  assert.equal(actions.operation.pending, true);
+  assert.equal(actions.database, initial);
+  await act(async () => {
+    finishSave.resolve();
+    assert.equal(await removal, true);
+  });
+  assert.equal(actions.operation.canUndo, true);
+  assert.equal(
+    persisted.tasks.some((item) => item.id === task.id),
+    false,
+  );
+  assert.equal(
+    persisted.tasks
+      .find((item) => item.id === dependent.id)
+      .dependencyIds.includes(task.id),
+    false,
+  );
+  assert.equal(
+    persisted.subtasks.some((item) => item.taskId === task.id),
+    false,
+  );
+  assert.equal(
+    persisted.comments.some((item) => item.taskId === task.id),
+    false,
+  );
+
+  let restore;
+  await act(async () => {
+    restore = actions.undoOperation();
+  });
+  assert.equal(actions.operation.pending, true);
+  await act(async () => {
+    finishSave.reject(Error("offline"));
+    assert.equal(await restore, false);
+  });
+  assert.equal(actions.operation.canUndo, true);
+  assert.equal(actions.database, persisted);
+
+  await act(async () => {
+    restore = actions.undoOperation();
+  });
+  await act(async () => {
+    finishSave.resolve();
+    assert.equal(await restore, true);
+  });
+  assert.deepEqual(persisted, initial);
+  assert.equal(actions.operation.canUndo, false);
   await act(async () => isolated.unmount());
 });

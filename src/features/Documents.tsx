@@ -1,3 +1,4 @@
+import { EditRecordActions, Select } from "../components/os/Dropdown";
 import { Badge, Disclosure } from "../components/os/controls";
 import { useState, type FormEvent } from "react";
 import {
@@ -185,92 +186,96 @@ export function Documents(props: PageProps) {
           <div className="os-filters">
             <label>
               Projeto
-              <select
+              <Select
+                label="Projeto"
                 value={projectId}
-                onChange={(e) => {
-                  setProjectId(e.target.value);
+                onChange={(next) => {
+                  setProjectId(next);
                   reset();
                 }}
-              >
-                <option value="">Todos os projetos</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Todos os projetos" },
+                  ...projects.map((item) => ({
+                    value: item.id,
+                    label: item.name,
+                  })),
+                ]}
+              />
             </label>
             <label>
               Tipo
-              <select
+              <Select
+                label="Tipo"
                 value={type}
-                onChange={(e) => {
-                  setType(e.target.value);
+                onChange={(next) => {
+                  setType(next);
                   reset();
                 }}
-              >
-                <option value="">Todos os tipos</option>
-                {[...new Set(docs.map((d) => d.type))].map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Todos os tipos" },
+                  ...[...new Set(docs.map((item) => item.type))].map(
+                    (value) => ({ value, label: value }),
+                  ),
+                ]}
+              />
             </label>
             <label>
               Módulo
-              <select
+              <Select
+                label="Módulo"
                 value={moduleId}
-                onChange={(e) => {
-                  setModuleId(e.target.value);
+                onChange={(next) => {
+                  setModuleId(next);
                   reset();
                 }}
-              >
-                <option value="">Todos os módulos</option>
-                {modules
-                  .filter((m) =>
-                    projects.some((p) => p.moduleIds.includes(m.id)),
-                  )
-                  .map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-              </select>
+                options={[
+                  { value: "", label: "Todos os módulos" },
+                  ...modules
+                    .filter((item) =>
+                      projects.some((project) =>
+                        project.moduleIds.includes(item.id),
+                      ),
+                    )
+                    .map((item) => ({ value: item.id, label: item.name })),
+                ]}
+              />
             </label>
             <label>
               Status
-              <select
+              <Select
+                label="Status"
                 value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
+                onChange={(next) => {
+                  setStatus(next);
                   reset();
                 }}
-              >
-                <option value="">Todos os status</option>
-                {Object.entries(states).map(([v, l]) => (
-                  <option key={v} value={v}>
-                    {l}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Todos os status" },
+                  ...Object.entries(states).map(([value, label]) => ({
+                    value,
+                    label,
+                  })),
+                ]}
+              />
             </label>
             <label>
               Responsável
-              <select
+              <Select
+                label="Responsável"
                 value={owner}
-                onChange={(e) => {
-                  setOwner(e.target.value);
+                onChange={(next) => {
+                  setOwner(next);
                   reset();
                 }}
-              >
-                <option value="">Todos</option>
-                {database.users
-                  .filter((u) => docs.some((d) => d.createdBy === u.id))
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-              </select>
+                options={[
+                  { value: "", label: "Todos" },
+                  ...database.users
+                    .filter((item) =>
+                      docs.some((doc) => doc.createdBy === item.id),
+                    )
+                    .map((item) => ({ value: item.id, label: item.name })),
+                ]}
+              />
             </label>
             <label>
               Data
@@ -432,96 +437,124 @@ export function Documents(props: PageProps) {
                         {visible
                           .filter((d) => groupKey(d) === g)
                           .map((d) => (
-                            <tr
+                            <EditRecordActions
                               key={d.id}
-                              className={
-                                selected.includes(d.id) ? "selected-row" : ""
-                              }
+                              title={d.title}
+                              edit={() => {
+                                setEditing(d);
+                                setError("");
+                              }}
+                              remove={async () => {
+                                if (await actions.deleteDocument(d.id)) {
+                                  setSelected((ids) =>
+                                    ids.filter((id) => id !== d.id),
+                                  );
+                                }
+                              }}
                             >
-                              <td>
-                                <input
-                                  type="checkbox"
-                                  aria-label={`Selecionar ${d.title}`}
-                                  checked={selected.includes(d.id)}
-                                  onChange={(e) =>
-                                    setSelected(
-                                      e.target.checked
-                                        ? [...selected, d.id]
-                                        : selected.filter((id) => id !== d.id),
-                                    )
-                                  }
-                                />
-                              </td>
-                              <td>
-                                <button
-                                  className="os-document-name"
-                                  onClick={() => {
-                                    setEditing(d);
-                                    setError("");
-                                  }}
-                                >
-                                  <span
-                                    className={`os-file-icon file-${d.type.toLowerCase()}`}
-                                  >
-                                    <FileText size={17} />
-                                  </span>
-                                  <span>
-                                    <strong>{d.title}</strong>
-                                    <small>
-                                      {d.category || "Qualidade e Regulatório"}
-                                    </small>
-                                  </span>
-                                </button>
-                              </td>
-                              <td>
-                                <button
-                                  className="os-link"
-                                  onClick={() =>
-                                    navigate(`/app/projects/${d.projectId}`)
+                              {(events, trigger) => (
+                                <tr
+                                  {...events}
+                                  className={
+                                    selected.includes(d.id)
+                                      ? "selected-row"
+                                      : ""
                                   }
                                 >
-                                  {projectName(d.projectId)}
-                                </button>
-                              </td>
-                              <td>
-                                <span className="os-badge">{d.type}</span>
-                              </td>
-                              <td>v{d.version || "1.0"}</td>
-                              <td>{userName(database, d.createdBy)}</td>
-                              <td>{formatDate(d.updatedAt || d.createdAt)}</td>
-                              <td>
-                                <Badge state={`status-${d.status || "draft"}`}>
-                                  {states[d.status || "draft"]}
-                                </Badge>
-                              </td>
-                              <td>
-                                <Badge
-                                  state={`status-${d.approvalStatus || "pending"}`}
-                                >
-                                  {
-                                    approvalLabels[
-                                      d.approvalStatus || "pending"
-                                    ]
-                                  }
-                                </Badge>
-                              </td>
-                              <td>
-                                <button
-                                  className="os-icon-button"
-                                  title={
-                                    d.fileData
-                                      ? "Baixar arquivo"
-                                      : d.url
-                                        ? "Abrir link"
-                                        : "Exportar registro"
-                                  }
-                                  aria-label={`Baixar ou exportar ${d.title}`}
-                                  onClick={() => download(d)}
-                                >
-                                  <Download size={16} />
-                                </button>
-                              </td>
-                            </tr>
+                                  <td>
+                                    <input
+                                      type="checkbox"
+                                      aria-label={`Selecionar ${d.title}`}
+                                      checked={selected.includes(d.id)}
+                                      onChange={(e) =>
+                                        setSelected(
+                                          e.target.checked
+                                            ? [...selected, d.id]
+                                            : selected.filter(
+                                                (id) => id !== d.id,
+                                              ),
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                  <td>
+                                    <button
+                                      className="os-document-name"
+                                      onClick={() => {
+                                        setEditing(d);
+                                        setError("");
+                                      }}
+                                    >
+                                      <span
+                                        className={`os-file-icon file-${d.type.toLowerCase()}`}
+                                      >
+                                        <FileText size={17} />
+                                      </span>
+                                      <span>
+                                        <strong>{d.title}</strong>
+                                        <small>
+                                          {d.category ||
+                                            "Qualidade e Regulatório"}
+                                        </small>
+                                      </span>
+                                    </button>
+                                  </td>
+                                  <td>
+                                    <button
+                                      className="os-link"
+                                      onClick={() =>
+                                        navigate(`/app/projects/${d.projectId}`)
+                                      }
+                                    >
+                                      {projectName(d.projectId)}
+                                    </button>
+                                  </td>
+                                  <td>
+                                    <span className="os-badge">{d.type}</span>
+                                  </td>
+                                  <td>v{d.version || "1.0"}</td>
+                                  <td>{userName(database, d.createdBy)}</td>
+                                  <td>
+                                    {formatDate(d.updatedAt || d.createdAt)}
+                                  </td>
+                                  <td>
+                                    <Badge
+                                      state={`status-${d.status || "draft"}`}
+                                    >
+                                      {states[d.status || "draft"]}
+                                    </Badge>
+                                  </td>
+                                  <td>
+                                    <Badge
+                                      state={`status-${d.approvalStatus || "pending"}`}
+                                    >
+                                      {
+                                        approvalLabels[
+                                          d.approvalStatus || "pending"
+                                        ]
+                                      }
+                                    </Badge>
+                                  </td>
+                                  <td>
+                                    <button
+                                      className="os-icon-button"
+                                      title={
+                                        d.fileData
+                                          ? "Baixar arquivo"
+                                          : d.url
+                                            ? "Abrir link"
+                                            : "Exportar registro"
+                                      }
+                                      aria-label={`Baixar ou exportar ${d.title}`}
+                                      onClick={() => download(d)}
+                                    >
+                                      <Download size={16} />
+                                    </button>
+                                    {trigger}
+                                  </td>
+                                </tr>
+                              )}
+                            </EditRecordActions>
                           ))}
                       </tbody>
                     </table>
