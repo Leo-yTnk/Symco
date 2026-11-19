@@ -90,7 +90,7 @@ test("all prototype workspace pages render and documents can be created, filtere
   await mount();
   for (const [path, title] of [
     ["/app/documents", "Documentos"],
-    ["/app/calendar", "Cronograma"],
+    ["/app/calendar", "Projetos"],
     ["/app/quality", "Qualidade"],
     ["/app/approvals", "Aprovações"],
     ["/app/automations", "Automações"],
@@ -101,10 +101,17 @@ test("all prototype workspace pages render and documents can be created, filtere
     assert.match(document.querySelector("h1").textContent, new RegExp(title));
     assert.ok(document.querySelector(".os-section"));
   }
+  await route("/app/calendar");
+  assert.ok(button("Gantt"));
   await route("/app/portfolio");
   assert.ok(document.querySelector(".os-table"));
   await route("/app/projects");
   assert.ok(document.querySelector(".os-card-grid"));
+  await click(button("Tabela"));
+  assert.ok(document.querySelector(".os-table"));
+  await click(button("Cronograma"));
+  assert.ok(button("Gantt"));
+  assert.equal(document.querySelector("h1").textContent, "Projetos");
   await route("/app/documents");
   const before = db().attachments.length;
   await click(button("Novo documento"));

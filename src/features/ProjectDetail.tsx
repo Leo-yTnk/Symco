@@ -20,25 +20,24 @@ import {
   userName,
 } from "../domain/selectors";
 
-type Tab =
-  | "overview"
-  | "table"
-  | "kanban"
-  | "timeline"
-  | "files"
-  | "approvals"
-  | "decisions"
-  | "risks";
-const tabs: Record<Tab, string> = {
-  overview: "Visão geral",
+const sections = {
+  overview: "Resumo",
+  tasks: "Tarefas",
+  files: "Arquivos",
+  governance: "Governança",
+} as const;
+
+const taskViews = {
   table: "Tabela",
   kanban: "Kanban",
-  timeline: "Timeline",
-  files: "Arquivos",
+  timeline: "Linha do tempo",
+} as const;
+
+const governanceViews = {
   approvals: "Aprovações",
-  decisions: "Decisões",
   risks: "Riscos",
-};
+  decisions: "Decisões",
+} as const;
 
 export function ProjectDetail({
   database,
@@ -51,7 +50,16 @@ export function ProjectDetail({
   actions: WorkspaceActions;
   navigate: (path: string) => void;
 }) {
-  const [tab, setTab] = useState<Tab>("overview");
+  const [section, setSection] = useState<keyof typeof sections>("overview");
+  const [taskView, setTaskView] = useState<keyof typeof taskViews>("table");
+  const [governanceView, setGovernanceView] =
+    useState<keyof typeof governanceViews>("approvals");
+  const tab =
+    section === "tasks"
+      ? taskView
+      : section === "governance"
+        ? governanceView
+        : section;
   const [selected, setSelected] = useState<Task | null>(null);
   const [creating, setCreating] = useState(false);
   const [comment, setComment] = useState("");
@@ -107,7 +115,7 @@ export function ProjectDetail({
     });
     setNewTitle("");
     setCreating(false);
-    setTab("table");
+    setTaskView("table");
   };
   const renderTaskTable = () => (
     <div className="os-table-scroll">
@@ -234,14 +242,19 @@ export function ProjectDetail({
             role="tablist"
             aria-label="Seções do projeto"
           >
-            {(Object.entries(tabs) as [Tab, string][]).map(([key, label]) => (
+            {(
+              Object.entries(sections) as [keyof typeof sections, string][]
+            ).map(([key, label]) => (
               <button
                 role="tab"
-                aria-selected={tab === key}
-                className={tab === key ? "active" : ""}
+                aria-selected={section === key}
+                className={section === key ? "active" : ""}
                 key={key}
                 onClick={() => {
-                  setTab(key);
+                  setSection(key);
+                  setNewTitle("");
+                  setNewDescription("");
+                  setRecordError("");
                   setCreating(false);
                 }}
               >
@@ -252,25 +265,83 @@ export function ProjectDetail({
           <section className="os-section">
             <div className="os-section-head">
               <div>
-                <h2>{tabs[tab]}</h2>
-                <p>
-                  {tab === "overview"
-                    ? "Contexto, etapas e execução do projeto."
-                    : `${tasks.length} tarefas • ${progress(database, project.id)}% concluído`}
-                </p>
+                <h2>{sections[section]}</h2>
+                {section === "tasks" && (
+                  <p>
+                    {tasks.length} tarefas • {progress(database, project.id)}%
+                    concluído
+                  </p>
+                )}
               </div>
-              {["overview", "table", "kanban", "timeline"].includes(tab) && (
+              {(section === "overview" || section === "tasks") && (
                 <button
                   className="os-button primary"
                   onClick={() => {
+                    setSection("tasks");
+                    setNewTitle("");
                     setCreating(true);
-                    setTab("table");
+                    setTaskView("table");
                   }}
                 >
                   <Plus size={15} /> Nova tarefa
                 </button>
               )}
             </div>
+            {section === "tasks" && (
+              <div
+                className="os-view-tabs"
+                role="group"
+                aria-label="Visualização de tarefas"
+              >
+                {(
+                  Object.entries(taskViews) as [
+                    keyof typeof taskViews,
+                    string,
+                  ][]
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={taskView === key ? "active" : ""}
+                    aria-pressed={taskView === key}
+                    onClick={() => {
+                      setTaskView(key);
+                      setCreating(false);
+                      setNewTitle("");
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            {section === "governance" && (
+              <div
+                className="os-view-tabs"
+                role="group"
+                aria-label="Registros de governança"
+              >
+                {(
+                  Object.entries(governanceViews) as [
+                    keyof typeof governanceViews,
+                    string,
+                  ][]
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    className={governanceView === key ? "active" : ""}
+                    aria-pressed={governanceView === key}
+                    onClick={() => {
+                      setGovernanceView(key);
+                      setNewTitle("");
+                      setNewDescription("");
+                      setRecordError("");
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             {tab === "overview" && (
               <>
                 <div className="os-stage-track">
@@ -298,8 +369,6 @@ export function ProjectDetail({
                     </button>
                   ))}
                 </div>
-                <h3>Tarefas do projeto</h3>
-                {renderTaskTable()}
               </>
             )}
             {tab === "table" && (
@@ -393,9 +462,10 @@ export function ProjectDetail({
                   ))}
               </div>
             )}
-            {(["files", "approvals", "decisions", "risks"] as Tab[]).includes(
-              tab,
-            ) && (
+            {(tab === "files" ||
+              tab === "approvals" ||
+              tab === "decisions" ||
+              tab === "risks") && (
               <div className="os-records">
                 {tab === "files" &&
                   database.attachments

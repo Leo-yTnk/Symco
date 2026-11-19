@@ -32,7 +32,7 @@ A página inicial coleta apenas nome, função e nome do workspace como campos o
 
 ## Páginas e documentos
 
-As páginas Qualidade, Automações e Relatórios têm fluxos próprios. Documentos oferece pastas, tabela agrupada, filtros, paginação, edição, links externos e arquivos locais de até 2 MB por arquivo. Cronograma exibe Gantt e lista de prazos. Configurações permite renomear o workspace, cadastrar clientes e ativar módulos. O portfólio abre em tabela, e Projetos abre em cards.
+As páginas Qualidade, Automações e Relatórios têm fluxos próprios. Documentos oferece pastas, tabela agrupada, filtros, paginação, edição, links externos e arquivos locais de até 2 MB por arquivo. Cronograma exibe Gantt e lista de prazos. Configurações permite renomear o workspace, cadastrar clientes e ativar módulos. Projetos reúne cards, tabela e cronograma. Dentro de cada projeto, as abas são Resumo, Tarefas, Arquivos e Governança. Os endereços antigos de Portfólio e Cronograma abrem Projetos na visualização correspondente.
 
 As rotas usam hash (`#/app/documents`, por exemplo) para suportar recarga no GitHub Pages. Os dados antigos são preservados. Consulte [o mapa de implementação e limites](docs/PROTOTYPE-ALIGNMENT.md).
 

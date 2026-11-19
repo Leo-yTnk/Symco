@@ -3,7 +3,9 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate, userName } from "../domain/selectors";
 import { statusLabels } from "../domain/model";
 import { Empty, Metrics, RecentActivity, type PageProps } from "./workspaceUi";
-export function Schedule(props: PageProps) {
+export function Schedule(
+  props: Pick<PageProps, "database" | "projects" | "navigate">,
+) {
   const { database, projects, navigate } = props;
   const [offset, setOffset] = useState(0);
   const [weeks, setWeeks] = useState(6);

@@ -4,7 +4,6 @@ import {
   Zap,
   BarChart3,
   Bell,
-  CalendarDays,
   CheckCircle2,
   ChevronLeft,
   Compass,
@@ -26,7 +25,6 @@ import { Portfolio } from "../features/Portfolio";
 import { ProjectDetail } from "../features/ProjectDetail";
 import { NewProject } from "../features/NewProject";
 import { Documents } from "../features/Documents";
-import { Schedule } from "../features/Schedule";
 import { Quality } from "../features/Quality";
 import { Automations } from "../features/Automations";
 import { Reports } from "../features/Reports";
@@ -49,9 +47,7 @@ const navigation = [
   {
     heading: "GESTÃO",
     links: [
-      { label: "Portfólio", path: "/app/portfolio", icon: FolderKanban },
       { label: "Projetos", path: "/app/projects", icon: FolderKanban },
-      { label: "Cronograma", path: "/app/calendar", icon: CalendarDays },
       { label: "Documentos", path: "/app/documents", icon: FileText },
     ],
   },
@@ -179,6 +175,11 @@ export default function App() {
     navigate("/app");
     setTourOpen(true);
   };
+  const isProjectsPage = [
+    "/app/projects",
+    "/app/portfolio",
+    "/app/calendar",
+  ].includes(path);
   const projectId =
     path === "/app/projects/new"
       ? undefined
@@ -222,7 +223,7 @@ export default function App() {
             id: item.id,
             name: item.name,
             type: "Cliente",
-            path: "/app/portfolio",
+            path: "/app/projects",
           })),
         ...database.attachments
           .filter(
@@ -260,13 +261,9 @@ export default function App() {
   const descriptions: Record<string, string> = {
     "/app":
       "Acompanhe o desempenho dos projetos, prioridades e próximos marcos.",
-    "/app/portfolio":
-      "Uma visão integrada dos projetos, etapas, responsáveis e resultados.",
-    "/app/projects":
-      "Organize seus projetos e transforme planejamento em execução.",
+    "/app/projects": "Acompanhe seus projetos, responsáveis e prazos.",
     "/app/documents":
       "Centralize, organize e compartilhe os documentos dos seus projetos.",
-    "/app/calendar": "Acompanhe prazos, marcos e gates em uma linha do tempo.",
     "/app/quality": "Gerencie auditorias, não conformidades e planos de ação.",
     "/app/approvals":
       "Revise solicitações e acompanhe as decisões dos seus projetos.",
@@ -279,19 +276,17 @@ export default function App() {
   const title =
     path === "/app"
       ? "Visão Geral"
-      : path === "/app/portfolio"
-        ? "Portfólio de Projetos"
+      : isProjectsPage
+        ? "Projetos"
         : path === "/app/projects/new"
           ? "Criar novo projeto"
-          : path === "/app/projects"
-            ? "Projetos"
-            : project
-              ? project.name
-              : navigation
-                  .flatMap((group) => group.links)
-                  .find((link) => link.path === path)?.label ||
-                modules.find((m) => path === `/app/modules/${m.id}`)?.name ||
-                "Página não encontrada";
+          : project
+            ? project.name
+            : navigation
+                .flatMap((group) => group.links)
+                .find((link) => link.path === path)?.label ||
+              modules.find((m) => path === `/app/modules/${m.id}`)?.name ||
+              "Página não encontrada";
 
   if (path === "/" || path === "/welcome" || !onboarding.completed) {
     return (
@@ -319,12 +314,14 @@ export default function App() {
               {group.links.map(({ label, path: target, icon: Icon }) => (
                 <button
                   data-tour={
-                    target === "/app/portfolio" ? "portfolio" : undefined
+                    target === "/app/projects" ? "projects" : undefined
                   }
                   key={target}
                   title={label}
                   className={
-                    path === target || (target === "/app/projects" && !!project)
+                    path === target ||
+                    (target === "/app/projects" &&
+                      (isProjectsPage || !!project))
                       ? "selected"
                       : ""
                   }
@@ -504,12 +501,12 @@ export default function App() {
                 <h1>{title}</h1>
                 {!project && (
                   <p>
-                    {descriptions[path] ||
+                    {descriptions[isProjectsPage ? "/app/projects" : path] ||
                       "Inteligência, governança e execução em um só lugar."}
                   </p>
                 )}
               </div>
-              {["/app", "/app/projects", "/app/portfolio"].includes(path) && (
+              {(path === "/app" || isProjectsPage) && (
                 <button
                   data-tour="new-project"
                   className="os-button primary"
@@ -526,12 +523,18 @@ export default function App() {
                 navigate={navigate}
               />
             )}
-            {(path === "/app/portfolio" || path === "/app/projects") && (
+            {isProjectsPage && (
               <Portfolio
                 database={database}
                 projects={projects}
                 navigate={navigate}
-                initialView={path === "/app/portfolio" ? "table" : "cards"}
+                initialView={
+                  path === "/app/calendar"
+                    ? "schedule"
+                    : path === "/app/portfolio"
+                      ? "table"
+                      : "cards"
+                }
                 key={path}
               />
             )}
@@ -553,7 +556,6 @@ export default function App() {
               />
             )}
             {path === "/app/documents" && <Documents {...pageProps} />}
-            {path === "/app/calendar" && <Schedule {...pageProps} />}
             {path === "/app/quality" && <Quality {...pageProps} />}
             {path === "/app/automations" && <Automations {...pageProps} />}
             {path === "/app/reports" && <Reports {...pageProps} />}

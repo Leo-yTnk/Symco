@@ -114,7 +114,7 @@ export function Dashboard({
             </div>
             <button
               className="os-link"
-              onClick={() => navigate("/app/portfolio")}
+              onClick={() => navigate("/app/projects")}
             >
               Ver portfólio <ArrowRight size={15} />
             </button>
