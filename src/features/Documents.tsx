@@ -112,7 +112,7 @@ export function Documents(props: PageProps) {
   }
   return (
     <div className="os-board-layout">
-      <div className="os-board-main">
+      <div>
         <div className="os-portfolio-toolbar">
           <p className="os-muted">
             Centralize, organize e acompanhe os documentos dos seus projetos.

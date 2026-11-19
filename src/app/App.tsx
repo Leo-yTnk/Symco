@@ -1,11 +1,9 @@
 import { Button } from "../components/os/controls";
 import { useEffect, useState } from "react";
 import {
-  Activity,
   Zap,
   BarChart3,
   Bell,
-  CheckCircle2,
   ChevronLeft,
   Compass,
   FileText,
@@ -26,12 +24,14 @@ import { Portfolio } from "../features/Portfolio";
 import { ProjectDetail } from "../features/ProjectDetail";
 import { NewProject } from "../features/NewProject";
 import { Documents } from "../features/Documents";
-import { Quality } from "../features/Quality";
 import { Automations } from "../features/Automations";
 import { Reports } from "../features/Reports";
 import { SettingsPage } from "../features/SettingsPage";
-import { Approvals } from "../features/Approvals";
-import { Governance } from "../features/Governance";
+import {
+  Governance,
+  governancePath,
+  governanceSection,
+} from "../features/Governance";
 import { Onboarding } from "../features/Onboarding";
 import { Tutorial } from "../features/Tutorial";
 import {
@@ -50,15 +50,7 @@ const navigation = [
     links: [
       { label: "Projetos", path: "/app/projects", icon: FolderKanban },
       { label: "Documentos", path: "/app/documents", icon: FileText },
-    ],
-  },
-  {
-    heading: "GOVERNANÇA",
-    links: [
-      { label: "Qualidade", path: "/app/quality", icon: ShieldCheck },
-      { label: "Aprovações", path: "/app/approvals", icon: ShieldCheck },
-      { label: "Riscos", path: "/app/risks", icon: Activity },
-      { label: "Decisões", path: "/app/decisions", icon: CheckCircle2 },
+      { label: "Governança", path: governancePath, icon: ShieldCheck },
     ],
   },
   {
@@ -81,6 +73,8 @@ export default function App() {
         ? location.pathname
         : "/";
   const [path, setPath] = useState(readPath);
+  const governanceTab = governanceSection(path);
+  const pagePath = governanceTab ? governancePath : path;
   const [workspaceId, setWorkspaceId] = useState(
     () => localStorage.getItem("symos-workspace") || "symco",
   );
@@ -266,9 +260,8 @@ export default function App() {
     "/app/projects": "Acompanhe seus projetos, responsáveis e prazos.",
     "/app/documents":
       "Centralize, organize e compartilhe os documentos dos seus projetos.",
-    "/app/quality": "Gerencie auditorias, não conformidades e planos de ação.",
-    "/app/approvals":
-      "Revise solicitações e acompanhe as decisões dos seus projetos.",
+    [governancePath]:
+      "Acompanhe a qualidade, as aprovações, os riscos e as decisões dos projetos.",
     "/app/automations":
       "Conecte eventos e ações para simplificar o trabalho da equipe.",
     "/app/reports": "Transforme dados dos projetos em informação para decidir.",
@@ -286,7 +279,7 @@ export default function App() {
             ? project.name
             : navigation
                 .flatMap((group) => group.links)
-                .find((link) => link.path === path)?.label ||
+                .find((link) => link.path === pagePath)?.label ||
               modules.find((m) => path === `/app/modules/${m.id}`)?.name ||
               "Página não encontrada";
 
@@ -325,7 +318,7 @@ export default function App() {
                   title={label}
                   aria-label={label}
                   aria-current={
-                    path === target ||
+                    pagePath === target ||
                     (target === "/app/projects" &&
                       (isProjectsPage ||
                         !!project ||
@@ -524,15 +517,16 @@ export default function App() {
           </div>
         </header>
         <main className="os-main">
-          <div className="os-page-content" key={path}>
+          <div className="os-page-content" key={pagePath}>
             <div className="os-page-header">
               <div>
                 <small>SYMOS / {workspace.name.toUpperCase()}</small>
                 <h1>{title}</h1>
                 {!project && (
                   <p>
-                    {descriptions[isProjectsPage ? "/app/projects" : path] ||
-                      "Inteligência, governança e execução em um só lugar."}
+                    {descriptions[
+                      isProjectsPage ? "/app/projects" : pagePath
+                    ] || "Inteligência, governança e execução em um só lugar."}
                   </p>
                 )}
               </div>
@@ -586,11 +580,9 @@ export default function App() {
               />
             )}
             {path === "/app/documents" && <Documents {...pageProps} />}
-            {path === "/app/quality" && <Quality {...pageProps} />}
             {path === "/app/automations" && <Automations {...pageProps} />}
             {path === "/app/reports" && <Reports {...pageProps} />}
             {path === "/app/settings" && <SettingsPage {...pageProps} />}
-            {path === "/app/approvals" && <Approvals {...pageProps} />}
             {path.startsWith("/app/modules/") &&
               modules.some((m) => path === `/app/modules/${m.id}`) && (
                 <Portfolio
@@ -601,15 +593,8 @@ export default function App() {
                   navigate={navigate}
                 />
               )}
-            {["/app/risks", "/app/decisions"].includes(path) && (
-              <Governance
-                path={path}
-                workspaceId={workspace.id}
-                database={database}
-                projects={projects}
-                actions={actions}
-                navigate={navigate}
-              />
+            {governanceTab && (
+              <Governance section={governanceTab} {...pageProps} />
             )}
             {!project && projectId && (
               <div className="os-empty">

@@ -276,6 +276,7 @@
   gap: 5px;
 }
 .os-table-scroll {
+  max-inline-size: 100%;
   overflow: auto;
 }
 .os-table {
@@ -477,7 +478,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
 }
 .os-project-form legend {
@@ -593,6 +594,7 @@
 }
 .os-inline-form {
   display: flex;
+  flex-wrap: wrap;
   align-items: end;
   gap: var(--space-2);
   background: var(--surface-soft);
@@ -601,7 +603,12 @@
   margin-bottom: var(--space-3);
 }
 .os-inline-form label {
-  flex: 1;
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+}
+.os-inline-form input {
+  inline-size: 100%;
+  min-inline-size: 0;
 }
 .os-records {
   display: grid;
@@ -701,34 +708,34 @@
 }
 @media (max-width: 1250px) {
   .os-dashboard {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .os-rail {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
   }
   .os-card-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .os-project-summary {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 950px) {
   .os-kpis {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .os-detail-layout,
   .os-new-project {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .os-project-form {
     position: static;
   }
   .os-detail-rail {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
   }
 }
@@ -738,10 +745,10 @@
   .os-template-grid,
   .os-choice-grid,
   .os-detail-rail {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .os-project-summary {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .os-timeline button {
     flex-wrap: wrap;

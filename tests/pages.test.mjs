@@ -91,8 +91,7 @@ test("all prototype workspace pages render and documents can be created, filtere
   for (const [path, title] of [
     ["/app/documents", "Documentos"],
     ["/app/calendar", "Projetos"],
-    ["/app/quality", "Qualidade"],
-    ["/app/approvals", "Aprovações"],
+    ["/app/governance", "Governança"],
     ["/app/automations", "Automações"],
     ["/app/reports", "Relatórios"],
     ["/app/settings", "Configurações"],
@@ -165,6 +164,41 @@ test("all prototype workspace pages render and documents can be created, filtere
     "Workspace atualizado",
   );
 });
+test("workspace governance keeps its navigation across tabs and accepts legacy links", async () => {
+  await route("/app/governance");
+  const tabs = document.querySelector('[aria-label="Seções de governança"]');
+  const quality = () => button("Qualidade");
+  assert.equal(quality().getAttribute("aria-pressed"), "true");
+  const approvals = [...tabs.querySelectorAll("button")].find((tab) =>
+    tab.textContent.startsWith("Aprovações"),
+  );
+  assert.match(approvals.textContent, /Aprovações \(\d+\)/);
+  await click(approvals);
+  assert.equal(location.hash, "#/app/governance/approvals");
+  assert.equal(
+    document.querySelector('[aria-label="Seções de governança"]'),
+    tabs,
+  );
+  assert.ok(button("Nova solicitação"));
+  assert.equal(
+    document.querySelector('nav [aria-current="page"]').textContent,
+    "Governança",
+  );
+  for (const [path, label] of [
+    ["/app/risks", "Riscos"],
+    ["/app/decisions", "Decisões"],
+    ["/app/quality", "Qualidade"],
+    ["/app/approvals", approvals.textContent],
+  ]) {
+    await route(path);
+    assert.equal(document.querySelector("h1").textContent, "Governança");
+    assert.equal(
+      tabs.querySelector('[aria-pressed="true"]').textContent,
+      label,
+    );
+  }
+});
+
 test("new quality records, approval requests and automation rules persist through the forms", async () => {
   await route("/app/quality");
   await click(button("Novo registro"));
