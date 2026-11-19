@@ -89,6 +89,7 @@
   color: var(--nav-text);
   background: none;
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   padding: 10px 13px;
   text-align: left;
   font-size: var(--text-base);
@@ -216,6 +217,7 @@
   width: 23px;
   height: 23px;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   font-weight: bold;
 }
 .os-workspace-select .os-button.os-select {
@@ -240,6 +242,7 @@
   background: var(--surface-soft);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   padding: 0 var(--space-3);
   color: var(--muted);
 }
@@ -262,6 +265,7 @@
   border: 1px solid var(--line);
   padding: 2px 5px;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
 }
 .os-search-popover,
 .os-notifications {
@@ -270,6 +274,7 @@
   border: 1px solid var(--line);
   box-shadow: var(--shadow-floating);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   z-index: 50;
   padding: var(--space-2);
   max-height: min(360px, 50dvh);
@@ -308,6 +313,7 @@
   background: var(--surface);
   border: 0;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   color: var(--ink-soft);
   font-size: var(--text-base);
 }

@@ -13,6 +13,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(400px, 0.92fr);
   border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow-floating);
@@ -100,6 +101,7 @@
   padding: 17px;
   border: 1px solid #ffffff36;
   border-radius: var(--radius-card);
+  corner-shape: var(--corner-shape);
   background: #ffffff18;
   backdrop-filter: blur(14px);
   box-shadow: 0 18px 44px #00162b35;
@@ -151,6 +153,7 @@
 .os-preview-bars i {
   height: 8px;
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: #b8e7f777;
   width: 35%;
 }
@@ -169,6 +172,7 @@
 .os-access {
   width: min(100%, 29rem);
   border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   box-shadow: var(--shadow-floating);
 }
@@ -194,6 +198,7 @@
   width: 37px;
   height: 4px;
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--line);
   transition:
     background var(--duration-normal) var(--ease-layout),
@@ -241,6 +246,7 @@
   width: 39px;
   height: 39px;
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   display: grid;
   place-items: center;
   background: var(--surface-soft);
@@ -326,6 +332,7 @@
   padding: 13px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   color: var(--ink-soft);
 }
@@ -378,6 +385,7 @@
   z-index: 1;
   border: 2px solid #48d8ef;
   border-radius: var(--radius-card);
+  corner-shape: var(--corner-shape);
   background: #ffffff22;
   box-shadow:
     0 0 0 5px #41cff32b,
@@ -397,6 +405,7 @@
   width: min(395px, calc(100vw - 28px));
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   box-shadow: var(--shadow-floating);
   padding: var(--space-5);
@@ -443,6 +452,7 @@
   width: 17px;
   height: 4px;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   background: var(--line);
 }
 .os-tour-dots span.active {

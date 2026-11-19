@@ -61,6 +61,7 @@
   --radius-card: 16px;
   --radius-lg: 22px;
   --radius-round: 999px;
+  --corner-shape: squircle;
   --shadow-surface: 0 2px 5px rgb(12 32 56 / 5%);
   --shadow-raised: 0 5px 14px rgb(12 32 56 / 10%), 0 1px 3px rgb(12 32 56 / 5%);
   --shadow-floating:

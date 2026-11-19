@@ -66,6 +66,7 @@ p {
   gap: var(--space-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   color: var(--ink-soft);
   font-size: var(--text-base);
@@ -177,6 +178,7 @@ p {
   min-height: var(--control-size);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   color: var(--ink);
   padding: var(--space-2) var(--space-3);
@@ -219,6 +221,7 @@ label.os-check input {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
+  corner-shape: var(--corner-shape);
   box-shadow: var(--shadow-surface);
   min-width: 0;
 }
@@ -258,6 +261,7 @@ label.os-check input {
   color: var(--metric-ink);
   background: var(--metric-surface);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   margin-bottom: var(--space-2);
 }
 .os-kpi > span:not(.os-metric-icon) {
@@ -327,6 +331,7 @@ label.os-check input {
   padding: var(--space-1);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--surface-soft);
 }
 .os-tabs {
@@ -346,6 +351,7 @@ label.os-check input {
   flex: none;
   border: 0;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   color: var(--muted);
   background: transparent;
   min-height: var(--control-size);
@@ -368,6 +374,7 @@ label.os-check input {
   top: 0;
   left: 0;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   background: var(--blue-soft);
   transition:
     translate var(--duration-layout) var(--ease-layout),
@@ -397,6 +404,7 @@ label.os-check input {
   flex: none;
   border: 0;
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: transparent;
   width: var(--tap-size);
   height: var(--tap-size);
