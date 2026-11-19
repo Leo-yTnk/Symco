@@ -12,7 +12,9 @@ import { modules } from "../domain/catalog";
 import { Metrics } from "./workspaceUi";
 import { ProjectCard } from "../components/os/ProjectCard";
 
-type View = "cards" | "table" | "kanban" | "timeline";
+import { Schedule } from "./Schedule";
+
+type View = "cards" | "table" | "schedule";
 export function Portfolio({
   database,
   projects,
@@ -77,7 +79,7 @@ export function Portfolio({
       />
       <div className="os-portfolio-toolbar">
         <div className="os-view-tabs" role="group" aria-label="Visualização">
-          {(["cards", "table", "kanban", "timeline"] as const).map((item) => (
+          {(["cards", "table", "schedule"] as const).map((item) => (
             <button
               key={item}
               className={view === item ? "active" : ""}
@@ -88,8 +90,7 @@ export function Portfolio({
                 {
                   cards: "Cards",
                   table: "Tabela",
-                  kanban: "Kanban",
-                  timeline: "Timeline",
+                  schedule: "Cronograma",
                 }[item]
               }
             </button>
@@ -246,7 +247,9 @@ export function Portfolio({
           Limpar filtros
         </button>
       </div>
-      {!filtered.length ? (
+      {view === "schedule" ? (
+        <Schedule database={database} projects={filtered} navigate={navigate} />
+      ) : !filtered.length ? (
         <div className="os-empty">
           <h2>Nenhum projeto encontrado</h2>
           <p>Ajuste os filtros ou crie um projeto.</p>
@@ -268,7 +271,7 @@ export function Portfolio({
             />
           ))}
         </div>
-      ) : view === "table" ? (
+      ) : (
         <div className="os-table-scroll">
           <table className="os-table">
             <thead>
@@ -301,48 +304,6 @@ export function Portfolio({
               ))}
             </tbody>
           </table>
-        </div>
-      ) : view === "kanban" ? (
-        <div className="os-kanban">
-          {Object.entries(projectStatusLabels).map(([status, label]) => (
-            <div className="os-kanban-column" key={status}>
-              <h3>
-                {label}{" "}
-                <small>
-                  {filtered.filter((item) => item.status === status).length}
-                </small>
-              </h3>
-              {filtered
-                .filter((item) => item.status === status)
-                .map((item) => (
-                  <ProjectCard
-                    key={item.id}
-                    database={database}
-                    project={item}
-                    navigate={navigate}
-                  />
-                ))}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="os-timeline">
-          {filtered
-            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-            .map((item) => (
-              <button
-                key={item.id}
-                onClick={() => navigate(`/app/projects/${item.id}`)}
-              >
-                <strong>{item.name}</strong>
-                <span className="os-progress">
-                  <span style={{ width: `${progress(database, item.id)}%` }} />
-                </span>
-                <small>
-                  {formatDate(item.startDate)} — {formatDate(item.dueDate)}
-                </small>
-              </button>
-            ))}
         </div>
       )}
     </div>

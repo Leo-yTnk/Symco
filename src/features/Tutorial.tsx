@@ -23,13 +23,10 @@ export function Tutorial({
       target:
         window.innerWidth < 768
           ? '[data-tour="mobile-menu"]'
-          : '[data-tour="portfolio"]',
+          : '[data-tour="projects"]',
       route: "/app",
-      title: "Veja todo o portfólio",
-      text:
-        window.innerWidth < 768
-          ? "Abra o menu para acessar o portfólio. Lá você alterna entre cards, tabela, Kanban e timeline, com filtros que mudam os resultados na hora."
-          : "Abra o portfólio para alternar entre cards, tabela, Kanban e timeline. Os filtros mudam os resultados na hora.",
+      title: "Explore seus projetos",
+      text: "Na página Projetos, alterne entre cards, tabela e cronograma. Os filtros ajudam a encontrar os projetos que você quer acompanhar.",
     },
     {
       target: '[data-tour="new-project"]',
