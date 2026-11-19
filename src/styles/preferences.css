@@ -60,5 +60,6 @@
   background: var(--warning-soft);
   color: var(--warning);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   padding: var(--space-3);
 }
