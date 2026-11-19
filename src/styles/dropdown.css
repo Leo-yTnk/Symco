@@ -39,8 +39,13 @@
   max-height: 100%;
   overflow: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-1);
   outline: none;
+}
+.os-dropdown[data-animating],
+.os-dropdown[data-animating] .os-dropdown-list {
+  overflow: hidden;
 }
 .os-dropdown-option {
   display: flex;

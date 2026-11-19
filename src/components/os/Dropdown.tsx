@@ -83,6 +83,7 @@ function Dropdown({
     element.style.width = "";
     element.style.top = "";
     element.style.bottom = "";
+    content.style.maxHeight = "";
     const bounds = anchor.element.getBoundingClientRect();
     const style = getComputedStyle(element);
     const gutter = parseFloat(style.getPropertyValue("--space-2")) || 8;
@@ -110,6 +111,7 @@ function Dropdown({
     if (flip) element.style.bottom = `${viewportHeight - above}px`;
     else element.style.top = `${below}px`;
     element.style.height = `${height}px`;
+    content.style.maxHeight = `${Math.max(0, height - element.clientTop * 2)}px`;
     element.style.visibility = "visible";
     content
       .querySelector<HTMLElement>('[data-active="true"]')
@@ -127,16 +129,28 @@ function Dropdown({
       motionDuration(style) &&
       height > collapsed.current
     ) {
-      animation.current = element.animate(
+      const enter = element.animate(
         [{ height: `${collapsed.current}px` }, { height: `${height}px` }],
         {
           duration: motionDuration(style),
           easing: style.getPropertyValue("--ease-out").trim() || "ease-out",
         },
       );
+      animation.current = enter;
+      element.setAttribute("data-animating", "");
+      void enter.finished.then(
+        () => {
+          if (animation.current === enter)
+            element.removeAttribute("data-animating");
+        },
+        () => {},
+      );
     }
     content.focus({ preventScroll: true });
-    return () => animation.current?.cancel();
+    return () => {
+      animation.current?.cancel();
+      element.removeAttribute("data-animating");
+    };
   }, [anchor, matchAnchor]);
 
   useLayoutEffect(() => {
@@ -159,6 +173,7 @@ function Dropdown({
       },
     );
     animation.current = exit;
+    element.setAttribute("data-animating", "");
     let running = true;
     void exit.finished.then(
       () => {
@@ -169,6 +184,7 @@ function Dropdown({
     return () => {
       running = false;
       exit.cancel();
+      element.removeAttribute("data-animating");
     };
   }, [closing]);
 

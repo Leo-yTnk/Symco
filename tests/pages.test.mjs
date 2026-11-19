@@ -383,6 +383,133 @@ test("context menus edit, delete and restore persisted workspace records", async
   );
 });
 
+test("dropdown clips temporarily through opening and closing animations", async () => {
+  await route("/app/documents");
+  const trigger = document.querySelector(
+    '[aria-label="Projeto"][aria-haspopup="listbox"]',
+  );
+  const style = document.createElement("style");
+  style.textContent =
+    ".os-dropdown { --duration-normal: 240ms; } .os-dropdown-list { padding: 4px; }";
+  document.head.append(style);
+  const animations = [];
+  const prototype = window.HTMLElement.prototype;
+  const originalBounds = prototype.getBoundingClientRect;
+  const scrollHeight = Object.getOwnPropertyDescriptor(
+    window.Element.prototype,
+    "scrollHeight",
+  );
+  prototype.getBoundingClientRect = function () {
+    const box = originalBounds.call(this);
+    if (this.classList.contains("os-dropdown-option"))
+      return { ...box, height: 40 };
+    if (this.classList.contains("os-dropdown"))
+      return { ...box, height: Number.parseFloat(this.style.height) };
+    return box;
+  };
+  Object.defineProperty(window.Element.prototype, "scrollHeight", {
+    ...scrollHeight,
+    get() {
+      return this.classList.contains("os-dropdown-list")
+        ? 128
+        : scrollHeight.get.call(this);
+    },
+  });
+  prototype.animate = function (frames) {
+    let finish;
+    const finished = new Promise((resolve) => {
+      finish = resolve;
+    });
+    animations.push({ frames, finish });
+    return { finished, cancel() {} };
+  };
+  try {
+    await click(trigger);
+    const popup = document.querySelector(".os-dropdown");
+    assert.equal(popup.hasAttribute("data-animating"), true);
+    assert.deepEqual(animations[0].frames, [
+      { height: "48px" },
+      { height: "128px" },
+    ]);
+    await act(async () => animations[0].finish());
+    assert.equal(popup.hasAttribute("data-animating"), false);
+    await act(async () =>
+      document.activeElement.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "Escape",
+          bubbles: true,
+          cancelable: true,
+        }),
+      ),
+    );
+    assert.equal(popup.hasAttribute("data-animating"), true);
+    assert.deepEqual(animations[1].frames, [
+      { height: "128px" },
+      { height: "48px" },
+    ]);
+    await act(async () => animations[1].finish());
+    assert.equal(document.querySelector(".os-dropdown"), null);
+  } finally {
+    style.remove();
+    delete prototype.animate;
+    prototype.getBoundingClientRect = originalBounds;
+    Object.defineProperty(
+      window.Element.prototype,
+      "scrollHeight",
+      scrollHeight,
+    );
+  }
+});
+
+test("project deletion requires confirmation and undo restores connected records", async () => {
+  const before = db();
+  const project = before.projects.find(({ id }) => id === "aky-mayo");
+  await route(`/app/projects/${project.id}`);
+  const tabs = document.querySelector('[aria-label="Seções do projeto"]');
+  const settings = [...tabs.querySelectorAll("button")].find(
+    (tab) => tab.textContent === "Configurações",
+  );
+  await click(settings);
+  await click(button("Apagar projeto"));
+  const dialog = document.querySelector('[role="dialog"]');
+  const confirmation = dialog.querySelector("input");
+  const submit = dialog.querySelector("button[type=submit]");
+  assert.equal(submit.disabled, true);
+  await input(confirmation, "Outro projeto");
+  assert.equal(submit.disabled, true);
+  await input(confirmation, project.name);
+  assert.equal(submit.disabled, false);
+  await click(submit);
+  assert.equal(location.hash, "#/app/projects");
+  const remaining = db();
+  assert.ok(remaining.projects.length);
+  assert.equal(
+    remaining.projects.some(({ id }) => id === project.id),
+    false,
+  );
+  for (const key of [
+    "tasks",
+    "gates",
+    "attachments",
+    "comments",
+    "decisions",
+    "approvals",
+    "activities",
+    "qualityRecords",
+    "automations",
+  ]) {
+    assert.equal(
+      (remaining[key] || []).some(({ projectId }) => projectId === project.id),
+      false,
+      key,
+    );
+  }
+  assert.deepEqual(remaining.clients, before.clients);
+  assert.deepEqual(remaining.workspaces, before.workspaces);
+  await click(button("Desfazer"));
+  assert.deepEqual(db(), before);
+});
+
 test("empty workspace settings stay scoped to the selected workspace", async () => {
   const select = document.querySelector('select[aria-label="Workspace"]');
   await act(async () => {

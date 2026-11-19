@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { openSupabaseDatabase } from "../repositories/supabaseDatabase";
 import App from "./App";
+import { Button } from "../components/os/controls";
 
 export function WorkspaceAccess({
   title,
@@ -27,39 +28,12 @@ export function WorkspaceAccess({
 
 export function SupabaseWorkspace({ client }: { client: SupabaseClient }) {
   const [session, setSession] = useState<Session | null>();
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
   useEffect(() => {
     const { data: listener } = client.auth.onAuthStateChange((_, active) => {
       setSession(active);
     });
     return () => listener.subscription.unsubscribe();
   }, [client]);
-
-  const signIn = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (pending) return;
-    const form = new FormData(event.currentTarget);
-    setPending(true);
-    setError("");
-    try {
-      const { error: failure } = await client.auth.signInWithPassword({
-        email: String(form.get("email")).trim(),
-        password: String(form.get("password")),
-      });
-      if (failure) {
-        setError(
-          failure.code === "invalid_credentials"
-            ? "Confira o e-mail e a senha e tente de novo."
-            : "Não foi possível entrar no SymOS. Tente de novo.",
-        );
-      }
-    } catch {
-      setError("Não foi possível conectar ao Supabase. Tente de novo.");
-    } finally {
-      setPending(false);
-    }
-  };
 
   if (session === undefined) {
     return (
@@ -77,31 +51,170 @@ export function SupabaseWorkspace({ client }: { client: SupabaseClient }) {
       />
     );
   }
+  return <AccessForm client={client} />;
+}
+
+const signupErrors: Record<string, string> = {
+  signup_disabled: "O cadastro de novas contas está desativado.",
+  email_provider_disabled: "O cadastro por e-mail está desativado.",
+  weak_password: "Escolha uma senha que atenda aos requisitos de segurança.",
+  email_address_not_authorized:
+    "O serviço de e-mail ainda não está configurado para enviar a confirmação a este endereço.",
+  over_email_send_rate_limit:
+    "O limite de envios de e-mail foi atingido. Tente novamente mais tarde.",
+  over_request_rate_limit:
+    "Houve muitas tentativas. Tente novamente mais tarde.",
+};
+
+function AccessForm({ client }: { client: SupabaseClient }) {
+  const [mode, setMode] = useState<"login" | "signup" | "confirm">("login");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const signup = mode === "signup";
+  const passwordMinimum = 6;
+
+  function switchMode(next: "login" | "signup") {
+    setMode(next);
+    setError("");
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get("password") || "");
+    const address = email.trim();
+    setError("");
+    if (signup && password.length < passwordMinimum) {
+      setError(`A senha deve ter pelo menos ${passwordMinimum} caracteres.`);
+      return;
+    }
+    if (signup && form.get("confirmation") !== password) {
+      setError("As senhas precisam ser iguais.");
+      return;
+    }
+
+    setPending(true);
+    try {
+      if (signup) {
+        const { data, error: failure } = await client.auth.signUp({
+          email: address,
+          password,
+          options: {
+            emailRedirectTo: new URL(location.pathname, location.origin).href,
+          },
+        });
+        if (failure) {
+          setError(
+            signupErrors[failure.code ?? ""] ??
+              "Não foi possível criar a conta. Confira os dados e tente de novo.",
+          );
+        } else if (!data.session) {
+          setMode("confirm");
+        }
+      } else {
+        const { error: failure } = await client.auth.signInWithPassword({
+          email: address,
+          password,
+        });
+        if (failure) {
+          setError(
+            failure.code === "invalid_credentials"
+              ? "Confira o e-mail e a senha e tente de novo."
+              : failure.code === "email_not_confirmed"
+                ? "Confirme seu e-mail antes de entrar."
+                : "Não foi possível entrar no SymOS. Tente de novo.",
+          );
+        }
+      }
+    } catch {
+      setError("Não foi possível conectar ao Supabase. Tente de novo.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (mode === "confirm") {
+    return (
+      <WorkspaceAccess title="Confirme seu e-mail">
+        <p role="status">
+          Confira a caixa de entrada de <strong>{email.trim()}</strong> e abra o
+          link de confirmação para concluir o cadastro.
+        </p>
+        <Button onClick={() => switchMode("login")}>Voltar para o login</Button>
+      </WorkspaceAccess>
+    );
+  }
+
   return (
-    <WorkspaceAccess title="Entrar no SymOS">
-      <form className="os-field-stack" onSubmit={signIn}>
+    <WorkspaceAccess
+      title={signup ? "Criar conta no SymOS" : "Entrar no SymOS"}
+    >
+      <form key={mode} className="os-field-stack" onSubmit={submit}>
         <label>
           E-mail
-          <input name="email" type="email" autoComplete="username" required />
+          <input
+            name="email"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </label>
         <label>
           Senha
           <input
             name="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete={signup ? "new-password" : "current-password"}
+            minLength={signup ? passwordMinimum : undefined}
+            aria-describedby={signup ? "auth-password-hint" : undefined}
             required
           />
+          {signup && (
+            <small id="auth-password-hint">
+              Use pelo menos {passwordMinimum} caracteres.
+            </small>
+          )}
         </label>
+        {signup && (
+          <label>
+            Confirmar senha
+            <input
+              name="confirmation"
+              type="password"
+              autoComplete="new-password"
+              required
+            />
+          </label>
+        )}
         {error && (
           <p className="os-validation" role="alert">
             {error}
           </p>
         )}
-        <button className="os-button primary" disabled={pending}>
-          {pending ? "Entrando…" : "Entrar"}
-        </button>
+        <Button type="submit" variant="primary" disabled={pending}>
+          {signup
+            ? pending
+              ? "Criando conta…"
+              : "Criar conta"
+            : pending
+              ? "Entrando…"
+              : "Entrar"}
+        </Button>
       </form>
+      <div className="os-access-switch">
+        <span>{signup ? "Já tem uma conta?" : "Ainda não tem conta?"}</span>
+        <Button
+          variant="link"
+          disabled={pending}
+          onClick={() => switchMode(signup ? "login" : "signup")}
+        >
+          {signup ? "Entrar" : "Criar conta"}
+        </Button>
+      </div>
     </WorkspaceAccess>
   );
 }
