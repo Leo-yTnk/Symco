@@ -30,6 +30,7 @@
   overflow: clip;
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  corner-shape: var(--corner-shape);
   background: var(--surface);
   box-shadow: var(--shadow-floating);
 }
@@ -57,6 +58,7 @@
   padding-inline-end: var(--space-1);
   border: 0;
   border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
   color: var(--ink);
   background: transparent;
   font-size: var(--text-base);
@@ -114,6 +116,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
+  corner-shape: var(--corner-shape);
   box-shadow: var(--shadow-floating);
 }
 .os-records > .os-record-with-actions {
