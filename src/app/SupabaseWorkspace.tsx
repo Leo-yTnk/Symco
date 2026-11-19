@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { openSupabaseDatabase } from "../repositories/supabaseDatabase";
 import App from "./App";
+import { TurnstileChallenge } from "./TurnstileChallenge";
 import { Button } from "../components/os/controls";
 
 export function WorkspaceAccess({
@@ -54,7 +55,11 @@ export function SupabaseWorkspace({ client }: { client: SupabaseClient }) {
   return <AccessForm client={client} />;
 }
 
+const turnstileSiteKey = import.meta.env?.VITE_TURNSTILE_SITE_KEY?.trim();
+const captchaError = "A verificação de segurança falhou. Atualize a página e tente de novo.";
+
 const signupErrors: Record<string, string> = {
+  captcha_failed: captchaError,
   signup_disabled: "O cadastro de novas contas está desativado.",
   email_provider_disabled: "O cadastro por e-mail está desativado.",
   weak_password: "Escolha uma senha que atenda aos requisitos de segurança.",
@@ -71,17 +76,20 @@ function AccessForm({ client }: { client: SupabaseClient }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaAttempt, setCaptchaAttempt] = useState(0);
   const signup = mode === "signup";
   const passwordMinimum = 6;
 
   function switchMode(next: "login" | "signup") {
+    setCaptchaToken("");
     setMode(next);
     setError("");
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending) return;
+    if (pending || (turnstileSiteKey && !captchaToken)) return;
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
     const address = email.trim();
@@ -102,6 +110,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
           email: address,
           password,
           options: {
+            ...(captchaToken ? { captchaToken } : {}),
             emailRedirectTo: new URL(location.pathname, location.origin).href,
           },
         });
@@ -117,6 +126,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
         const { error: failure } = await client.auth.signInWithPassword({
           email: address,
           password,
+          ...(captchaToken ? { options: { captchaToken } } : {}),
         });
         if (failure) {
           setError(
@@ -124,13 +134,19 @@ function AccessForm({ client }: { client: SupabaseClient }) {
               ? "Confira o e-mail e a senha e tente de novo."
               : failure.code === "email_not_confirmed"
                 ? "Confirme seu e-mail antes de entrar."
-                : "Não foi possível entrar no SymOS. Tente de novo.",
+                : failure.code === "captcha_failed"
+                  ? captchaError
+                  : "Não foi possível entrar no SymOS. Tente de novo.",
           );
         }
       }
     } catch {
       setError("Não foi possível conectar ao Supabase. Tente de novo.");
     } finally {
+      if (turnstileSiteKey) {
+        setCaptchaToken("");
+        setCaptchaAttempt((value) => value + 1);
+      }
       setPending(false);
     }
   }
@@ -190,12 +206,23 @@ function AccessForm({ client }: { client: SupabaseClient }) {
             />
           </label>
         )}
+        {turnstileSiteKey && (
+          <TurnstileChallenge
+            key={captchaAttempt}
+            siteKey={turnstileSiteKey}
+            onToken={setCaptchaToken}
+          />
+        )}
         {error && (
           <p className="os-validation" role="alert">
             {error}
           </p>
         )}
-        <Button type="submit" variant="primary" disabled={pending}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={pending || Boolean(turnstileSiteKey && !captchaToken)}
+        >
           {signup
             ? pending
               ? "Criando conta…"

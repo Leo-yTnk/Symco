@@ -37,6 +37,15 @@ O Supabase guarda um documento JSON por conta e usa políticas de acesso por lin
 
 Ao deixar as duas variáveis vazias, o SymOS inicia em modo local. Nesse modo, projetos da demonstração e registros associados deixam de aparecer. Projetos criados fora da demonstração continuam acessíveis. A chave anterior `symos-database-v1` fica preservada para recuperação, inclusive para quem adicionou conteúdo a um projeto de exemplo. O primeiro acesso ao Supabase começa vazio. Os dados locais não são enviados automaticamente.
 
+## Proteger login e cadastro com Turnstile
+
+1. Crie um widget **Managed** no Cloudflare Turnstile para o hostname publicado do SymOS, por exemplo `leo-ytnk.github.io`.
+2. Configure a **Site Key** pública como `VITE_TURNSTILE_SITE_KEY` nas variáveis do GitHub Actions. Para rodar localmente, use a mesma variável em `.env.local` com um widget que aceite o hostname de desenvolvimento.
+3. Publique pelo workflow **Deploy to GitHub Pages** e confira a presença do widget em **Entrar** e **Criar conta**.
+4. No Supabase, em **Authentication → Bot and Abuse Protection**, habilite CAPTCHA, selecione **Turnstile** e salve a **Secret Key** privada. Teste o login e o cadastro após a ativação.
+
+Se a variável pública estiver vazia, as telas funcionam sem o widget. A chave privada deve ficar apenas no Supabase.
+
 ## Design system
 
 Use os componentes em `src/components/os` para botões, indicadores, status, seletores de visualização, grupos recolhíveis e gavetas. Use os tokens semânticos para aplicar a mesma cor, profundidade e espaçamento em contextos equivalentes.
