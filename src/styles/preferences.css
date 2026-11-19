@@ -1,0 +1,64 @@
+.os-preference-list {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.os-preference-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  min-height: var(--tap-size);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+.os-preference-list > .os-preference-row:last-child {
+  border-bottom: 0;
+}
+.os-preference-row > div {
+  flex: 1 1 11rem;
+  min-width: 0;
+}
+.os-preference-row select {
+  width: min(100%, 12rem);
+}
+.os-preference-row small {
+  display: block;
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+.os-preference-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.os-preference-actions > [role="status"] {
+  color: var(--ink-soft);
+}
+.os-css-settings,
+.os-settings-grid > .os-preference-actions {
+  grid-column: 1 / -1;
+}
+.os-css-settings form {
+  margin-top: var(--space-4);
+}
+.os-css-settings a {
+  color: var(--blue);
+  text-underline-offset: 0.15em;
+}
+.os-css-editor {
+  display: block;
+  width: 100%;
+  min-height: 10rem;
+  font-family: ui-monospace, monospace;
+  line-height: 1.55;
+  tab-size: 2;
+}
+.os-preference-notice {
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}

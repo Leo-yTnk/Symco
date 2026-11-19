@@ -2,36 +2,63 @@ import { SegmentedControl, StatusSwitch } from "../components/os/controls";
 import { useState } from "react";
 import { modules } from "../domain/catalog";
 import { type PageProps, Empty } from "./workspaceUi";
+import { type usePreferences } from "../application/usePreferences";
+import { PreferencesPage, preferencesSafePath } from "./PreferencesPage";
+
+export const settingsPath = "/app/settings";
+const tabs = {
+  general: "Geral",
+  preferences: "Preferências",
+  members: "Equipe e membros",
+  clients: "Clientes",
+  modules: "Módulos",
+  methodologies: "Metodologias",
+};
+type SettingsSection = keyof typeof tabs;
+
+export function settingsSection(path: string): SettingsSection | undefined {
+  if (path === settingsPath) return "general";
+  if (path === preferencesSafePath) return "preferences";
+  return (Object.keys(tabs) as SettingsSection[]).find(
+    (option) => path === `${settingsPath}/${option}`,
+  );
+}
 export function SettingsPage({
   database,
   workspaceId,
   actions,
   projects,
-}: PageProps) {
+  navigate,
+  tab,
+  safeMode,
+  personalPreferences,
+}: PageProps & {
+  tab: SettingsSection;
+  safeMode: boolean;
+  personalPreferences: ReturnType<typeof usePreferences>;
+}) {
   const workspace = database.workspaces.find((w) => w.id === workspaceId)!;
-  const [tab, setTab] = useState("general");
   const [message, setMessage] = useState("");
-  const tabs = {
-    general: "Geral",
-    members: "Equipe e membros",
-    clients: "Clientes",
-    modules: "Módulos",
-    methodologies: "Metodologias",
-  };
   return (
     <>
       <SegmentedControl
         wide
+        wrap
         options={tabs}
         label="Configurações"
         value={tab}
         onChange={(option) => {
-          setTab(option);
+          if (option === tab) return;
+          navigate(
+            option === "general" ? settingsPath : `${settingsPath}/${option}`,
+          );
           setMessage("");
         }}
       />
       <div className="os-settings-grid">
-        {tab === "general" ? (
+        {tab === "preferences" ? (
+          <PreferencesPage {...personalPreferences} safeMode={safeMode} />
+        ) : tab === "general" ? (
           <>
             <section className="os-section">
               <h2>Informações do workspace</h2>
@@ -203,7 +230,7 @@ export function SettingsPage({
           </section>
         )}
       </div>
-      {message && (
+      {message && tab === "general" && (
         <p role="status" className="os-save-message">
           {message}
         </p>

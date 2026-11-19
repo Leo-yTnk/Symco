@@ -155,7 +155,7 @@
 }
 .os-stage-track span {
   background: var(--blue);
-  color: var(--surface);
+  color: var(--on-accent);
   border-radius: var(--radius-round);
   width: 24px;
   height: 24px;

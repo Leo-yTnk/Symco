@@ -314,6 +314,39 @@ test("empty workspace settings stay scoped to the selected workspace", async () 
   await route("/app/documents");
   assert.equal(document.querySelectorAll(".os-sheet-table tbody tr").length, 0);
 });
+test("personal preferences stay active across routes and can be restored", async () => {
+  await route("/app/settings");
+  await click(button("Preferências"));
+  assert.equal(location.hash, "#/app/settings/preferences");
+  assert.equal(
+    document.querySelector('nav [aria-current="page"]').textContent,
+    "Configurações",
+  );
+  const theme = [...document.querySelectorAll("label select")].find(
+    (select) => select.parentElement.textContent.startsWith("Tema"),
+  );
+  await act(async () => {
+    theme.value = "dark";
+    theme.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await click(document.querySelector('[role="switch"][aria-label="Reduzir movimento"]'));
+  const { dataset } = document.documentElement;
+  assert.equal(dataset.theme, "dark");
+  assert.equal(dataset.reduceMotion, "true");
+
+  await route("/app");
+  assert.equal(dataset.theme, "dark");
+  const saved = JSON.parse(localStorage.getItem("symos-preferences-v1"));
+  assert.equal(saved.theme, "dark");
+  assert.equal(saved.reduceMotion, true);
+
+  await route("/app/settings/preferences/safe");
+  assert.match(document.querySelector(".os-preference-notice").textContent, /Modo de recuperação ativo/);
+  await click(button("Restaurar tema e acessibilidade"));
+  assert.equal(dataset.theme, "system");
+  assert.equal(dataset.reduceMotion, "false");
+});
+
 test("failed persistence does not publish uploaded metadata or generated automation actions", async () => {
   await act(async () => root.unmount());
   let actions;

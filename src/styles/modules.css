@@ -183,7 +183,7 @@
   width: 27px;
   height: 32px;
   border-radius: var(--radius-sm);
-  color: var(--surface);
+  color: var(--on-accent);
   background: var(--blue);
   flex: none;
 }
@@ -283,7 +283,7 @@
   height: 22px;
   border: 0;
   border-radius: var(--radius-sm);
-  color: var(--surface);
+  color: var(--on-accent);
   font-size: var(--text-xs);
   padding: 2px 5px;
   overflow: hidden;
