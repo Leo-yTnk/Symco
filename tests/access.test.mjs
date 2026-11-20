@@ -40,7 +40,7 @@ const { act, createElement } = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { SupabaseWorkspace } = await import("../.tmp/access.mjs");
 
-const heading = () => document.querySelector("h1")?.textContent;
+const heading = () => document.querySelector(".os-access h2");
 
 async function click(text) {
   const target = [...document.querySelectorAll("button")].find(
@@ -104,7 +104,21 @@ test("signup validates passwords and handles disabled signup and email confirmat
     root.render(createElement(SupabaseWorkspace, { client })),
   );
   try {
-    assert.equal(heading(), "Entrar no SymOS");
+    const intro = document.querySelector(".os-company-intro");
+    const access = document.querySelector(".os-access");
+    assert.ok(intro && access);
+    assert.equal(intro.nextElementSibling, access);
+    assert.equal(intro.querySelectorAll("li").length, 6);
+
+    const accessHeading = heading();
+    assert.equal(accessHeading?.textContent, "Entrar no SymOS");
+    const scrollCalls = [];
+    accessHeading.scrollIntoView = (options) => scrollCalls.push(options);
+    await click("Acessar o SymOS");
+    assert.equal(document.activeElement, accessHeading);
+    assert.deepEqual(scrollCalls, [{ block: "start" }]);
+    assert.equal(location.hash, "#/app");
+
     await click("Criar conta");
     await fill("email", "conta@example.com");
     await fill("password", "Senha-teste-42");
@@ -122,14 +136,14 @@ test("signup validates passwords and handles disabled signup and email confirmat
       /desativado/,
     );
     await click("Criar conta");
-    assert.equal(heading(), "Confirme seu e-mail");
+    assert.equal(heading()?.textContent, "Confirme seu e-mail");
     assert.deepEqual(requests[1], {
       email: "conta@example.com",
       password: "Senha-teste-42",
       options: { emailRedirectTo: "https://example.github.io/Symco/" },
     });
     await click("Voltar para o login");
-    assert.equal(heading(), "Entrar no SymOS");
+    assert.equal(heading()?.textContent, "Entrar no SymOS");
     assert.equal(
       document.querySelector('input[name="email"]').value,
       "conta@example.com",
@@ -156,6 +170,7 @@ test("signup with a session opens the account workspace onboarding", async () =>
     await fill("confirmation", "Senha-teste-42");
     await click("Criar conta");
     assert.ok(document.querySelector(".os-onboarding-grid"));
+    assert.ok(!document.querySelector(".os-company-intro"));
     assert.ok(!document.querySelector('input[name="password"]'));
   } finally {
     await act(async () => root.unmount());
