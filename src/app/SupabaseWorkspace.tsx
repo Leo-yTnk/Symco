@@ -1,25 +1,58 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { openSupabaseDatabase } from "../repositories/supabaseDatabase";
 import App from "./App";
 import { TurnstileChallenge } from "./TurnstileChallenge";
 import { Button } from "../components/os/controls";
+import { CompanyIntro } from "../features/CompanyIntro";
 
 export function WorkspaceAccess({
   title,
   children,
+  showCompanyIntro = false,
 }: {
   title: string;
   children: ReactNode;
+  showCompanyIntro?: boolean;
 }) {
+  const headingId = useId();
+  const accessHeading = useRef<HTMLHeadingElement>(null);
+  const Heading = showCompanyIntro ? "h2" : "h1";
+
+  function goToAccess() {
+    const heading = accessHeading.current;
+    if (!heading) return;
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({ block: "start" });
+  }
+
   return (
-    <main className="os-onboarding">
-      <section className="os-onboarding-form os-access">
-        <div className="os-onboarding-brand">
-          sym<span>OS</span>
-        </div>
+    <main className={showCompanyIntro ? "os-public-access" : "os-onboarding"}>
+      {showCompanyIntro && <CompanyIntro onAccess={goToAccess} />}
+      <section
+        className="os-onboarding-form os-access"
+        aria-labelledby={headingId}
+      >
+        {!showCompanyIntro && (
+          <div className="os-onboarding-brand">
+            sym<span>OS</span>
+          </div>
+        )}
         <div className="os-onboarding-content">
-          <h1>{title}</h1>
+          <Heading
+            id={headingId}
+            ref={accessHeading}
+            tabIndex={showCompanyIntro ? -1 : undefined}
+          >
+            {title}
+          </Heading>
           {children}
         </div>
       </section>
@@ -153,7 +186,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
 
   if (mode === "confirm") {
     return (
-      <WorkspaceAccess title="Confirme seu e-mail">
+      <WorkspaceAccess title="Confirme seu e-mail" showCompanyIntro>
         <p role="status">
           Confira a caixa de entrada de <strong>{email.trim()}</strong> e abra o
           link de confirmação para concluir o cadastro.
@@ -166,6 +199,7 @@ function AccessForm({ client }: { client: SupabaseClient }) {
   return (
     <WorkspaceAccess
       title={signup ? "Criar conta no SymOS" : "Entrar no SymOS"}
+      showCompanyIntro
     >
       <form key={mode} className="os-field-stack" onSubmit={submit}>
         <label>
